@@ -12,8 +12,21 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'gtu-rd-portal-dev-key-change-in-production'
 
     # Database
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'instance', 'gtu_portal.db')
+    # Support both full DATABASE_URL or individual DB_USER/DB_PASSWORD/DB_HOST/DB_PORT/DB_NAME variables
+    db_user = os.environ.get('DB_USER')
+    db_password = os.environ.get('DB_PASSWORD')
+    db_host = os.environ.get('DB_HOST', 'localhost')
+    db_port = os.environ.get('DB_PORT', '3306')
+    db_name = os.environ.get('DB_NAME', 'iic_cell_gtu')
+
+    if db_user and db_password:
+        import urllib.parse
+        encoded_password = urllib.parse.quote_plus(db_password)
+        SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{db_user}:{encoded_password}@{db_host}:{db_port}/{db_name}"
+    else:
+        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+            'sqlite:///' + os.path.join(basedir, 'instance', 'gtu_portal.db')
+            
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # File Uploads

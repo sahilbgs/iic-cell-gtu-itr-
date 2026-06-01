@@ -26,6 +26,35 @@ def create_app(config_name=None):
     os.makedirs(app.config.get('EXPORT_FOLDER', 'exports'), exist_ok=True)
     os.makedirs(os.path.join(app.instance_path), exist_ok=True)
 
+    # Auto-create MySQL database if configured
+    db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    if db_uri.startswith('mysql'):
+        try:
+            from sqlalchemy.engine.url import make_url
+            import pymysql
+            import urllib.parse
+
+            url = make_url(db_uri)
+            # URL unquote password in case it is URL-encoded
+            decoded_password = urllib.parse.unquote(url.password or '')
+
+            # Connect to MySQL server without database
+            connection = pymysql.connect(
+                host=url.host or 'localhost',
+                user=url.username or 'root',
+                password=decoded_password,
+                port=url.port or 3306,
+                charset='utf8mb4'
+            )
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{url.database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
+                connection.commit()
+            finally:
+                connection.close()
+        except Exception as e:
+            app.logger.warning(f"Could not auto-create MySQL database: {e}")
+
     # Initialize extensions
     from extensions import db, login_manager, mail, migrate, csrf
     db.init_app(app)
