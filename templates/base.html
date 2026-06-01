@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}Dashboard{% endblock %} — GTU R&D &amp; IIC Portal</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <!-- Flash Messages (rendered as toasts via JS) -->
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div data-flash="{{ message }}" data-flash-type="{{ category }}" class="d-none"></div>
+  {% endfor %}
+
+  <!-- Sidebar Backdrop (mobile) -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <!-- ═══════════ SIDEBAR ═══════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__brand-icon">GTU</div>
+      <div class="sidebar__brand-text">
+        R&D &amp; IIC Portal
+        <small>Gujarat Technological University</small>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <div class="sidebar__section-title">Main</div>
+
+      <a href="{{ url_for('dashboard.index') }}" class="sidebar__link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="{% if current_user.role == 'PRINCIPAL' %}{{ url_for('posts.manage') }}{% else %}{{ url_for('posts.index') }}{% endif %}" class="sidebar__link {% if request.blueprint == 'posts' %}active{% endif %}">
+        <i data-lucide="megaphone"></i>
+        <span>Shared Activities</span>
+      </a>
+    </nav>
+
+    <div class="sidebar__user">
+      <div class="sidebar__avatar">
+        {{ current_user.full_name[:2]|upper if current_user.is_authenticated else 'GT' }}
+      </div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">{{ current_user.full_name if current_user.is_authenticated else 'Guest' }}</div>
+        <div class="sidebar__user-role">{{ current_user.role|capitalize if current_user.is_authenticated else '' }}</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════ TOPBAR ═══════════ -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <button class="topbar__icon-btn hamburger" id="hamburger" aria-label="Toggle menu">
+        <i data-lucide="menu"></i>
+      </button>
+      <div>
+        <div class="topbar__title">{% block page_title %}Dashboard{% endblock %}</div>
+        {% block breadcrumb %}{% endblock %}
+      </div>
+    </div>
+
+    <div class="topbar__right">
+      <div class="topbar__search">
+        <i data-lucide="search"></i>
+        <input type="text" placeholder="Search…" aria-label="Search">
+      </div>
+
+      <button class="topbar__icon-btn" id="dark-mode-toggle" aria-label="Toggle dark mode" data-tooltip="Toggle theme">
+        <i data-lucide="moon"></i>
+      </button>
+
+      <button class="topbar__icon-btn" data-tooltip="Notifications">
+        <i data-lucide="bell"></i>
+        <span class="badge-dot"></span>
+      </button>
+
+      <div class="dropdown">
+        <button class="topbar__icon-btn dropdown__trigger" aria-label="User menu">
+          <i data-lucide="user"></i>
+        </button>
+        <div class="dropdown__menu">
+          <a href="{{ url_for('auth.profile') }}" class="dropdown__item"><i data-lucide="user"></i> Profile</a>
+          <a href="#" class="dropdown__item"><i data-lucide="settings"></i> Settings</a>
+          <div class="dropdown__divider"></div>
+          <a href="{{ url_for('auth.logout') }}" class="dropdown__item" style="color:var(--danger)">
+            <i data-lucide="log-out"></i> Sign Out
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ═══════════ MAIN CONTENT ═══════════ -->
+  <main class="main-content">
+    <div class="main-content__inner">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- App JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>lucide.createIcons();</script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}{% if post %}Modify Post — {{ post.title }}{% else %}Share External Activity{% endif %}{% endblock %}
+{% block page_title %}{% if post %}Edit Shared Activity{% else %}Share External Notice / Activity{% endif %}{% endblock %}
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <a href="{{ url_for('posts.manage') }}">Manage Shared Activities</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <span>{% if post %}Edit{% else %}New{% endif %}</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-2 stagger max-w-7xl mx-auto" style="grid-template-columns: 4fr 5fr; gap: 28px;">
+  
+  <!-- LEFT COLUMN: AI Parsing Panel (Only visible for new posts) -->
+  <div>
+    {% if not post %}
+      <div class="card card--flat" style="border-top: 4px solid var(--primary); height: 100%;">
+        <div class="card__header">
+          <h4 style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="sparkles" style="color:var(--primary)"></i>
+            AI Quick Pre-Filler
+          </h4>
+          <p class="text-muted text-sm">Paste the raw email or circular text you received from the company, firm, or university here to automatically pre-fill the form using local AI!</p>
+        </div>
+        <div class="card__body" style="display:flex; flex-direction:column; gap:16px;">
+          
+          <div class="form-group">
+            <label class="form-label" for="pasted_text">Paste Email / Circular Body Text</label>
+            <textarea id="pasted_text" rows="12" class="form-textarea" placeholder="Dear Principal, We are excited to announce a Collaborative Hackathon starting on June 10th and ending on June 25th for CE and IT students... Please paste the full email content here..." style="font-family:'Inter', sans-serif; font-size:13px; line-height:1.5;"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Or Upload Document / Flier Image</label>
+            <input type="file" id="post_file" class="d-none" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg">
+            <div class="upload-zone" style="padding: 20px; border: 2px dashed var(--border-color); border-radius: 8px; text-align: center; cursor: pointer;" id="dragDropZone">
+              <i data-lucide="upload-cloud" style="width: 32px; height: 32px; color: var(--text-muted); margin-bottom: 8px; display: inline-block;"></i>
+              <div class="text-sm font-semibold">Drag & Drop Circular, Notice, or Flier</div>
+              <small class="text-muted block mt-1">Accepts PDF, Word, TXT, or Images (JPG/PNG) up to 10MB</small>
+              <div id="fileUploadInfo" class="mt-2 text-xs font-semibold text-primary"></div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between" style="background:var(--bg-surface-hover); padding:12px; border-radius:6px; border:1px solid var(--border-color);">
+            <div class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="use_ai" checked style="cursor:pointer;">
+              <label for="use_ai" class="form-label mb-0 cursor-pointer" style="font-weight:600; color:var(--text-primary); font-size:13px;">Use Local AI Model (Phi-3)</label>
+            </div>
+            <span class="badge badge--success" style="font-size:10px;">Offline Safe</span>
+          </div>
+
+          <button type="button" class="btn btn--primary w-full flex items-center justify-center gap-2 mt-2" id="extractBtn" style="padding:12px;">
+            <i data-lucide="sparkles" style="width:16px;height:16px;"></i> Run Auto-Extraction
+          </button>
+        </div>
+      </div>
+    {% else %}
+      <div class="card card--flat text-center py-12" style="background: var(--bg-surface); height: 100%; border: 1px dashed var(--border-color); display:flex; flex-direction:column; justify-content:center; align-items:center;">
+        <i data-lucide="lock" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 16px; opacity: 0.5;"></i>
+        <h5 class="font-semibold text-muted">AI Pre-Filling Disabled</h5>
+        <p class="text-xs text-muted max-w-xs mt-2" style="line-height:1.5;">This post has already been created. You can modify its fields directly inside the form on the right.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- RIGHT COLUMN: Post Form -->
+  <div>
+    <div class="card card--flat" style="border-top: 4px solid var(--primary);">
+      <div class="card__header">
+        <h4>Shared Post Details Form</h4>
+        <p class="text-muted text-sm">Review, tweak, and save the announcement card details. Fields marked with <span class="text-danger">*</span> are required.</p>
+      </div>
+      <div class="card__body">
+        <form method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="pre_attachment_path" id="pre_attachment_path" value="">
+          <div class="form-group">
+            <label class="form-label" for="title">Activity Heading <span class="text-danger">*</span></label>
+            <input type="text" id="title" name="title" class="form-control" value="{{ post.title if post else '' }}" placeholder="e.g. TCS Collaborative AI & Cloud Innovation Hackathon" required>
+          </div>
+
+          <div class="grid grid-2">
+            <div class="form-group">
+              <label class="form-label" for="source">Received From (Source) <span class="text-danger">*</span></label>
+              <select id="source" name="source" class="form-select" required>
+                {% for code, label in sources %}
+                  <option value="{{ code }}" {% if post and post.source == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="department_id">Associated Department</label>
+              <select id="department_id" name="department_id" class="form-select">
+                <option value="">-- All / Institutional --</option>
+                {% for dept in departments %}
+                  <option value="{{ dept.id }}" {% if post and post.department_id == dept.id %}selected{% endif %}>{{ dept.name }} ({{ dept.code }})</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-3">
+            <div class="form-group">
+              <label class="form-label" for="start_date">Start Date</label>
+              <input type="date" id="start_date" name="start_date" class="form-control" value="{{ post.start_date.strftime('%Y-%m-%d') if post and post.start_date else '' }}">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="end_date">End Date / Deadline</label>
+              <input type="date" id="end_date" name="end_date" class="form-control" value="{{ post.end_date.strftime('%Y-%m-%d') if post and post.end_date else '' }}">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="progress_status">Progress Status <span class="text-danger">*</span></label>
+              <select id="progress_status" name="progress_status" class="form-select" required>
+                {% for code, label in statuses %}
+                  <option value="{{ code }}" {% if post and post.progress_status == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="summary">Activity Summary <span class="text-danger">*</span></label>
+            <textarea id="summary" name="summary" rows="3" class="form-textarea" placeholder="Provide a brief 2-3 sentence overview that will appear directly on the home card..." required>{{ post.summary if post else '' }}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="full_content">Full Announcement Content <span class="text-danger">*</span></label>
+            <textarea id="full_content" name="full_content" rows="6" class="form-textarea" placeholder="Paste the complete notice details, rules, contact info, and registration details here..." required>{{ post.full_content if post else '' }}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="attachment">Attachment Document (Optional)</label>
+            <input type="file" id="attachment" name="attachment" class="form-control">
+            {% if post and post.attachment_path %}
+              <div class="mt-2 text-xs font-semibold text-muted flex items-center gap-1">
+                <i data-lucide="paperclip" style="width:12px;height:12px;color:var(--primary);"></i>
+                Current attachment: 
+                <a href="{{ url_for('posts.download_file', filename=post.attachment_path, download=1) }}" class="text-primary hover:underline font-bold" target="_blank">
+                  {{ post.attachment_path.split('/')[-1] }}
+                </a>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="flex justify-end gap-2 mt-8 pt-4" style="border-top:1px solid var(--border-color)">
+            <a href="{{ url_for('posts.manage') }}" class="btn btn--secondary">Cancel</a>
+            <button type="submit" class="btn btn--primary">
+              <i data-lucide="save" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:2px"></i>
+              {% if post %}Save Updates{% else %}Publish Announcement{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Dynamic Drag & Drop File Upload handling for Pre-Filler
+  const dragDropZone = document.getElementById('dragDropZone');
+  const postFileInput = document.getElementById('post_file');
+  const fileUploadInfo = document.getElementById('fileUploadInfo');
+
+  if (dragDropZone && postFileInput) {
+    dragDropZone.addEventListener('click', () => postFileInput.click());
+
+    dragDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dragDropZone.style.background = 'rgba(0, 51, 102, 0.05)';
+      dragDropZone.style.borderColor = 'var(--primary)';
+    });
+
+    dragDropZone.addEventListener('dragleave', () => {
+      dragDropZone.style.background = '';
+      dragDropZone.style.borderColor = 'var(--border-color)';
+    });
+
+    dragDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragDropZone.style.background = '';
+      dragDropZone.style.borderColor = 'var(--border-color)';
+      if (e.dataTransfer.files.length) {
+        postFileInput.files = e.dataTransfer.files;
+        updateFileName();
+      }
+    });
+
+    postFileInput.addEventListener('change', updateFileName);
+  }
+
+  function updateFileName() {
+    if (postFileInput.files.length) {
+      fileUploadInfo.innerHTML = `<i data-lucide="check" style="width:12px;height:12px;color:var(--success);display:inline-block;vertical-align:middle;"></i> Selected: ${postFileInput.files[0].name} (${(postFileInput.files[0].size/1024).toFixed(1)} KB)`;
+      lucide.createIcons();
+    } else {
+      fileUploadInfo.innerHTML = '';
+    }
+  }
+
+  // Dynamic AJAX parser
+  const extractBtn = document.getElementById('extractBtn');
+  const pastedTextarea = document.getElementById('pasted_text');
+  const useAiCheckbox = document.getElementById('use_ai');
+
+  if (extractBtn) {
+    extractBtn.addEventListener('click', function () {
+      const text = pastedTextarea.value.trim();
+      const file = postFileInput.files[0];
+
+      if (!text && !file) {
+        window.showToast('warning', 'Input Missing', 'Please paste email text or drag and drop a document first.');
+        return;
+      }
+
+      // Show loader
+      extractBtn.disabled = true;
+      extractBtn.innerHTML = '<span class="spinner spinner--sm"></span> Auto-Extracting...';
+
+      const formData = new FormData();
+      formData.append('pasted_text', text);
+      formData.append('use_ai', useAiCheckbox.checked ? 'true' : 'false');
+      if (file) {
+        formData.append('post_file', file);
+      }
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+      fetch("{{ url_for('posts.extract') }}", {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-CSRFToken': csrfToken }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.extracted) {
+          const ext = data.extracted;
+          
+          // Pre-fill form fields
+          document.getElementById('title').value = ext.activity_heading || '';
+          document.getElementById('source').value = ext.source || 'COMPANY';
+          document.getElementById('summary').value = ext.summary || '';
+          document.getElementById('full_content').value = ext.full_content || '';
+          
+          if (ext.start_date) {
+            document.getElementById('start_date').value = ext.start_date;
+          } else {
+            document.getElementById('start_date').value = '';
+          }
+          if (ext.end_date) {
+            document.getElementById('end_date').value = ext.end_date;
+          } else {
+            document.getElementById('end_date').value = '';
+          }
+
+          // Match department select dropdown
+          if (ext.department) {
+            const deptSelect = document.getElementById('department_id');
+            let matched = false;
+            for (let option of deptSelect.options) {
+              if (option.text.includes('(' + ext.department + ')') || option.text.toUpperCase().includes(ext.department)) {
+                option.selected = true;
+                matched = true;
+                break;
+              }
+            }
+            if (!matched) {
+              deptSelect.value = ""; // Default to All
+            }
+          } else {
+            document.getElementById('department_id').value = "";
+          }
+
+          // Flash highlight animation for visual response
+          const fieldsToHighlight = ['title', 'source', 'start_date', 'end_date', 'department_id', 'summary', 'full_content'];
+          fieldsToHighlight.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+              el.style.transition = 'background 0.3s ease';
+              el.style.background = 'rgba(16, 185, 129, 0.15)'; // nice green highlight
+              setTimeout(() => {
+                el.style.background = '';
+              }, 1000);
+            }
+          });
+
+          // Auto-attach uploaded document to the post
+          if (data.saved_attachment) {
+            document.getElementById('pre_attachment_path').value = data.saved_attachment;
+            const attachFileName = data.saved_attachment.split('/').pop();
+            // Show attachment confirmation below the attachment field
+            const attachField = document.getElementById('attachment');
+            let attachInfo = document.getElementById('autoAttachInfo');
+            if (!attachInfo) {
+              attachInfo = document.createElement('div');
+              attachInfo.id = 'autoAttachInfo';
+              attachInfo.className = 'mt-2 text-xs font-semibold flex items-center gap-1';
+              attachInfo.style.cssText = 'color: var(--success); background: rgba(16, 185, 129, 0.08); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);';
+              attachField.parentNode.appendChild(attachInfo);
+            }
+             const downloadUrl = "{{ url_for('posts.download_file', filename='') }}" + data.saved_attachment;
+             attachInfo.innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px;color:var(--success);"></i> Document auto-attached: <a href="' + downloadUrl + '" class="text-primary hover:underline font-bold" target="_blank"><strong>' + attachFileName + '</strong></a>';
+             lucide.createIcons();
+           }
+
+          const toastMsg = data.ocr_used
+            ? 'Flier scanned with OCR! Fields pre-filled and document auto-attached.'
+            : data.saved_attachment
+              ? 'Fields pre-filled and document auto-attached successfully!'
+              : 'Heading, summary, dates, and department pre-filled successfully.';
+          window.showToast('success', data.ocr_used ? 'OCR Extraction Complete!' : 'Extraction Complete!', toastMsg);
+        } else {
+          window.showToast('error', 'Extraction Failed', data.error || 'Could not parse text.');
+        }
+      })
+      .catch(err => {
+        window.showToast('error', 'Connection Error', 'Something went wrong during extraction.');
+        console.error(err);
+      })
+      .finally(() => {
+        extractBtn.disabled = false;
+        extractBtn.innerHTML = '<i data-lucide="sparkles" style="width:16px;height:16px;"></i> Run Auto-Extraction';
+        lucide.createIcons();
+      });
+    });
+  }
+</script>
+{% endblock %}

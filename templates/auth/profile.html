@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+{% block page_title %}User Profile{% endblock %}
+
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Home</a>
+    <span>&rsaquo;</span>
+    <span>Profile</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="page-header stagger">
+  <div class="page-header__left">
+    <h1>Account Settings</h1>
+    <p>Manage your account credentials, profile details, and role specifications</p>
+  </div>
+</div>
+
+<div class="grid grid-3 stagger">
+  <!-- Left Side: User Summary Card -->
+  <div class="card card--flat" style="grid-column: span 1;">
+    <div class="card__body" style="text-align: center; padding: 2.5rem 1.5rem;">
+      <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--gradient-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.25rem; font-weight: 800; margin: 0 auto 1.5rem; box-shadow: var(--shadow-glow); border: 4px solid var(--bg-surface);">
+        {{ current_user.full_name[:2]|upper }}
+      </div>
+      
+      <h3 style="margin-bottom: 0.5rem; font-family: var(--font-heading); font-size: 1.35rem;">{{ current_user.full_name }}</h3>
+      <div style="margin-bottom: 1.5rem;">
+        <span class="badge badge--primary">
+          <i data-lucide="shield" style="width:12px; height:12px; margin-right:4px;"></i>
+          {{ current_user.role_label }}
+        </span>
+      </div>
+
+      <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; text-align: left;">
+        <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; font-size: 0.875rem;">
+          <span style="color: var(--text-muted); font-weight: 500;">Email Address:</span>
+          <span style="color: var(--text-primary); font-weight: 600; word-break: break-all;">{{ current_user.email }}</span>
+        </div>
+        
+        <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; font-size: 0.875rem;">
+          <span style="color: var(--text-muted); font-weight: 500;">Department:</span>
+          <span style="color: var(--text-primary); font-weight: 600;">
+            {% if current_user.department %}
+              {{ current_user.department.name }} ({{ current_user.department.code }})
+            {% else %}
+              <span style="color: var(--text-muted); font-style: italic;">Not Applicable</span>
+            {% endif %}
+          </span>
+        </div>
+
+        <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; font-size: 0.875rem;">
+          <span style="color: var(--text-muted); font-weight: 500;">Designation:</span>
+          <span style="color: var(--text-primary); font-weight: 600;">{{ current_user.designation or 'Not Specified' }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+          <span style="color: var(--text-muted); font-weight: 500;">Joined On:</span>
+          <span style="color: var(--text-primary); font-weight: 600;">{{ current_user.created_at.strftime('%d %B, %Y') if current_user.created_at else 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Edit Form Card -->
+  <div class="card card--flat" style="grid-column: span 2;">
+    <div class="card__header">
+      <h4 style="display:flex; align-items:center; gap:8px;">
+        <i data-lucide="user-cog" style="color:var(--primary); width:20px; height:20px;"></i>
+        Update Personal Details & Security
+      </h4>
+    </div>
+    
+    <div class="card__body">
+      <form method="POST" action="{{ url_for('auth.profile') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Section 1: General Info -->
+        <h5 style="margin-bottom: 1.25rem; font-family: var(--font-heading); color: var(--primary); display: flex; align-items: center; gap: 8px;">
+          <span style="width:20px; height:20px; border-radius:50%; background:rgba(var(--primary-rgb),0.1); color:var(--primary); display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem;">1</span>
+          Profile Information
+        </h5>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
+          <div class="form-group" style="grid-column: span 2; margin-bottom:0;">
+            <label class="form-label" for="full_name">Full Name</label>
+            <input type="text" id="full_name" name="full_name" class="form-control" value="{{ current_user.full_name }}" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" class="form-control" value="{{ current_user.phone or '' }}" placeholder="e.g. +91 98765 43210">
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="designation">Designation</label>
+            <input type="text" id="designation" name="designation" class="form-control" value="{{ current_user.designation or '' }}" placeholder="e.g. Associate Professor">
+          </div>
+        </div>
+
+        <!-- Section 2: Password Reset -->
+        <h5 style="margin-bottom: 1.25rem; font-family: var(--font-heading); color: var(--primary); display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+          <span style="width:20px; height:20px; border-radius:50%; background:rgba(var(--primary-rgb),0.1); color:var(--primary); display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem;">2</span>
+          Change Password
+        </h5>
+        
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.25rem; margin-top: -0.5rem;">
+          Leave both fields blank if you do not wish to change your current login password.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="new_password">New Password</label>
+            <input type="password" id="new_password" name="new_password" class="form-control" placeholder="••••••••">
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="confirm_new_password">Confirm New Password</label>
+            <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-control" placeholder="••••••••">
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+          <a href="{{ url_for('dashboard.index') }}" class="btn btn--secondary">Cancel</a>
+          <button type="submit" class="btn btn--primary">
+            <i data-lucide="check" style="width:16px; height:16px;"></i>
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Simple validation to assist user
+  const password = document.getElementById('new_password');
+  const confirmPassword = document.getElementById('confirm_new_password');
+  const form = document.querySelector('form');
+
+  form.addEventListener('submit', function(e) {
+    if (password.value !== '' || confirmPassword.value !== '') {
+      if (password.value.length < 6) {
+        alert('Password must be at least 6 characters long.');
+        e.preventDefault();
+      } else if (password.value !== confirmPassword.value) {
+        alert('New passwords do not match.');
+        e.preventDefault();
+      }
+    }
+  });
+</script>
+{% endblock %}

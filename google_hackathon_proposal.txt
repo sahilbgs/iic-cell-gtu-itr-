@@ -1,0 +1,81 @@
+From: Google India University Relations <university-relations@google.com>
+To: Office of the Principal, Gujarat Technological University (GTU)
+Date: May 25, 2026
+Subject: Proposal: Conducting "Google Cloud & AI Innovation Academic Hackathon 2026" at GTU
+
+Dear Principal,
+
+On behalf of Google India Community & Developer Relations, we are pleased to propose a collaboration with Gujarat Technological University (GTU) to host the "Google Cloud & AI Innovation Academic Hackathon 2026."
+
+We have been closely following GTU’s outstanding research contributions in Computer Science and Engineering, and we believe GTU is the ideal campus to host this prestigious regional-level innovation sprint.
+
+Below are the comprehensive operational details, problem statements, and requirements for the hackathon:
+
+========================================================================
+1. GENERAL EVENT DETAILS & FUNDING GRANTS
+========================================================================
+* Event Title: Google Cloud & AI Innovation Academic Hackathon 2026
+* Hackathon Duration: 36 Hours (Continuous hack)
+* Proposed Dates: June 15-16, 2026
+* Funding Sponsor: Google India Developer Relations & TCS Foundation (Joint Grant)
+* Total Funding / Financial Grant Support: INR 1,200,000 (12 Lakhs)
+  - INR 700,000 allocated for campus logistics, catering, and infrastructure setup.
+  - INR 500,000 allocated for cash prizes and developer merchandise.
+* Cash Prize Pool:
+  - First Place Winner: INR 250,000 Cash Prize + Google Pixel Tablets
+  - Runner-up Winner: INR 150,000 Cash Prize + Google Nest Hubs
+  - Second Runner-up: INR 100,000 Cash Prize
+  - Top 10 Teams: INR 10,000 Google Cloud Credits per student
+
+========================================================================
+2. TARGET DEPARTMENTS & STUDENT ELIGIBILITY
+========================================================================
+* Target Host Department: Computer Engineering (CE) & Information Technology (IT)
+* Eligible Departments: B.E. / B.Tech / M.Tech students from Computer Engineering (CE), Information Technology (IT), and Electronics & Communication (EC).
+* Registration Deadline: June 5, 2026
+
+========================================================================
+3. KEY HACKATHON PROBLEM STATEMENTS
+========================================================================
+Students will be tasked with building working prototypes addressing one of the following official tracks using Google Cloud AI/ML APIs:
+
+* TRACK 1: Smart City AI-Driven Traffic Optimization
+  - Problem: Metropolitan centers face heavy gridlock, causing major fuel waste.
+  - Expectation: Build an AI model that consumes real-time camera/sensor feeds and dynamically adjusts green-light durations across a multi-junction grid.
+  - Target Department: Computer Engineering (CE)
+
+* TRACK 2: Predictive Edge-AI Health Diagnostic Tool
+  - Problem: Rural healthcare lacks instant access to respiratory diagnostics.
+  - Expectation: Develop a lightweight TensorFlow Lite mobile application that analyzes audio records of coughs and breathes to detect early-stage pulmonary anomalies.
+  - Target Department: Information Technology (IT)
+
+* TRACK 3: Smart Solar Energy Grid Allocator
+  - Problem: Regional solar grids lose up to 30% of energy due to inefficient distribution during peak consumption hours.
+  - Expectation: An intelligent cloud dashboard that dynamically distributes regional grid solar energy based on real-time consumption history and forecast models.
+  - Target Department: Electrical Engineering (EE)
+
+========================================================================
+4. OPERATIONAL REQUIREMENTS & COLLEGE OBLIGATIONS (WHAT WE NEED)
+========================================================================
+To successfully conduct this event, we require the host institution to provide and arrange the following:
+
+1. VENUE SUPPORT:
+   - Dedicated round-the-clock access to the Central Auditorium Hall (for opening/closing ceremonies) and Computer Lab 3 & 4 (to host 150+ hackathon participants).
+   - High-speed uninterruptible Wi-Fi connection with a backup leased line.
+
+2. MENTORSHIP & ADMINISTRATIVE COORDINATION:
+   - We request direct academic supervision under HOD Computer Engineering, Dr. Rajesh Patel, to manage internal registrations and judge coordination.
+   - Provision of 3 faculty coordinators to supervise the overnight hack phase.
+
+3. STUDENT VOLUNTEERS:
+   - A team of 10 Student Representatives (led by IIC Student Coordinator) to handle participant logistics, local check-ins, and meals distribution.
+
+We are excited about this potential partnership and look forward to your positive confirmation. Please review this document and sign off on the funding scheme so we can begin campus setup.
+
+Warm regards,
+
+Siddharth Sharma
+Director, University Relations & Developer Ecosystem
+Google India
+1600 Amphitheatre Pkwy, Mountain View, CA (Relations Office - Bangalore, India)
+========================================================================

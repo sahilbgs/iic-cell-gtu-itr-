@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — GTU R&D &amp; IIC Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .auth-card {
+      max-width: 680px; /* Wider card for double column registration */
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+    @media (max-width: 640px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+    .auth-card__logo-icon {
+      background: var(--gradient-gold);
+      color: var(--primary-dark);
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-card__logo">
+        <div class="auth-card__logo-icon">GTU</div>
+        <h2>Create Account</h2>
+        <p>Register as a Researcher, Coordinator, or Authority</p>
+      </div>
+
+      {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div style="padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:0.875rem; display:flex; align-items:center; gap:8px;
+          {% if category == 'error' or category == 'danger' %}
+            background:rgba(239,68,68,.15); color:#fca5a5; border:1px solid rgba(239,68,68,.3);
+          {% elif category == 'success' %}
+            background:rgba(16,185,129,.15); color:#6ee7b7; border:1px solid rgba(16,185,129,.3);
+          {% else %}
+            background:rgba(59,130,246,.15); color:#93c5fd; border:1px solid rgba(59,130,246,.3);
+          {% endif %}
+        ">
+          <i data-lucide="alert-circle" style="width:16px; height:16px; flex-shrink:0;"></i>
+          <span>{{ message }}</span>
+        </div>
+      {% endfor %}
+
+      <form method="POST" action="{{ url_for('auth.register') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-grid">
+          <!-- Full Name -->
+          <div class="form-group">
+            <label class="form-label" for="full_name">
+              Full Name <span class="required">*</span>
+            </label>
+            <input type="text" id="full_name" name="full_name" class="form-control" placeholder="e.g. Dr. Ramesh Patel" required autofocus>
+          </div>
+
+          <!-- Email Address -->
+          <div class="form-group">
+            <label class="form-label" for="email">
+              Email Address <span class="required">*</span>
+            </label>
+            <input type="email" id="email" name="email" class="form-control" placeholder="you@gtu.ac.in" required>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="password">
+              Password <span class="required">*</span>
+            </label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <label class="form-label" for="confirm_password">
+              Confirm Password <span class="required">*</span>
+            </label>
+            <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="••••••••" required>
+          </div>
+
+          <!-- Role -->
+          <div class="form-group">
+            <label class="form-label" for="role">
+              User Role <span class="required">*</span>
+            </label>
+            <select name="role" id="role" class="form-control" required>
+              {% for r in roles %}
+                <option value="{{ r }}" {% if r == 'FACULTY' %}selected{% endif %}>{{ role_labels[r] }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Department -->
+          <div class="form-group">
+            <label class="form-label" for="department_id">Department</label>
+            <select name="department_id" id="department_id" class="form-control">
+              <option value="">-- Select Department --</option>
+              {% for dept in departments %}
+                <option value="{{ dept.id }}">{{ dept.name }} ({{ dept.code }})</option>
+              {% endfor %}
+            </select>
+            <small style="display:block; margin-top:4px; font-size:0.75rem; color:rgba(255,255,255,.55)">
+              Optional for senior administration roles (e.g. Principal)
+            </small>
+          </div>
+
+          <!-- Phone Number -->
+          <div class="form-group">
+            <label class="form-label" for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" class="form-control" placeholder="+91 98765 43210">
+          </div>
+
+          <!-- Designation -->
+          <div class="form-group">
+            <label class="form-label" for="designation">Designation</label>
+            <input type="text" id="designation" name="designation" class="form-control" placeholder="e.g. Assistant Professor, HOD">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--gold btn--lg btn--block" style="font-size:1rem; margin-top:1rem;">
+          <i data-lucide="user-plus" style="width:18px; height:18px"></i>
+          Register Account
+        </button>
+      </form>
+
+      <p style="text-align:center; margin-top:1.5rem; font-size:.8rem; color:rgba(255,255,255,.45);">
+        Already have an account? <a href="{{ url_for('auth.login') }}" style="color:var(--gold); font-weight:600">Sign In</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+    
+    // Smooth dynamics: make department field look disabled or clean based on role
+    const roleSelect = document.getElementById('role');
+    const deptSelect = document.getElementById('department_id');
+    
+    roleSelect.addEventListener('change', function() {
+      const val = this.value;
+      if (val === 'PRINCIPAL') {
+        deptSelect.value = "";
+        deptSelect.parentElement.style.opacity = "0.6";
+      } else {
+        deptSelect.parentElement.style.opacity = "1";
+      }
+    });
+  </script>
+</body>
+</html>

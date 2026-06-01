@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Flask/Database
+instance/
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+.webassets-cache
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment variables / Secret keys
+.env
+.env.local
+.env.production
+.env.development
+.env.staging
+
+# Local uploads and exports
+uploads/
+exports/
+
+# IDE / Editor config
+.vscode/
+.idea/
+.qodo/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS-specific
+.DS_Store
+Thumbs.db

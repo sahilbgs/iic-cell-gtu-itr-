@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Access Forbidden (403){% endblock %}
+{% block page_title %}Forbidden Access{% endblock %}
+
+{% block content %}
+<div class="text-center py-20 max-w-md mx-auto">
+  <i data-lucide="shield-alert" style="width:64px;height:64px;color:var(--danger);margin:0 auto 16px"></i>
+  <h2 class="mb-2">Access Denied</h2>
+  <p class="text-secondary mb-6">Your current user role profile does not have necessary administrative permissions to read or modify this page resource.</p>
+  <a href="{{ url_for('dashboard.index') }}" class="btn btn--primary">Return to Dashboard</a>
+</div>
+{% endblock %}

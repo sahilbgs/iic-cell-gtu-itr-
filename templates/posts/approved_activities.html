@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}Approved Activities & Progress{% endblock %}
+{% block page_title %}Approved Activities & Progress{% endblock %}
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <span>Approved Activities</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<style>
+  .approved-stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+  .approved-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  }
+  .approved-stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .approved-stat-value {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+  .approved-stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .dept-section {
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    background: var(--bg-surface);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+  .dept-section__header {
+    background: linear-gradient(135deg, rgba(0, 51, 102, 0.05) 0%, transparent 100%);
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .dept-section__title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .activity-row {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: background 0.2s ease;
+  }
+  .activity-row:last-child {
+    border-bottom: none;
+  }
+  .activity-row:hover {
+    background: rgba(0, 51, 102, 0.015);
+  }
+  .activity-row__info {
+    flex: 1;
+    min-width: 0;
+  }
+  .activity-row__title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .activity-row__meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .activity-row__progress {
+    width: 160px;
+    flex-shrink: 0;
+  }
+  .activity-row__progress-bar-bg {
+    background: var(--border-color);
+    border-radius: 999px;
+    height: 8px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .activity-row__progress-bar {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.5s ease;
+  }
+  .activity-row__status-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+</style>
+
+<!-- Stats Cards -->
+<div class="grid grid-4 mb-8" style="gap:16px;">
+  <div class="approved-stat-card">
+    <div class="approved-stat-icon" style="background: rgba(0, 51, 102, 0.08); color: var(--primary);">
+      <i data-lucide="clipboard-check" style="width:22px;height:22px;"></i>
+    </div>
+    <div>
+      <div class="approved-stat-value" style="color: var(--primary);">{{ total_approved }}</div>
+      <div class="approved-stat-label">Total Approved</div>
+    </div>
+  </div>
+
+  <div class="approved-stat-card">
+    <div class="approved-stat-icon" style="background: rgba(16, 185, 129, 0.08); color: var(--success);">
+      <i data-lucide="check-circle-2" style="width:22px;height:22px;"></i>
+    </div>
+    <div>
+      <div class="approved-stat-value" style="color: var(--success);">{{ completed_count }}</div>
+      <div class="approved-stat-label">Completed</div>
+    </div>
+  </div>
+
+  <div class="approved-stat-card">
+    <div class="approved-stat-icon" style="background: rgba(245, 158, 11, 0.08); color: #d97706;">
+      <i data-lucide="loader" style="width:22px;height:22px;"></i>
+    </div>
+    <div>
+      <div class="approved-stat-value" style="color: #d97706;">{{ in_progress_count }}</div>
+      <div class="approved-stat-label">In Progress</div>
+    </div>
+  </div>
+
+  <div class="approved-stat-card">
+    <div class="approved-stat-icon" style="background: rgba(107, 114, 128, 0.08); color: var(--text-muted);">
+      <i data-lucide="clock" style="width:22px;height:22px;"></i>
+    </div>
+    <div>
+      <div class="approved-stat-value" style="color: var(--text-muted);">{{ not_started_count }}</div>
+      <div class="approved-stat-label">Not Started</div>
+    </div>
+  </div>
+</div>
+
+<!-- Activities grouped by Department -->
+{% if dept_groups %}
+  {% for dept_name, posts in dept_groups.items() %}
+    <div class="dept-section">
+      <div class="dept-section__header">
+        <div class="dept-section__title">
+          <i data-lucide="building-2" style="width:18px;height:18px;"></i>
+          {{ dept_name }}
+        </div>
+        <span class="badge badge--neutral" style="font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 8px;">
+          {{ posts|length }} activit{{ 'y' if posts|length == 1 else 'ies' }}
+        </span>
+      </div>
+
+      {% for post in posts %}
+        <div class="activity-row">
+          <!-- Source icon -->
+          <div style="width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+            {% if post.source == 'COMPANY' %}background: rgba(59, 130, 246, 0.08); color: #3b82f6;
+            {% elif post.source == 'FIRM' %}background: rgba(245, 158, 11, 0.08); color: #f59e0b;
+            {% else %}background: rgba(16, 185, 129, 0.08); color: #10b981;{% endif %}">
+            {% if post.source == 'COMPANY' %}
+              <i data-lucide="building" style="width:18px;height:18px;"></i>
+            {% elif post.source == 'FIRM' %}
+              <i data-lucide="briefcase" style="width:18px;height:18px;"></i>
+            {% else %}
+              <i data-lucide="graduation-cap" style="width:18px;height:18px;"></i>
+            {% endif %}
+          </div>
+
+          <!-- Info -->
+          <div class="activity-row__info">
+            <h5 class="activity-row__title" title="{{ post.title }}">{{ post.title }}</h5>
+            <div class="activity-row__meta">
+              <span class="flex items-center gap-1">
+                <i data-lucide="tag" style="width:11px;height:11px;"></i>
+                {{ post.source_label }}
+              </span>
+              {% if post.start_date %}
+                <span class="flex items-center gap-1">
+                  <i data-lucide="calendar" style="width:11px;height:11px;"></i>
+                  {{ post.start_date.strftime('%b %d, %Y') }}
+                </span>
+              {% endif %}
+              {% if post.end_date %}
+                <span class="flex items-center gap-1">
+                  <i data-lucide="calendar-days" style="width:11px;height:11px; color:var(--danger);"></i>
+                  {{ post.end_date.strftime('%b %d, %Y') }}
+                </span>
+              {% endif %}
+              {% if post.approver %}
+                <span class="flex items-center gap-1">
+                  <i data-lucide="user-check" style="width:11px;height:11px; color:var(--success);"></i>
+                  Approved by {{ post.approver.full_name }}
+                </span>
+              {% endif %}
+              {% if post.departments %}
+                <span class="flex items-center gap-1">
+                  <i data-lucide="building-2" style="width:11px;height:11px; color:var(--primary);"></i>
+                  Allocated: {{ post.departments | map(attribute='code') | join(', ') }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Progress -->
+          <div class="activity-row__progress">
+            <div class="flex items-center justify-between" style="font-size:11px; font-weight:600;">
+              <span class="text-muted">Progress</span>
+              <span style="color: {% if post.progress_status == 'COMPLETED' %}var(--success){% elif post.progress_status == 'IN_PROGRESS' %}#d97706{% else %}var(--text-muted){% endif %};">
+                {{ post.progress_percentage }}%
+              </span>
+            </div>
+            <div class="activity-row__progress-bar-bg">
+              <div class="activity-row__progress-bar" style="width: {{ post.progress_percentage }}%;
+                background: {% if post.progress_status == 'COMPLETED' %}var(--success){% elif post.progress_status == 'IN_PROGRESS' %}#f59e0b{% elif post.progress_status == 'ON_HOLD' %}var(--danger){% else %}var(--text-muted){% endif %};"></div>
+            </div>
+          </div>
+
+          <!-- Status Badge -->
+          <span class="activity-row__status-badge" style="
+            {% if post.progress_status == 'COMPLETED' %}background: rgba(16, 185, 129, 0.1); color: var(--success);
+            {% elif post.progress_status == 'IN_PROGRESS' %}background: rgba(245, 158, 11, 0.1); color: #d97706;
+            {% elif post.progress_status == 'ON_HOLD' %}background: rgba(239, 68, 68, 0.1); color: var(--danger);
+            {% else %}background: var(--bg-surface-hover); color: var(--text-muted);{% endif %}">
+            {{ post.status_label }}
+          </span>
+
+          <!-- View Detail -->
+          <a href="{{ url_for('posts.index') }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size:11px; padding:6px 12px; border-radius:8px; font-weight:600; flex-shrink:0;">
+            <i data-lucide="eye" style="width:13px;height:13px;"></i> View
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="card card--flat" style="text-align:center; padding:60px 24px;">
+    <i data-lucide="clipboard-check" style="width:56px; height:56px; color:var(--text-muted); margin:0 auto 16px auto; display:block; opacity:0.4;"></i>
+    <h4 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--text-muted); margin:0 0 6px 0;">No Approved Activities Yet</h4>
+    <p class="text-sm text-muted" style="margin:0;">Activities approved by the Chairperson and allocated to departments will appear here with their progress reports.</p>
+  </div>
+{% endif %}
+
+<div style="margin-top:24px;">
+  <a href="{{ url_for('dashboard.index') }}" class="btn btn--secondary flex items-center gap-1" style="width:fit-content;">
+    <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Dashboard
+  </a>
+</div>
+{% endblock %}

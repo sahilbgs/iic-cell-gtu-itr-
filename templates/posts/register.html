@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Registration - {{ post.title }}</title>
+  
+  <!-- Modern Typography & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --primary: #003366;
+      --primary-hover: #002244;
+      --success: #10b981;
+      --danger: #ef4444;
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-lg: 0 10px 25px -5px rgba(0, 51, 102, 0.05), 0 8px 10px -6px rgba(0, 51, 102, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 650px;
+      width: 100%;
+    }
+
+    /* Brand Header */
+    .brand-header {
+      text-align: center;
+      margin-bottom: 32px;
+      animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .brand-header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 1.6rem;
+      letter-spacing: -0.5px;
+    }
+    .brand-header p {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Card Box */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      padding: 32px;
+      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Activity Meta Info */
+    .activity-hero {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+    .badge-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(0, 51, 102, 0.06);
+      color: var(--primary);
+    }
+    .badge--source {
+      background: rgba(16, 185, 129, 0.08);
+      color: var(--success);
+    }
+    .activity-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1.35rem;
+      line-height: 1.4;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .activity-dates {
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .date-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Form Fields */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.2px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-main);
+      background: #fff;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.06);
+    }
+    .form-group textarea {
+      resize: vertical;
+    }
+
+    /* Buttons */
+    .btn-submit {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s ease, transform 0.1s ease;
+      box-shadow: 0 4px 12px rgba(0, 51, 102, 0.1);
+    }
+    .btn-submit:hover {
+      background: var(--primary-hover);
+    }
+    .btn-submit:active {
+      transform: scale(0.99);
+    }
+
+    /* Success Page */
+    .success-box {
+      text-align: center;
+      padding: 20px 0;
+      animation: scaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px auto;
+    }
+    .success-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .success-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    
+    /* Footer Credit */
+    .footer-credit {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleUp {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <div class="brand-header">
+      <h1>GTU Innovation Council (IIC)</h1>
+      <p>Student Activity Registration Portal</p>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card">
+      
+      {% if success_registered %}
+        <!-- Registration Success Panel -->
+        <div class="success-box">
+          <div class="success-icon">
+            <i data-lucide="check" style="width:36px;height:36px;"></i>
+          </div>
+          <h2 class="success-title">Registration Successful!</h2>
+          <p class="success-text">
+            Thank you, <strong>{{ student_name }}</strong>. Your registration for <br>
+            <strong>{{ post.title }}</strong> has been recorded successfully.
+          </p>
+          <div style="background: var(--bg-body); border: 1px dashed var(--border-color); padding: 14px; border-radius: 8px; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i data-lucide="info" style="width:14px;height:14px;color:var(--primary);"></i>
+            Please check your email periodically for event scheduling updates.
+          </div>
+        </div>
+      {% else %}
+        
+        <!-- Registration Form Panel -->
+        <div class="activity-hero">
+          <div class="badge-row">
+            <span class="badge">{{ post.source_label }}</span>
+            <span class="badge badge--source">APPROVED ACTIVITY</span>
+          </div>
+          <h2 class="activity-title">{{ post.title }}</h2>
+          <div class="activity-dates">
+            {% if post.start_date %}
+              <div class="date-item">
+                <i data-lucide="calendar" style="width:13px;height:13px;color:var(--primary);"></i>
+                Starts: {{ post.start_date.strftime('%B %d, %Y') }}
+              </div>
+            {% endif %}
+            {% if post.end_date %}
+              <div class="date-item">
+                <i data-lucide="calendar-days" style="width:13px;height:13px;color:var(--danger);"></i>
+                Ends: {{ post.end_date.strftime('%B %d, %Y') }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="background: {% if category == 'danger' %}rgba(239, 68, 68, 0.08){% else %}rgba(59, 130, 246, 0.08){% endif %};
+                          color: {% if category == 'danger' %}var(--danger){% else %}var(--primary){% endif %};
+                          border: 1px solid {% if category == 'danger' %}rgba(239, 68, 68, 0.2){% else %}rgba(59, 130, 246, 0.2){% endif %};
+                          padding: 12px; border-radius: 8px; font-size: 12px; margin-bottom: 20px; font-weight: 500;">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('posts.register', post_id=post.id) }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          {% for field in fields %}
+            <div class="form-group">
+              <label for="{{ field.id }}">
+                {{ field.label }} {% if field.required %}<span style="color:var(--danger)">*</span>{% endif %}
+              </label>
+
+              {% if field.is_default %}
+                <!-- Render standard default system fields -->
+                {% if field.type == 'select' %}
+                  <select id="{{ field.id }}" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+                    <option value="">Select {{ field.label }}…</option>
+                    {% for opt in field.options %}
+                      <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                  </select>
+                {% elif field.id == 'email' %}
+                  <input type="email" id="{{ field.id }}" name="{{ field.id }}" required placeholder="e.g. yourname@gtu.ac.in">
+                {% elif field.id == 'phone' %}
+                  <input type="tel" id="{{ field.id }}" name="{{ field.id }}" {% if field.required %}required{% endif %} placeholder="e.g. +91 98765 43210">
+                {% else %}
+                  <input type="text" id="{{ field.id }}" name="{{ field.id }}" {% if field.required %}required{% endif %} placeholder="Enter your {{ field.label.lower() }}…">
+                {% endif %}
+              {% else %}
+                <!-- Render dynamically generated custom fields -->
+                {% if field.type == 'textarea' %}
+                  <textarea id="custom_{{ field.id }}" name="custom_{{ field.id }}" rows="3" {% if field.required %}required{% endif %} placeholder="Type your answer here…"></textarea>
+                {% elif field.type == 'select' %}
+                  <select id="custom_{{ field.id }}" name="custom_{{ field.id }}" {% if field.required %}required{% endif %}>
+                    <option value="">Select option…</option>
+                    {% for opt in field.options %}
+                      <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                  </select>
+                {% elif field.type == 'number' %}
+                  <input type="number" step="any" id="custom_{{ field.id }}" name="custom_{{ field.id }}" {% if field.required %}required{% endif %} placeholder="Type value…">
+                {% else %}
+                  <input type="text" id="custom_{{ field.id }}" name="custom_{{ field.id }}" {% if field.required %}required{% endif %} placeholder="Type answer…">
+                {% endif %}
+              {% endif %}
+            </div>
+          {% endfor %}
+
+          <button type="submit" class="btn-submit" style="margin-top: 10px;">
+            <i data-lucide="send" style="width:14px;height:14px;"></i>
+            Submit Registration Form
+          </button>
+        </form>
+
+      {% endif %}
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-credit">
+      GTU Innovation Council (IIC) &copy; 2026. All rights reserved.
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

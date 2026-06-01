@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Shared Activities{% endblock %}
+{% block page_title %}Manage Shared Activities{% endblock %}
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <span>Manage Shared Activities</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="card card--flat mb-8" style="background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(var(--primary-rgb), 0.03) 100%); border-left: 5px solid var(--primary); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm);">
+  <div class="card__header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-bottom:none; padding: 24px;">
+    <div>
+      <h4 style="font-family:'Outfit', sans-serif; font-weight:800; color:var(--primary);">Shared Activities Administration</h4>
+      <p class="text-muted text-sm">Post new notices, circulars, or project drives received from external companies and monitor their progression.</p>
+    </div>
+    <a href="{{ url_for('posts.create') }}" class="btn btn--primary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px 20px; box-shadow: var(--shadow-sm);">
+      <i data-lucide="plus" style="width:16px;height:16px;"></i> Share New Post
+    </a>
+  </div>
+  <div class="card__body" style="padding: 24px;">
+    
+    <div class="mb-5" style="max-width: 350px;">
+      <div class="topbar__search" style="margin: 0; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius-full); box-shadow: var(--shadow-xs);">
+        <i data-lucide="search"></i>
+        <input type="text" data-table-search="postsTable" placeholder="Search posts in table…" aria-label="Search posts">
+      </div>
+    </div>
+
+    <div class="table-responsive" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-xs);">
+      <table class="table" id="postsTable">
+        <thead style="background: var(--bg-body);">
+          <tr>
+            <th style="padding: 16px 20px; font-weight:700;">Activity Heading</th>
+            <th style="padding: 16px 20px; font-weight:700;">Source</th>
+            <th style="padding: 16px 20px; font-weight:700;">Department</th>
+            <th style="padding: 16px 20px; font-weight:700;">Timeline</th>
+            <th style="padding: 16px 20px; font-weight:700;">Status</th>
+            <th style="padding: 16px 20px; font-weight:700;">Attachment</th>
+            <th class="text-right" style="padding: 16px 20px; font-weight:700; width:120px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if posts %}
+            {% for post in posts %}
+              <tr style="transition: background 0.2s ease;">
+                <td style="padding: 16px 20px; vertical-align: middle;">
+                  <div class="font-semibold text-sm text-primary" style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Outfit', sans-serif;" title="{{ post.title }}">
+                    {{ post.title }}
+                  </div>
+                  <small class="text-muted block mt-1" style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                    {{ post.summary }}
+                  </small>
+                </td>
+                <td style="padding: 16px 20px; vertical-align: middle;">
+                  <span class="badge badge--{{ 'info' if post.source == 'COMPANY' else 'warning' if post.source == 'FIRM' else 'neutral' }}" style="font-size: 10px; font-weight:700; text-transform:uppercase; padding: 3px 8px; border-radius:6px;">
+                    {{ post.source_label }}
+                  </span>
+                </td>
+                <td style="padding: 16px 20px; vertical-align: middle;">
+                  {% if post.department %}
+                    <span class="badge badge--neutral" style="font-size:10px; padding: 3px 8px; border-radius:6px;">{{ post.department.code }}</span>
+                  {% else %}
+                    <span class="badge badge--neutral" style="font-size:10px; padding: 3px 8px; border-radius:6px; background: rgba(0,0,0,0.03); color: var(--text-muted);">&mdash;</span>
+                  {% endif %}
+                </td>
+                <td style="padding: 16px 20px; vertical-align: middle;">
+                  <div class="text-xs font-semibold flex flex-column gap-1">
+                    {% if post.start_date %}
+                      <div><span class="text-muted font-normal">Start:</span> {{ post.start_date.strftime('%Y-%m-%d') }}</div>
+                    {% endif %}
+                    {% if post.end_date %}
+                      <div class="mt-1" style="color:var(--danger);"><span class="text-muted font-normal">End:</span> {{ post.end_date.strftime('%Y-%m-%d') }}</div>
+                    {% endif %}
+                  </div>
+                </td>
+                <td style="padding: 16px 20px; vertical-align: middle;">
+                  <div class="flex items-center gap-2">
+                    <span class="badge badge--{{ 'success' if post.progress_status == 'COMPLETED' else 'warning' if post.progress_status == 'IN_PROGRESS' else 'danger' if post.progress_status == 'ON_HOLD' else 'neutral' }}" style="font-size:10px; padding: 3px 8px; border-radius:6px;">
+                      {{ post.status_label }}
+                    </span>
+                    <span class="text-xs text-muted font-semibold">({{ post.progress_percentage }}%)</span>
+                  </div>
+                </td>
+                <td style="padding: 16px 20px; vertical-align: middle;">
+                  {% if post.attachment_path %}
+                    <!-- PASS FULL PATH RELATIVE TO UPLOADS (Fixes 404 attachment download bug) -->
+                    <a href="{{ url_for('posts.download_file', filename=post.attachment_path) }}" class="flex items-center gap-1 text-xs font-bold" style="color:var(--primary);" data-tooltip="Download circular flyer">
+                      <i data-lucide="paperclip" style="width:14px;height:14px;"></i>
+                      Download
+                    </a>
+                  {% else %}
+                    <span class="text-muted text-xs">&mdash;</span>
+                  {% endif %}
+                </td>
+                <td class="text-right" style="padding: 16px 20px; vertical-align: middle;">
+                  <div class="flex items-center justify-end gap-2">
+                    <a href="{{ url_for('posts.edit', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center justify-center" style="padding:8px; border-radius:var(--border-radius); border-color: var(--border-color); color: var(--text-secondary);" data-tooltip="Edit Post">
+                      <i data-lucide="edit-3" style="width:14px;height:14px;"></i>
+                    </a>
+                    <form action="{{ url_for('posts.delete', post_id=post.id) }}" method="POST" style="display:inline;" data-confirm="Are you sure you want to delete this shared activity post?">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn--danger btn--sm flex items-center justify-center" style="padding:8px; border-radius:var(--border-radius);" data-tooltip="Delete Post">
+                        <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center py-12 text-muted">
+                <i data-lucide="megaphone" style="width:40px; height:40px; opacity:0.4; margin-bottom:12px; display:inline-block;"></i>
+                <div class="font-semibold text-sm" style="font-family:'Outfit', sans-serif;">No Shared Posts Found</div>
+                <small class="block mt-1">Get started by sharing your first circular notice received from industry partners.</small>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

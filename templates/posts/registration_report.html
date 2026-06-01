@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Registration Report{% endblock %}
+{% block page_title %}Registration Report{% endblock %}
+
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <span>Registration Report</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<style>
+  .report-stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .report-stat-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .report-stat-value {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  .report-stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  
+  .sem-badge {
+    background: rgba(0, 51, 102, 0.05);
+    color: var(--primary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 11px;
+    display: inline-block;
+  }
+</style>
+
+<!-- Stats Grid -->
+<div class="grid grid-4 mb-8" style="gap:16px;">
+  
+  <!-- Total Registered -->
+  <div class="report-stat-card">
+    <div class="report-stat-icon" style="background: rgba(16, 185, 129, 0.08); color: var(--success);">
+      <i data-lucide="users" style="width:20px;height:20px;"></i>
+    </div>
+    <div>
+      <div class="report-stat-value" style="color: var(--success);">{{ total_regs }}</div>
+      <div class="report-stat-label">Total Registrations</div>
+    </div>
+  </div>
+
+  <!-- Faculty Lead -->
+  <div class="report-stat-card">
+    <div class="report-stat-icon" style="background: rgba(0, 51, 102, 0.08); color: var(--primary);">
+      <i data-lucide="user-check" style="width:20px;height:20px;"></i>
+    </div>
+    <div>
+      <div class="report-stat-value" style="color: var(--primary); font-size:1.05rem; font-weight:700;">
+        {{ post.assigned_faculty.full_name if post.assigned_faculty else 'Unassigned' }}
+      </div>
+      <div class="report-stat-label">Lead Faculty in Charge</div>
+    </div>
+  </div>
+
+  <!-- Departments -->
+  <div class="report-stat-card">
+    <div class="report-stat-icon" style="background: rgba(245, 158, 11, 0.08); color: #d97706;">
+      <i data-lucide="building" style="width:20px;height:20px;"></i>
+    </div>
+    <div>
+      <div class="report-stat-value" style="color: #d97706; font-size:1.05rem; font-weight:700;">
+        {{ post.departments | map(attribute='code') | join(', ') }}
+      </div>
+      <div class="report-stat-label">Allocated Departments</div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="report-stat-card">
+    <div class="report-stat-icon" style="background: rgba(107, 114, 128, 0.08); color: var(--text-muted);">
+      <i data-lucide="activity" style="width:20px;height:20px;"></i>
+    </div>
+    <div>
+      <div class="report-stat-value" style="color: var(--text-muted); font-size:1.05rem; font-weight:700;">
+        {{ post.status_label }}
+      </div>
+      <div class="report-stat-label">Execution Progress</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="grid grid-3" style="gap:24px; align-items:start; margin-bottom:24px;">
+  
+  <!-- Left Side (2 cols): Dynamic Student Registrations Table -->
+  <div class="card card--flat" style="grid-column: span 2; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:14px; padding:24px; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:16px; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); margin:0;">Student Registrations Log</h3>
+        <p class="text-muted text-xs mt-1" style="margin:0;">List of all students registered dynamically for this specific activity.</p>
+      </div>
+      <button onclick="window.print()" class="btn btn--secondary btn--sm flex items-center gap-1">
+        <i data-lucide="printer" style="width:14px;height:14px;"></i> Print Report
+      </button>
+    </div>
+
+    <!-- Scrollable Responsive Grid -->
+    <div style="overflow-x:auto;">
+      {% if registrations %}
+        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:12px; min-width:600px;">
+          <thead>
+            <tr style="background:var(--bg-surface-hover); border-bottom:1px solid var(--border-color); color:var(--text-muted); font-weight:700;">
+              <th style="padding:10px 14px;">Student Name</th>
+              <th style="padding:10px 14px;">Enrollment</th>
+              <th style="padding:10px 14px;">Department</th>
+              <th style="padding:10px 14px;">Email</th>
+              <th style="padding:10px 14px;">Semester</th>
+              
+              <!-- Custom field column headers -->
+              {% for field in fields %}
+                {% if not field.is_default %}
+                  <th style="padding:10px 14px;">{{ field.label }}</th>
+                {% endif %}
+              {% endfor %}
+              
+              <th style="padding:10px 14px;">Registered At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for reg in registrations %}
+              <tr style="border-bottom:1px solid var(--border-color); transition:background 0.15s ease;" onmouseover="this.style.background='rgba(0, 51, 102, 0.01)';" onmouseout="this.style.background='transparent';">
+                <td style="padding:12px 14px; font-weight:600; color:var(--text-primary);">{{ reg.student_name }}</td>
+                <td style="padding:12px 14px; font-weight:500; font-family:monospace; color:var(--text-secondary);">{{ reg.enrollment_no }}</td>
+                <td style="padding:12px 14px; font-weight:600; color:var(--text-secondary);">{{ reg.department or 'N/A' }}</td>
+                <td style="padding:12px 14px;">{{ reg.email }}</td>
+                <td style="padding:12px 14px; font-weight:700;">Sem {{ reg.semester or 'N/A' }}</td>
+                
+                <!-- Custom field answers columns -->
+                {% for field in fields %}
+                  {% if not field.is_default %}
+                    <td style="padding:12px 14px;">
+                      {% set ans = get_custom_val(reg, field.id) %}
+                      {% if field.type == 'textarea' %}
+                        <span title="{{ ans }}" style="display:inline-block; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-style:italic;">
+                          {{ ans or '-' }}
+                        </span>
+                      {% else %}
+                        {{ ans or '-' }}
+                      {% endif %}
+                    </td>
+                  {% endif %}
+                {% endfor %}
+                
+                <td style="padding:12px 14px; color:var(--text-muted);">{{ reg.registered_at.strftime('%b %d, %H:%M') }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div style="text-align:center; padding:50px 20px; color:var(--text-muted); font-style:italic;">
+          No student registration entries received yet for this activity.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right Side (1 col): Semester Statistics Audit -->
+  <div class="card card--flat" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:14px; padding:24px;">
+    <div style="border-bottom:1px solid var(--border-color); padding-bottom:16px; margin-bottom:20px;">
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--text-secondary); margin:0;">Semester Distribution</h3>
+      <p class="text-muted text-xs mt-1" style="margin:0;">Visual auditing of student registrations across various semesters.</p>
+    </div>
+
+    {% if semester_stats %}
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        {% for sem, count in semester_stats.items() %}
+          {% set pct = (count / total_regs * 100) | round(1) %}
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; margin-bottom:4px;">
+              <span class="sem-badge">Semester {{ sem }}</span>
+              <span class="text-muted">{{ count }} Student{{ 's' if count != 1 else '' }} ({{ pct }}%)</span>
+            </div>
+            <div style="background: var(--border-color); border-radius: 4px; height: 6px; overflow: hidden; display:flex;">
+              <div style="width: {{ pct }}%; height: 100%; border-radius: 4px; background:var(--primary); transition:width 0.4s ease;"></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align:center; padding:30px; color:var(--text-muted); font-size:11px; font-style:italic;">
+        No statistical registration logs available.
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<div>
+  <a href="{{ url_for('dashboard.index') }}" class="btn btn--secondary flex items-center gap-1" style="width:fit-content;">
+    <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Dashboard
+  </a>
+</div>
+{% endblock %}

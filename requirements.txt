@@ -1,0 +1,34 @@
+# GTU-ITR R&D & IIC Portal - Dependencies
+
+# Core Flask
+Flask==3.1.1
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-WTF==1.2.2
+Flask-Mail==0.10.0
+Flask-Migrate==4.1.0
+
+# Database
+SQLAlchemy==2.0.41
+
+# Forms
+WTForms==3.2.1
+email-validator==2.3.0
+
+# AI - Local Model (Phi-3 Mini)
+transformers==4.52.4
+torch==2.7.0
+accelerate==1.7.0
+
+# Document Parsing
+pdfplumber==0.11.6
+python-docx==1.1.2
+
+# Export
+reportlab==4.4.0
+openpyxl==3.1.5
+
+# Utilities
+python-dotenv==1.1.0
+Werkzeug==3.1.3
+gunicorn==23.0.0

@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Student Registration Form Builder{% endblock %}
+{% block page_title %}Registration Form Builder{% endblock %}
+
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <span>Form Builder</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-2" style="gap:24px; align-items:start;">
+  
+  <!-- Left Side: Builder Workspace -->
+  <div class="card card--flat" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:14px; padding:24px;">
+    <div style="border-bottom:1px solid var(--border-color); padding-bottom:16px; margin-bottom:20px;">
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;">
+        <i data-lucide="sliders" style="color:var(--primary);"></i>
+        Form Workspace
+      </h3>
+      <p class="text-muted text-xs mt-1" style="margin:0;">Configure which custom details you want to collect from students during registration.</p>
+    </div>
+
+    <!-- AI Suggest Action -->
+    <div style="background:linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(59,130,246,0.03) 100%); border:1px dashed rgba(16,185,129,0.3); border-radius:10px; padding:16px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+      <div>
+        <h5 style="font-weight:700; margin:0; font-size:12px; color:var(--text-primary); display:flex; align-items:center; gap:4px;">
+          <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--success);"></i>
+          Heuristic AI Fields Suggester
+        </h5>
+        <p class="text-muted" style="font-size:10px; margin:2px 0 0 0; line-height:1.4;">Auto-detect keywords in this activity's details and generate ideal registration fields instantly.</p>
+      </div>
+      <button type="button" id="btn-auto-suggest" class="btn btn--sm" style="background:var(--success); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:transform 0.2s;" onclick="runAutoSuggest()">
+        <i data-lucide="wand-2" style="width:13px;height:13px;"></i>
+        Smart Generate
+      </button>
+    </div>
+
+    <form id="form-config-saver" action="{{ url_for('posts.form_builder', post_id=post.id) }}" method="POST" onsubmit="serializeFields()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" id="config_json" name="config_json" value="[]">
+
+      <!-- Default Fields Section -->
+      <div style="margin-bottom:24px;">
+        <h5 style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:10px;">Default System Fields (Required)</h5>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          {% for field in default_fields %}
+            <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-surface-hover); border:1px solid var(--border-color); padding:10px 16px; border-radius:8px; opacity:0.8;">
+              <span style="font-size:12px; font-weight:600; color:var(--text-primary);">{{ field.label }}</span>
+              <span style="font-size:9px; font-weight:700; background:rgba(0,51,102,0.06); color:var(--primary); padding:2px 6px; border-radius:4px; text-transform:uppercase;">
+                {{ field.type.upper() }} {% if field.required %}*{% endif %}
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Custom Fields Section -->
+      <div style="margin-bottom:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h5 style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:0.5px; text-transform:uppercase; margin:0;">Custom Additional Fields</h5>
+          <button type="button" class="btn btn--sm" style="font-size:10px; padding:4px 8px; border-radius:6px; font-weight:700; border-color:var(--border-color);" onclick="addCustomField()">
+            + Add Field
+          </button>
+        </div>
+
+        <div id="custom-fields-container" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Custom fields will be rendered here dynamically -->
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div style="border-top:1px solid var(--border-color); padding-top:18px; display:flex; justify-content:space-between; align-items:center;">
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn--secondary btn--sm">Cancel</a>
+        <button type="submit" class="btn btn--sm" style="background:var(--primary); color:#fff; border:none; padding:8px 20px; font-weight:700; border-radius:8px;">
+          Save &amp; Publish Form
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Right Side: Live Interactive Preview -->
+  <div class="card card--flat" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:14px; padding:24px; position:sticky; top:24px;">
+    <div style="border-bottom:1px solid var(--border-color); padding-bottom:16px; margin-bottom:20px;">
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--text-secondary); margin:0; display:flex; align-items:center; gap:8px;">
+        <i data-lucide="eye" style="color:var(--text-muted);"></i>
+        Live Dynamic Preview
+      </h3>
+      <p class="text-muted text-xs mt-1" style="margin:0;">A real-time mockup of what students will see when registering for this activity.</p>
+    </div>
+
+    <!-- Live Form Container -->
+    <div style="border:1px solid var(--border-color); border-radius:12px; background:var(--bg-surface-hover); padding:20px; box-shadow:inset 0 2px 6px rgba(0,0,0,0.015);">
+      <div style="border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px;">
+        <span class="badge badge--success" style="font-size:8px; font-weight:700; letter-spacing:0.5px; padding:2px 6px; border-radius:4px; margin-bottom:4px; display:inline-block;">STUDENT REGISTRATION</span>
+        <h4 style="font-family:'Outfit',sans-serif; font-weight:700; margin:0; font-size:1.15rem; color:var(--text-primary);">{{ post.title }}</h4>
+        <small class="text-muted" style="font-size:10px; display:block; margin-top:3px;">Organized by Computer Engineering Dept.</small>
+      </div>
+
+      <div id="preview-form-fields" style="display:flex; flex-direction:column; gap:12px;">
+        <!-- Previews will render here dynamically -->
+      </div>
+
+      <button type="button" disabled style="width:100%; padding:10px; margin-top:20px; border-radius:8px; border:none; background:var(--primary); color:#fff; font-weight:700; font-size:12px; opacity:0.6; cursor:not-allowed;">
+        Submit Mock Registration
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Template for dynamic custom field editing -->
+<script>
+  let fieldCounter = 0;
+  
+  // Existing fields from the database config
+  const initialCustomFields = {{ custom_fields | tojson | safe }};
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (initialCustomFields && initialCustomFields.length > 0) {
+      initialCustomFields.forEach(f => addCustomField(f));
+    } else {
+      // Add one blank row by default for premium usability
+      addCustomField();
+    }
+    updatePreview();
+  });
+
+  function addCustomField(fieldData = null) {
+    fieldCounter++;
+    const container = document.getElementById('custom-fields-container');
+    const fieldId = `field_${fieldCounter}`;
+    
+    const div = document.createElement('div');
+    div.id = fieldId;
+    div.className = 'custom-field-row';
+    div.style.cssText = 'background: var(--bg-surface-hover); border: 1px solid var(--border-color); padding: 14px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; position: relative; animation: fadeIn 0.3s ease;';
+
+    // Trash delete button
+    const deleteBtn = `
+      <button type="button" onclick="removeCustomField('${fieldId}')" style="position: absolute; top: 12px; right: 12px; border: none; background: none; cursor: pointer; color: var(--danger); opacity:0.75;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.75;" title="Remove field">
+        <i data-lucide="trash-2" style="width:15px;height:15px;"></i>
+      </button>
+    `;
+    
+    // Label input
+    const labelVal = fieldData ? fieldData.label : '';
+    const typeVal = fieldData ? fieldData.type : 'text';
+    const reqVal = fieldData ? fieldData.required : false;
+    const optVal = (fieldData && fieldData.options) ? fieldData.options.join(', ') : '';
+
+    div.innerHTML = `
+      ${deleteBtn}
+      <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; padding-right:20px;">
+        <div style="flex:2; min-width:180px; display:flex; flex-direction:column; gap:4px;">
+          <small style="font-size:10px; font-weight:700; color:var(--text-muted)">FIELD LABEL</small>
+          <input type="text" class="field-label-input" value="${labelVal}" placeholder="e.g. Prior coding experience?" oninput="updatePreview()" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:var(--bg-surface); color:var(--text-primary); font-weight:600; width:100%;">
+        </div>
+        
+        <div style="flex:1; min-width:100px; display:flex; flex-direction:column; gap:4px;">
+          <small style="font-size:10px; font-weight:700; color:var(--text-muted)">TYPE</small>
+          <select class="field-type-select" onchange="toggleOptionsRow('${fieldId}'); updatePreview();" style="padding:6px 8px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:var(--bg-surface); color:var(--text-primary); font-weight:600; width:100%;">
+            <option value="text" ${typeVal === 'text' ? 'selected' : ''}>Text</option>
+            <option value="number" ${typeVal === 'number' ? 'selected' : ''}>Number</option>
+            <option value="select" ${typeVal === 'select' ? 'selected' : ''}>Dropdown Menu</option>
+            <option value="textarea" ${typeVal === 'textarea' ? 'selected' : ''}>Long Text Area</option>
+          </select>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:6px; margin-top:16px;">
+          <input type="checkbox" class="field-required-checkbox" ${reqVal ? 'checked' : ''} onchange="updatePreview()" style="cursor:pointer; accent-color:var(--primary);">
+          <small style="font-size:11px; font-weight:700; color:var(--text-primary)">Required</small>
+        </div>
+      </div>
+
+      <!-- Dropdown options row (hidden unless type is select) -->
+      <div class="options-container" style="display: ${typeVal === 'select' ? 'flex' : 'none'}; flex-direction:column; gap:4px; border-top: 1px dashed var(--border-color); padding-top:8px;">
+        <small style="font-size:10px; font-weight:700; color:var(--text-muted)">DROPDOWN OPTIONS (Comma separated)</small>
+        <input type="text" class="field-options-input" value="${optVal}" placeholder="e.g. Beginner, Intermediate, Expert" oninput="updatePreview()" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:var(--bg-surface); color:var(--text-primary); font-family:sans-serif; width:100%;">
+      </div>
+    `;
+
+    container.appendChild(div);
+    lucide.createIcons();
+    updatePreview();
+  }
+
+  function removeCustomField(fieldId) {
+    const row = document.getElementById(fieldId);
+    if (row) {
+      row.style.animation = 'fadeOut 0.25s ease';
+      setTimeout(() => {
+        row.remove();
+        updatePreview();
+      }, 250);
+    }
+  }
+
+  function toggleOptionsRow(fieldId) {
+    const row = document.getElementById(fieldId);
+    const select = row.querySelector('.field-type-select');
+    const optionsDiv = row.querySelector('.options-container');
+    if (select.value === 'select') {
+      optionsDiv.style.display = 'flex';
+    } else {
+      optionsDiv.style.display = 'none';
+    }
+  }
+
+  function updatePreview() {
+    const previewContainer = document.getElementById('preview-form-fields');
+    previewContainer.innerHTML = ''; // Clear mockup
+
+    // 1. Render system fields
+    const systemFields = [
+      { label: "Full Name", type: "text", req: true },
+      { label: "Enrollment Number", type: "text", req: true },
+      { label: "Email Address", type: "email", req: true },
+      { label: "Phone Number", type: "tel", req: false },
+      { label: "Current Semester", type: "text", req: false },
+      { label: "Department", type: "select", req: true, options: ["Computer Engineering", "Information Technology", "Mechanical Engineering", "Civil Engineering", "Electrical Engineering", "Electronics & Communication"] }
+    ];
+
+    systemFields.forEach(f => {
+      if (f.type === 'select') {
+        previewContainer.appendChild(createMockSelect(f.label, f.options || [], f.req));
+      } else {
+        previewContainer.appendChild(createMockInput(f.label, f.type, f.req));
+      }
+    });
+
+    // 2. Render custom fields dynamically
+    const rows = document.querySelectorAll('.custom-field-row');
+    rows.forEach(row => {
+      const labelVal = row.querySelector('.field-label-input').value.trim() || 'Custom Field';
+      const typeVal = row.querySelector('.field-type-select').value;
+      const reqVal = row.querySelector('.field-required-checkbox').checked;
+      const optVal = row.querySelector('.field-options-input').value;
+
+      if (typeVal === 'select') {
+        const optionsList = optVal.split(',').map(s => s.trim()).filter(s => s);
+        previewContainer.appendChild(createMockSelect(labelVal, optionsList, reqVal));
+      } else if (typeVal === 'textarea') {
+        previewContainer.appendChild(createMockTextarea(labelVal, reqVal));
+      } else {
+        previewContainer.appendChild(createMockInput(labelVal, typeVal, reqVal));
+      }
+    });
+  }
+
+  function createMockInput(label, type, req) {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex; flex-direction:column; gap:4px; font-family:"Inter",sans-serif;';
+    div.innerHTML = `
+      <label style="font-size:11px; font-weight:700; color:var(--text-secondary)">
+        ${label} ${req ? '<span style="color:var(--danger)">*</span>' : ''}
+      </label>
+      <input type="${type}" disabled style="padding:7px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:#fff; cursor:not-allowed; width:100%; opacity:0.85;">
+    `;
+    return div;
+  }
+
+  function createMockSelect(label, options, req) {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex; flex-direction:column; gap:4px; font-family:"Inter",sans-serif;';
+    
+    let optionsHtml = '<option value="">Select option…</option>';
+    options.forEach(opt => {
+      optionsHtml += `<option>${opt}</option>`;
+    });
+
+    div.innerHTML = `
+      <label style="font-size:11px; font-weight:700; color:var(--text-secondary)">
+        ${label} ${req ? '<span style="color:var(--danger)">*</span>' : ''}
+      </label>
+      <select disabled style="padding:7px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:#fff; cursor:not-allowed; width:100%; opacity:0.85;">
+        ${optionsHtml}
+      </select>
+    `;
+    return div;
+  }
+
+  function createMockTextarea(label, req) {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex; flex-direction:column; gap:4px; font-family:"Inter",sans-serif;';
+    div.innerHTML = `
+      <label style="font-size:11px; font-weight:700; color:var(--text-secondary)">
+        ${label} ${req ? '<span style="color:var(--danger)">*</span>' : ''}
+      </label>
+      <textarea rows="2" disabled style="padding:7px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:#fff; cursor:not-allowed; resize:none; width:100%; opacity:0.85;"></textarea>
+    `;
+    return div;
+  }
+
+  function runAutoSuggest() {
+    const btn = document.getElementById('btn-auto-suggest');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader" class="spin" style="width:13px;height:13px;"></i> Suggesting…`;
+    lucide.createIcons();
+
+    fetch("{{ url_for('posts.form_builder_auto', post_id=post.id) }}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token() }}",
+        "Content-Type": "application/json"
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && data.fields) {
+        // Clear all current custom fields
+        document.getElementById('custom-fields-container').innerHTML = '';
+        fieldCounter = 0;
+        
+        // Add new suggested fields
+        data.fields.forEach(f => {
+          addCustomField(f);
+        });
+        
+        updatePreview();
+      } else {
+        alert("Failed to auto-generate fields: " + (data.error || "Unknown error"));
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Error contacting the form suggester service.");
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+      lucide.createIcons();
+    });
+  }
+
+  function serializeFields() {
+    const fields = [];
+    const rows = document.querySelectorAll('.custom-field-row');
+    
+    rows.forEach((row, idx) => {
+      const labelVal = row.querySelector('.field-label-input').value.trim();
+      if (!labelVal) return; // Skip empty rows
+
+      const typeVal = row.querySelector('.field-type-select').value;
+      const reqVal = row.querySelector('.field-required-checkbox').checked;
+      const optVal = row.querySelector('.field-options-input').value;
+
+      const fieldObj = {
+        id: `custom_${idx + 1}`,
+        label: labelVal,
+        type: typeVal,
+        required: reqVal,
+        is_default: false
+      };
+
+      if (typeVal === 'select') {
+        fieldObj.options = optVal.split(',').map(s => s.trim()).filter(s => s);
+      }
+
+      fields.push(fieldObj);
+    });
+
+    document.getElementById('config_json').value = JSON.stringify(fields);
+  }
+</script>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(6px); }
+  }
+  .spin {
+    animation: rotate 1s linear infinite;
+  }
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>
+{% endblock %}
