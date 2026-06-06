@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Completed Activities — Review Portal{% endblock %}
+{% block page_title %}Completed Activities & Reports{% endblock %}
+
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <span>Completed Activities</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto mb-10">
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h3 style="font-family:'Outfit', sans-serif; font-weight:800; color:var(--primary); margin:0;">Completed Institutional Activities</h3>
+      <p class="text-xs text-muted mt-1" style="margin:0;">Archive of all approved activities that have been executed, completed, and had their official reports submitted by the departments.</p>
+    </div>
+    
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn--secondary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding: 8px 20px;">
+      <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="card card--flat" style="border-radius: 14px; overflow: hidden; border-top: 4px solid var(--success); box-shadow: var(--shadow-md);">
+    <div class="card__header" style="background: var(--bg-surface-hover); padding: 18px 24px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+      <h4 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;">
+        <i data-lucide="archive" style="color:var(--success); width:20px; height:20px;"></i>
+        Completed Activities Archive
+      </h4>
+      <span class="badge badge--success" style="font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 8px;">
+        {{ posts|length }} Activit{{ 'y' if posts|length == 1 else 'ies' }} Completed
+      </span>
+    </div>
+    
+    <div class="card__body" style="padding: 0; overflow-x: auto;">
+      {% if posts %}
+        <table style="width:100%; border-collapse:collapse; min-width:900px; text-align:left; font-size:13.5px; background:var(--bg-surface);">
+          <thead>
+            <tr style="background:var(--bg-surface-hover); border-bottom:1px solid var(--border-color); color:var(--text-muted); font-weight:700;">
+              <th style="padding:16px 24px;">Activity Topic</th>
+              <th style="padding:16px 24px;">Department(s)</th>
+              <th style="padding:16px 24px;">Faculty Lead</th>
+              <th style="padding:16px 24px; text-align:center;">Students Count</th>
+              <th style="padding:16px 24px; text-align:center;">Submission Date</th>
+              <th style="padding:16px 24px; text-align:center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for post in posts %}
+              <tr style="border-bottom:1px solid var(--border-color); transition:background 0.2s ease;" onmouseover="this.style.background='rgba(var(--primary-rgb), 0.015)';" onmouseout="this.style.background='transparent';">
+                
+                <!-- Topic -->
+                <td style="padding:16px 24px; font-weight:600; color:var(--text-primary);">
+                  <div style="font-family:'Outfit', sans-serif; font-size:14.5px; color:var(--primary); font-weight:700;">
+                    {{ post.title }}
+                  </div>
+                  <small class="text-muted block mt-1" style="font-weight:500; font-size:11.5px;">{{ post.summary[:100] }}...</small>
+                </td>
+                
+                <!-- Department -->
+                <td style="padding:16px 24px;">
+                  {% if post.departments %}
+                    <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                      {% for dept in post.departments %}
+                        <span style="font-size:9.5px; font-weight:700; background:rgba(var(--primary-rgb), 0.06); color:var(--primary); padding:3px 8px; border-radius:6px; text-transform:uppercase;">
+                          {{ dept.code }}
+                        </span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <span class="text-muted">N/A</span>
+                  {% endif %}
+                </td>
+                
+                <!-- Faculty Lead -->
+                <td style="padding:16px 24px; font-weight:600; color:var(--text-secondary);">
+                  {% if post.assigned_faculty %}
+                    <span class="flex items-center gap-1 font-medium" style="font-size:13px;">
+                      <i data-lucide="user-check" style="width:14px;height:14px;color:var(--success);"></i>
+                      {{ post.assigned_faculty.full_name }}
+                    </span>
+                  {% else %}
+                    <span class="text-muted">Unassigned</span>
+                  {% endif %}
+                </td>
+                
+                <!-- Student registrations -->
+                <td style="padding:16px 24px; text-align:center; font-weight:700; color:var(--text-primary);">
+                  {{ post.registrations|length }} Registered
+                </td>
+                
+                <!-- Submission Date -->
+                <td style="padding:16px 24px; text-align:center; color:var(--text-muted);">
+                  {% if post.activity_report %}
+                    {{ post.activity_report.updated_at.strftime('%b %d, %Y') }}
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </td>
+                
+                <!-- Actions -->
+                <td style="padding:16px 24px; text-align:center;">
+                  <div style="display:flex; justify-content:center; gap:8px;">
+                    <a href="{{ url_for('posts.view_post', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size:11.5px; padding:6px 12px; border-radius:8px;">
+                      <i data-lucide="eye" style="width:14px;height:14px;"></i> View Details
+                    </a>
+                    
+                    <a href="{{ url_for('posts.report_download', post_id=post.id) }}" class="btn btn--success btn--sm flex items-center gap-1" style="font-size:11.5px; padding:6px 12px; border-radius:8px; background:var(--success); color:#fff; border:none;">
+                      <i data-lucide="download" style="width:14px;height:14px;"></i> Download Word Doc
+                    </a>
+                  </div>
+                </td>
+                
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div style="text-align:center; padding:60px 20px; color:var(--text-muted);">
+          <i data-lucide="archive" style="width:52px; height:52px; margin:0 auto 16px auto; display:block; opacity:0.4;"></i>
+          <h5 class="font-semibold text-muted" style="margin:0;">No Completed Activities Yet</h5>
+          <p class="text-xs text-muted mt-1" style="margin:0;">Activities marked completed with submitted reports will be archived here.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

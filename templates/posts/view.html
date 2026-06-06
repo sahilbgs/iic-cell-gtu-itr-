@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} — Shared Activity{% endblock %}
+{% block page_title %}Activity Notice Details{% endblock %}
+
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <a href="{{ url_for('posts.index') }}">Shared Activities</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <span>{{ post.title[:30] }}...</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <!-- Back Button at the Top -->
+  <button onclick="goBack()" class="btn btn--secondary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding: 8px 20px; box-shadow: var(--shadow-sm); transition: all 0.2s;">
+    <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Go Back
+  </button>
+</div>
+
+<div class="grid grid-3" style="align-items: start; gap: 30px; grid-template-columns: 2fr 1fr;">
+  
+  <!-- LEFT COLUMN: Main Announcement Details & PDF Viewer -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    
+    <!-- Title & Summary Glassmorphic Banner -->
+    <div class="card glass-card" style="padding: 30px; position: relative; overflow: hidden; border-left: 5px solid var(--primary);">
+      <div class="flex items-center gap-2 mb-4" style="flex-wrap: wrap;">
+        <span class="badge badge--{{ 'info' if post.source == 'COMPANY' else 'warning' if post.source == 'FIRM' else 'neutral' }}" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 10px; border-radius: 8px;">
+          {{ post.source_label }}
+        </span>
+        {% if post.departments %}
+          {% for dept in post.departments %}
+            <span class="badge badge--neutral" style="font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 8px;">
+              {{ dept.name }}
+            </span>
+          {% endfor %}
+        {% endif %}
+        <span class="badge badge--neutral" style="font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 8px; margin-left: auto;">
+          Published: {{ post.created_at.strftime('%b %d, %Y') }}
+        </span>
+      </div>
+
+      <h2 style="font-family:'Outfit', sans-serif; font-weight:800; font-size:1.85rem; line-height:1.35; color:var(--text-primary); margin-bottom:16px;">
+        {{ post.title }}
+      </h2>
+      
+      <div style="background: rgba(var(--primary-rgb), 0.03); border-left: 4px solid var(--primary); padding: 18px 22px; border-radius: 0 12px 12px 0;">
+        <h5 style="font-family:'Outfit', sans-serif; font-weight:700; font-size: 12px; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">
+          Executive Summary
+        </h5>
+        <p style="font-size: 14.5px; line-height: 1.65; color: var(--text-secondary); font-weight: 500; margin: 0;">
+          {{ post.summary }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Scrollable full circular document letterhead reader -->
+    <div class="card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);">
+      <div class="card__header" style="background: var(--bg-surface-hover); padding: 18px 24px; border-bottom: 1px solid var(--border-color);">
+        <h4 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; margin:0; font-size:1.1rem;">
+          <i data-lucide="file-text" style="width:20px;height:20px;"></i>
+          Full Notice Content
+        </h4>
+      </div>
+      <div class="card__body" style="padding: 30px; font-family:'Inter', sans-serif; font-size: 14.5px; line-height: 1.75; color: var(--text-primary); white-space: pre-wrap; background: var(--bg-surface);">
+        {{ post.full_content }}
+      </div>
+    </div>
+
+    <!-- Official Attached Document Section -->
+    {% if post.attachment_path %}
+      {% set ext = post.attachment_path.split('.')[-1].lower() %}
+      <div class="card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);">
+        <div class="card__header" style="background: var(--bg-surface-hover); padding: 18px 24px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <h4 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; margin:0; font-size:1.1rem;">
+            <i data-lucide="paperclip" style="width:20px;height:20px;"></i>
+            Official Attachment Document
+          </h4>
+          <a href="{{ url_for('posts.download_file', filename=post.attachment_path, download=1) }}" class="btn btn--primary btn--sm flex items-center gap-1" style="border-radius: var(--border-radius-full); padding: 8px 16px;">
+            <i data-lucide="download" style="width:14px;height:14px;"></i> Download Circular Document
+          </a>
+        </div>
+        
+        <div class="card__body" style="padding: 24px; background: var(--bg-body);">
+          {% if ext == 'pdf' %}
+            <!-- Large PDF Document Viewer -->
+            <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; height: 750px; background: #fff; box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);">
+              <iframe src="{{ url_for('posts.download_file', filename=post.attachment_path) }}#toolbar=1" width="100%" height="100%" style="border: none;"></iframe>
+            </div>
+          {% elif ext in ['png', 'jpg', 'jpeg', 'webp', 'gif'] %}
+            <!-- Embedded Image Viewer -->
+            <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: #fff; padding: 20px; text-align: center; box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);">
+              <img src="{{ url_for('posts.download_file', filename=post.attachment_path) }}" alt="Attached flyer image" style="max-width: 100%; max-height: 800px; object-fit: contain; border-radius: 8px; box-shadow: var(--shadow-sm);">
+            </div>
+          {% else %}
+            <!-- Fallback -->
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 60px 20px; color:var(--text-muted); border: 1px dashed var(--border-color); border-radius: 12px; background:#fff;">
+              <i data-lucide="file-text" style="width:48px; height:48px; opacity:0.5; margin-bottom:16px;"></i>
+              <span class="text-base font-semibold">No direct preview available for: .{{ ext }} file format</span>
+              <a href="{{ url_for('posts.download_file', filename=post.attachment_path, download=1) }}" class="btn btn--secondary btn--sm mt-4" style="border-radius: var(--border-radius-full);">Download Attachment Instead</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Back Button at the Bottom -->
+    <div style="margin-top: 10px; display: flex; justify-content: flex-start;">
+      <button onclick="goBack()" class="btn btn--secondary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px 24px; box-shadow: var(--shadow-sm);">
+        <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to list
+      </button>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN: Metadata details, Timeline & Actions -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    
+    <!-- Quick Actions Card -->
+    <div class="card glass-panel" style="padding: 24px; border-radius: var(--border-radius-lg);">
+      <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:16px; font-size:1rem; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+        Quick Actions
+      </h5>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% if post.has_registration_form %}
+          <a href="{{ url_for('posts.register', post_id=post.id) }}" class="btn btn--success flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%; box-shadow: var(--shadow-sm);" target="_blank">
+            <i data-lucide="external-link" style="width:16px;height:16px;"></i> Student Registration
+          </a>
+          <a href="{{ url_for('posts.registration_report', post_id=post.id) }}" class="btn btn--secondary flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%;">
+            <i data-lucide="bar-chart-2" style="width:16px;height:16px;color:var(--success);"></i> Registration Reports
+          </a>
+        {% endif %}
+
+        {% if post.approval_status == 'APPROVED' %}
+          {% set is_mgmt = current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR') %}
+          {% set is_coord = current_user.role == 'DEPT_COORDINATOR' and current_user.department_id in post.departments | map(attribute='id') | list %}
+          {% set is_assigned = current_user.id == post.assigned_faculty_id %}
+          
+          {% if is_mgmt or is_coord or is_assigned %}
+            {% if not post.activity_report or post.activity_report.status == 'DRAFT' %}
+              {% if is_coord or is_assigned or current_user.role == 'RD_COORDINATOR' %}
+                <a href="{{ url_for('posts.report_form', post_id=post.id) }}" class="btn btn--primary flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%; background:var(--primary); border:none; color:#fff;">
+                  <i data-lucide="file-edit" style="width:16px;height:16px;"></i>
+                  {% if post.activity_report %}Edit Report Draft{% else %}Generate Activity Report{% endif %}
+                </a>
+              {% endif %}
+            {% else %}
+              <a href="{{ url_for('posts.report_form', post_id=post.id) }}" class="btn btn--secondary flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%;">
+                <i data-lucide="file-text" style="width:16px;height:16px;color:var(--success);"></i> View Submitted Report
+              </a>
+              <a href="{{ url_for('posts.report_download', post_id=post.id) }}" class="btn btn--success flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%; background:var(--success); color:#fff; border:none;">
+                <i data-lucide="download" style="width:16px;height:16px;"></i> Download Word Report
+              </a>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+
+        {% if (current_user.role == 'PRINCIPAL' or current_user.id == post.created_by) and post.progress_status != 'COMPLETED' %}
+          <a href="{{ url_for('posts.edit', post_id=post.id) }}" class="btn btn--secondary flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%;">
+            <i data-lucide="edit" style="width:16px;height:16px;color:var(--primary);"></i> Edit Activity Post
+          </a>
+          <form action="{{ url_for('posts.delete', post_id=post.id) }}" method="POST" style="margin: 0; width: 100%;" onsubmit="return confirm('Are you sure you want to delete this shared activity post?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn--danger flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%;">
+              <i data-lucide="trash-2" style="width:16px;height:16px;"></i> Delete Activity
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Performance / Implementation Status Card -->
+    <div class="card" style="padding: 24px; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm);">
+      <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:16px; font-size:1rem; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+        Activity Execution Status
+      </h5>
+      
+      <div style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; margin-bottom:8px;">
+          <span class="text-muted">Progress status:</span>
+          <span style="color: {% if post.progress_status == 'COMPLETED' %}var(--success){% elif post.progress_status == 'IN_PROGRESS' %}#d97706{% elif post.progress_status == 'ON_HOLD' %}var(--danger){% else %}var(--text-muted){% endif %}">
+            {{ post.status_label }}
+          </span>
+        </div>
+        <div style="background: var(--border-color); border-radius: var(--border-radius-full); height: 8px; overflow: hidden; display:flex;">
+          <div style="width: {{ post.progress_percentage }}%; height: 100%; border-radius: var(--border-radius-full); transition: width 0.4s ease;
+            background: {% if post.progress_status == 'COMPLETED' %}var(--success){% elif post.progress_status == 'IN_PROGRESS' %}#f59e0b{% elif post.progress_status == 'ON_HOLD' %}var(--danger){% else %}var(--text-muted){% endif %};">
+          </div>
+        </div>
+        <div style="text-align:right; font-size:12px; font-weight:700; color:var(--text-secondary); margin-top:6px;">
+          {{ post.progress_percentage }}% Complete
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; background: var(--bg-body); padding: 16px; border-radius: 10px; border: 1px solid var(--border-color);">
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <span style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Faculty Lead In-Charge</span>
+          {% if post.assigned_faculty %}
+            <span style="font-size:13.5px; font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+              <i data-lucide="user-check" style="width:15px;height:15px;color:var(--success);"></i>
+              {{ post.assigned_faculty.full_name }}
+            </span>
+          {% else %}
+            <span class="badge badge--warning" style="font-size:10px; font-weight:700; padding:2px 8px; width:fit-content; border-radius:4px;">Unassigned</span>
+          {% endif %}
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:4px; border-top:1px solid var(--border-color); padding-top:12px;">
+          <span style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Student Registrations</span>
+          {% if post.has_registration_form %}
+            <span style="font-size:14px; font-weight:700; color:var(--success); display:flex; align-items:center; gap:6px;">
+              <i data-lucide="users" style="width:16px;height:16px;"></i>
+              {{ post.registrations|length }} registered students
+            </span>
+          {% else %}
+            <span style="font-size:12px; font-weight:500; color:var(--text-muted); font-style:italic;">Registration form disabled</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline Details Card -->
+    <div class="card" style="padding: 24px; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm);">
+      <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:16px; font-size:1rem; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+        Activity Schedule Timeline
+      </h5>
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        
+        <div style="display:flex; gap:12px;">
+          <div style="background: rgba(var(--primary-rgb), 0.08); color: var(--primary); width: 36px; height: 36px; border-radius: 8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i data-lucide="calendar" style="width:18px;height:18px;"></i>
+          </div>
+          <div>
+            <span style="display:block; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Start Date</span>
+            <span style="font-size:13.5px; font-weight:700; color:var(--text-primary);">
+              {{ post.start_date.strftime('%B %d, %Y') if post.start_date else 'Not Specified' }}
+            </span>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; border-top:1px solid var(--border-color); padding-top:14px;">
+          <div style="background: rgba(239, 68, 68, 0.08); color: var(--danger); width: 36px; height: 36px; border-radius: 8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i data-lucide="calendar-days" style="width:18px;height:18px;"></i>
+          </div>
+          <div>
+            <span style="display:block; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">End Date / Deadline</span>
+            <span style="font-size:13.5px; font-weight:700; color:var(--danger);">
+              {{ post.end_date.strftime('%B %d, %Y') if post.end_date else 'No Limit' }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Administrative details if chairperson/principal -->
+    {% if current_user.role in ['CHAIRPERSON', 'PRINCIPAL'] %}
+      <div class="card glass-card" style="padding: 24px; border-radius: var(--border-radius-lg);">
+        <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:16px; font-size:1rem; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+          Chairperson Review Status
+        </h5>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Status:</span>
+            <span class="badge" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; border-radius: 6px; padding: 3px 8px; text-transform: uppercase;
+              {% if post.approval_status == 'APPROVED' %}background: rgba(16, 185, 129, 0.1); color: var(--success);
+              {% elif post.approval_status == 'REJECTED' %}background: rgba(239, 68, 68, 0.1); color: var(--danger);
+              {% else %}background: rgba(245, 158, 11, 0.1); color: #d97706;{% endif %}">
+              {{ post.approval_label }}
+            </span>
+          </div>
+          {% if post.approval_status == 'APPROVED' %}
+            {% if post.approver %}
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                <strong>Approved by:</strong> {{ post.approver.full_name }}
+              </div>
+            {% endif %}
+            {% if post.approval_date %}
+              <div style="font-size:12px; color:var(--text-secondary);">
+                <strong>Approval date:</strong> {{ post.approval_date.strftime('%b %d, %Y') }}
+              </div>
+            {% endif %}
+            {% if post.approval_note %}
+              <p style="font-size:12px; color:var(--success); font-style:italic; margin-top:6px; background:rgba(16,185,129,0.03); padding:8px; border-radius:6px; border-left:2px solid var(--success);">
+                "{{ post.approval_note }}"
+              </p>
+            {% endif %}
+          {% elif post.approval_status == 'REJECTED' %}
+            {% if post.rejection_reason %}
+              <p style="font-size:12px; color:var(--danger); font-style:italic; margin-top:6px; background:rgba(239,68,68,0.03); padding:8px; border-radius:6px; border-left:2px solid var(--danger);">
+                "{{ post.rejection_reason }}"
+              </p>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function goBack() {
+    if (document.referrer && document.referrer.includes(window.location.host)) {
+      window.history.back();
+    } else {
+      window.location.href = "{{ url_for('posts.index') }}";
+    }
+  }
+</script>
+{% endblock %}

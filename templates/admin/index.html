@@ -1,0 +1,876 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel{% endblock %}
+{% block page_title %}Admin Panel{% endblock %}
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">Manage users, departments, and roles</div>
+{% endblock %}
+
+{% block content %}
+<!-- ═══════ Admin KPI Cards ═══════ -->
+<div class="grid grid-4 mb-8 stagger">
+  <div class="kpi-card kpi-card--gold">
+    <div class="kpi-card__top">
+      <div>
+        <div class="kpi-card__value">{{ users|length }}</div>
+        <div class="kpi-card__label">Total Users</div>
+      </div>
+      <div class="kpi-card__icon"><i data-lucide="users"></i></div>
+    </div>
+  </div>
+  <div class="kpi-card kpi-card--info">
+    <div class="kpi-card__top">
+      <div>
+        <div class="kpi-card__value">{{ departments|length }}</div>
+        <div class="kpi-card__label">Departments</div>
+      </div>
+      <div class="kpi-card__icon"><i data-lucide="building-2"></i></div>
+    </div>
+  </div>
+  <div class="kpi-card kpi-card--success">
+    <div class="kpi-card__top">
+      <div>
+        <div class="kpi-card__value">{{ users|selectattr('role', 'equalto', 'FACULTY')|list|length }}</div>
+        <div class="kpi-card__label">Faculty Members</div>
+      </div>
+      <div class="kpi-card__icon"><i data-lucide="graduation-cap"></i></div>
+    </div>
+  </div>
+  <div class="kpi-card kpi-card--warning">
+    <div class="kpi-card__top">
+      <div>
+        <div class="kpi-card__value">{{ users|selectattr('role', 'equalto', 'DEPT_COORDINATOR')|list|length }}</div>
+        <div class="kpi-card__label">Dept. Coordinators</div>
+      </div>
+      <div class="kpi-card__icon"><i data-lucide="shield-check"></i></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ Tab Navigation ═══════ -->
+<div class="tabs" id="admin-tabs">
+  <button class="tab-btn active" data-tab="users-tab" onclick="switchTab(event, 'users-tab')">
+    <i data-lucide="users" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
+    Users & Roles
+  </button>
+  <button class="tab-btn" data-tab="departments-tab" onclick="switchTab(event, 'departments-tab')">
+    <i data-lucide="building-2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
+    Departments
+  </button>
+  <button class="tab-btn" data-tab="compliance-tab" onclick="switchTab(event, 'compliance-tab')">
+    <i data-lucide="shield-check" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
+    Legal &amp; Compliance
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- TAB 1: USERS & ROLES                                              -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="tab-pane active" id="users-tab">
+  <!-- Action Bar -->
+  <div class="flex items-center justify-between mb-6" style="flex-wrap:wrap; gap:12px;">
+    <div>
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;">
+        <i data-lucide="user-cog" style="width:22px;height:22px;color:var(--gold);"></i>
+        User Management
+      </h3>
+      <p class="text-muted text-xs" style="margin:2px 0 0;">Create, edit, and manage user accounts and their roles</p>
+    </div>
+    <button class="btn btn--primary flex items-center gap-2" onclick="openModal('create-user-modal')" id="btn-create-user">
+      <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
+      Create New User
+    </button>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="flex items-center gap-2" style="color:var(--text-muted);">
+      <i data-lucide="filter" style="width:16px;height:16px;"></i>
+      <span class="text-sm font-medium">Filter:</span>
+    </div>
+    <select class="form-control" id="filter-role" onchange="filterUsers()" style="min-width:160px;">
+      <option value="">All Roles</option>
+      {% for r in roles %}
+        <option value="{{ r }}">{{ role_labels[r] }}</option>
+      {% endfor %}
+    </select>
+    <select class="form-control" id="filter-dept" onchange="filterUsers()" style="min-width:160px;">
+      <option value="">All Departments</option>
+      {% for dept in departments %}
+        <option value="{{ dept.id }}">{{ dept.name }}</option>
+      {% endfor %}
+    </select>
+    <select class="form-control" id="filter-status" onchange="filterUsers()" style="min-width:130px;">
+      <option value="">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+    <input type="text" class="form-control" id="search-users" placeholder="Search by name or email…" oninput="filterUsers()" style="min-width:200px;">
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-wrap animate-fade-in-up">
+    <table class="table" id="users-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Department</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th style="text-align:center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+          <tr class="user-row" data-role="{{ user.role }}" data-dept="{{ user.department_id or '' }}" data-status="{{ 'active' if user.is_active else 'inactive' }}" data-name="{{ user.full_name|lower }}" data-email="{{ user.email|lower }}">
+            <td>
+              <div class="flex items-center gap-3">
+                <div style="width:36px; height:36px; border-radius:var(--border-radius-full); background:var(--gradient-primary); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:var(--text-sm); flex-shrink:0;">
+                  {{ user.full_name[:2]|upper }}
+                </div>
+                <div>
+                  <div style="font-weight:600; color:var(--text-primary);">{{ user.full_name }}</div>
+                  {% if user.designation %}
+                    <div class="text-xs text-muted">{{ user.designation }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="text-sm" style="color:var(--text-secondary);">{{ user.email }}</span>
+            </td>
+            <td>
+              <span class="badge badge--{{ 'gold' if user.role == 'PRINCIPAL' else 'primary' if user.role in ['CHAIRPERSON', 'RD_COORDINATOR'] else 'info' if user.role == 'DEPT_COORDINATOR' else 'success' if user.role == 'FACULTY' else 'neutral' }}" style="font-size:10px; padding:4px 10px; border-radius:6px; font-weight:700; letter-spacing:0.3px;">
+                {{ role_labels[user.role] }}
+              </span>
+            </td>
+            <td>
+              {% if user.department %}
+                <span class="flex items-center gap-1 text-sm" style="color:var(--text-primary);">
+                  <i data-lucide="building-2" style="width:13px;height:13px;color:var(--text-muted);"></i>
+                  {{ user.department.name }}
+                </span>
+              {% else %}
+                <span class="text-xs text-muted" style="font-style:italic;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if user.is_active %}
+                <span class="badge badge--success" style="font-size:10px; padding:3px 8px; border-radius:6px;">
+                  <span class="badge__dot"></span> Active
+                </span>
+              {% else %}
+                <span class="badge badge--danger" style="font-size:10px; padding:3px 8px; border-radius:6px;">
+                  <span class="badge__dot"></span> Inactive
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="text-xs text-muted">{{ user.created_at.strftime('%b %d, %Y') if user.created_at else '—' }}</span>
+            </td>
+            <td style="text-align:center;">
+              <div class="flex items-center justify-center gap-2">
+                <button class="btn btn--ghost btn--icon" data-tooltip="Edit User" onclick="openEditUserModal({{ user.id }})" id="btn-edit-user-{{ user.id }}">
+                  <i data-lucide="pencil" style="width:15px;height:15px;"></i>
+                </button>
+                {% if user.id != current_user.id %}
+                  <form action="{{ url_for('admin.toggle_user_active', user_id=user.id) }}" method="POST" style="display:inline; margin:0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn--ghost btn--icon" data-tooltip="{{ 'Deactivate' if user.is_active else 'Activate' }}" id="btn-toggle-user-{{ user.id }}">
+                      <i data-lucide="{{ 'user-x' if user.is_active else 'user-check' }}" style="width:15px;height:15px; color:{{ 'var(--danger)' if user.is_active else 'var(--success)' }};"></i>
+                    </button>
+                  </form>
+                  <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Are you sure you want to permanently delete this user?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn--ghost btn--icon" data-tooltip="Delete" id="btn-delete-user-{{ user.id }}">
+                      <i data-lucide="trash-2" style="width:15px;height:15px; color:var(--danger);"></i>
+                    </button>
+                  </form>
+                {% else %}
+                  <span class="badge badge--neutral" style="font-size:9px; padding:2px 6px;">You</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if not users %}
+      <div class="empty-state">
+        <div class="empty-state__icon"><i data-lucide="users" style="width:64px;height:64px;"></i></div>
+        <div class="empty-state__title">No Users Found</div>
+        <div class="empty-state__desc">Create your first user to get started.</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- TAB 2: DEPARTMENTS                                                -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="departments-tab">
+  <!-- Action Bar -->
+  <div class="flex items-center justify-between mb-6" style="flex-wrap:wrap; gap:12px;">
+    <div>
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;">
+        <i data-lucide="building-2" style="width:22px;height:22px;color:var(--gold);"></i>
+        Department Management
+      </h3>
+      <p class="text-muted text-xs" style="margin:2px 0 0;">Create and manage academic departments</p>
+    </div>
+    <button class="btn btn--primary flex items-center gap-2" onclick="openModal('create-dept-modal')" id="btn-create-dept">
+      <i data-lucide="plus-circle" style="width:16px;height:16px;"></i>
+      Create Department
+    </button>
+  </div>
+
+  <!-- Departments Grid -->
+  <div class="grid grid-3 stagger">
+    {% for dept in departments %}
+      {% set dept_users = [] %}
+      {% set faculty_count = 0 %}
+      {% set coord_count = 0 %}
+      {% for u in users %}
+        {% if u.department_id == dept.id %}
+          {% if u.role == 'FACULTY' %}
+            {% set faculty_count = faculty_count + 1 %}
+          {% elif u.role == 'DEPT_COORDINATOR' %}
+            {% set coord_count = coord_count + 1 %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      <div class="card" style="border-radius:14px; overflow:hidden;">
+        <div class="card__header" style="background:linear-gradient(135deg, rgba(0,51,102,0.04), transparent); padding:18px 20px; border-bottom:1px solid var(--border-color);">
+          <div class="flex items-center gap-3">
+            <div style="width:44px; height:44px; border-radius:var(--border-radius); background:var(--gradient-primary); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:var(--text-sm); flex-shrink:0;">
+              {{ dept.code }}
+            </div>
+            <div>
+              <h4 style="font-family:'Outfit',sans-serif; font-weight:700; font-size:var(--text-base); margin:0; color:var(--text-primary);">{{ dept.name }}</h4>
+              {% if dept.hod_name %}
+                <div class="text-xs text-muted" style="margin-top:2px;">HOD: {{ dept.hod_name }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="card__body" style="padding:16px 20px;">
+          <div class="grid grid-2 mb-4" style="gap:12px;">
+            <div style="background:var(--bg-surface-hover); padding:10px 14px; border-radius:8px; border:1px solid var(--border-color);">
+              <div class="text-xs text-muted" style="font-weight:600; margin-bottom:2px;">Faculty</div>
+              <div style="font-family:'Outfit',sans-serif; font-weight:800; font-size:var(--text-xl); color:var(--primary);">
+                {{ users|selectattr('department_id', 'equalto', dept.id)|selectattr('role', 'equalto', 'FACULTY')|list|length }}
+              </div>
+            </div>
+            <div style="background:var(--bg-surface-hover); padding:10px 14px; border-radius:8px; border:1px solid var(--border-color);">
+              <div class="text-xs text-muted" style="font-weight:600; margin-bottom:2px;">Coordinators</div>
+              <div style="font-family:'Outfit',sans-serif; font-weight:800; font-size:var(--text-xl); color:var(--success);">
+                {{ users|selectattr('department_id', 'equalto', dept.id)|selectattr('role', 'equalto', 'DEPT_COORDINATOR')|list|length }}
+              </div>
+            </div>
+          </div>
+          {% if dept.email %}
+            <div class="flex items-center gap-2 text-xs text-muted mb-2">
+              <i data-lucide="mail" style="width:12px;height:12px;"></i> {{ dept.email }}
+            </div>
+          {% endif %}
+          {% if dept.phone %}
+            <div class="flex items-center gap-2 text-xs text-muted mb-2">
+              <i data-lucide="phone" style="width:12px;height:12px;"></i> {{ dept.phone }}
+            </div>
+          {% endif %}
+        </div>
+        <div class="card__footer" style="display:flex; gap:8px; padding:12px 20px;">
+          <button class="btn btn--secondary btn--sm flex items-center gap-1" style="flex:1; font-size:11px; font-weight:600;" onclick="openEditDeptModal({{ dept.id }})" id="btn-edit-dept-{{ dept.id }}">
+            <i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit
+          </button>
+          <form action="{{ url_for('admin.delete_department', dept_id=dept.id) }}" method="POST" style="flex:1; margin:0;" onsubmit="return confirm('Delete department {{ dept.name }}? This cannot be undone.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn--danger btn--sm flex items-center gap-1" style="width:100%; font-size:11px; font-weight:600;" id="btn-delete-dept-{{ dept.id }}">
+              <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+
+    {% if not departments %}
+      <div style="grid-column: 1 / -1;">
+        <div class="empty-state">
+          <div class="empty-state__icon"><i data-lucide="building-2" style="width:64px;height:64px;"></i></div>
+          <div class="empty-state__title">No Departments Yet</div>
+          <div class="empty-state__desc">Create your first department to organize your institution.</div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- TAB 3: LEGAL & COMPLIANCE                                          -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="compliance-tab">
+  <div class="flex items-center justify-between mb-6" style="flex-wrap:wrap; gap:12px;">
+    <div>
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;">
+        <i data-lucide="shield-check" style="width:22px;height:22px;color:var(--gold);"></i>
+        Legal &amp; Compliance Audit
+      </h3>
+      <p class="text-muted text-xs" style="margin:2px 0 0;">Verify compliance with Software Development Legal Guidelines (India) and DPDP Act, 2023</p>
+    </div>
+  </div>
+
+  <div class="grid grid-3 mb-8 stagger">
+    <!-- Score Card -->
+    <div class="card card--glass" style="grid-column: span 1; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 200px;">
+      <div style="position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+        <!-- Circular Progress Chart -->
+        <svg viewBox="0 0 36 36" style="width: 100px; height: 100px; transform: rotate(-90deg);">
+          <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--border-color)" stroke-width="2.5" />
+          <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="{% if compliance_score == 100 %}var(--success){% else %}var(--primary){% endif %}" stroke-width="2.5" stroke-dasharray="{{ compliance_score }}, 100" stroke-linecap="round" />
+        </svg>
+        <div style="position: absolute; font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; color: var(--text-primary);">
+          {{ compliance_score }}%
+        </div>
+      </div>
+      <h4 style="font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 4px;">Compliance Readiness</h4>
+      <p class="text-xs text-muted" style="margin: 0;">Calculated dynamically based on active platform checks.</p>
+    </div>
+
+    <!-- Info Box -->
+    <div class="card" style="grid-column: span 2; padding: 24px;">
+      <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <i data-lucide="info" style="color: var(--gold); width: 18px; height: 18px;"></i>
+        DPDP Act 2023 Enforcement
+      </h4>
+      <p style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+        India's <strong>Digital Personal Data Protection Act, 2023</strong> imposes strict obligations on academic and commercial institutions (Data Fiduciaries) collecting personal data. Platforms must obtain explicit, revocable consent, collect only minimal information, publish standard policy notices, and verify security protocols.
+      </p>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <span class="badge badge--success" style="font-size: 10px; padding: 4px 10px;"><i data-lucide="check" style="width:12px;height:12px;"></i> Consent Checked</span>
+        <span class="badge badge--success" style="font-size: 10px; padding: 4px 10px;"><i data-lucide="check" style="width:12px;height:12px;"></i> Secure Cookies Configured</span>
+        <span class="badge badge--success" style="font-size: 10px; padding: 4px 10px;"><i data-lucide="check" style="width:12px;height:12px;"></i> Security Headers Active</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Checks -->
+  <div class="table-wrap animate-fade-in-up">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width: 50px; text-align: center;">#</th>
+          <th>Guideline Requirement</th>
+          <th>Verification Parameter</th>
+          <th>Verification Mode</th>
+          <th style="text-align: center; width: 150px;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 1. Ownership -->
+        <tr>
+          <td style="text-align: center; font-weight: 600;">1</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">Requirements &amp; Ownership</div>
+            <div class="text-xs text-muted" style="margin-top: 2px;">Signed requirements, source code, data &amp; IP ownership defined.</div>
+          </td>
+          <td><code style="font-size: 11px; font-weight: 600;">OWNERSHIP.md</code> exists in root</td>
+          <td>File Check</td>
+          <td style="text-align: center;">
+            {% if compliance_checks.ownership_doc %}
+              <span class="badge badge--success"><span class="badge__dot"></span> Compliant</span>
+            {% else %}
+              <span class="badge badge--danger"><span class="badge__dot"></span> Missing</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        <!-- 2. Privacy Policy -->
+        <tr>
+          <td style="text-align: center; font-weight: 600;">2</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">Privacy &amp; Data Protection</div>
+            <div class="text-xs text-muted" style="margin-top: 2px;">Standard policy detailing minimal collection &amp; DPDP compliance.</div>
+          </td>
+          <td>Route <code style="font-size: 11px; font-weight: 600;">/privacy</code> active</td>
+          <td>Endpoint Check</td>
+          <td style="text-align: center;">
+            {% if compliance_checks.privacy_policy_view %}
+              <span class="badge badge--success"><span class="badge__dot"></span> Compliant</span>
+            {% else %}
+              <span class="badge badge--danger"><span class="badge__dot"></span> Non-compliant</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        <!-- 3. Terms & Conditions -->
+        <tr>
+          <td style="text-align: center; font-weight: 600;">3</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">Terms &amp; Conditions</div>
+            <div class="text-xs text-muted" style="margin-top: 2px;">User responsibilities, acceptable use, and limits of liability.</div>
+          </td>
+          <td>Route <code style="font-size: 11px; font-weight: 600;">/terms</code> active</td>
+          <td>Endpoint Check</td>
+          <td style="text-align: center;">
+            {% if compliance_checks.terms_view %}
+              <span class="badge badge--success"><span class="badge__dot"></span> Compliant</span>
+            {% else %}
+              <span class="badge badge--danger"><span class="badge__dot"></span> Non-compliant</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        <!-- 4. Password Hashing -->
+        <tr>
+          <td style="text-align: center; font-weight: 600;">4</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">Secure Passwords</div>
+            <div class="text-xs text-muted" style="margin-top: 2px;">Never store clear-text passwords. Use secure hash.</div>
+          </td>
+          <td>Werkzeug PBKDF2/SHA256 active</td>
+          <td>Model Check</td>
+          <td style="text-align: center;">
+            <span class="badge badge--success"><span class="badge__dot"></span> Compliant</span>
+          </td>
+        </tr>
+
+        <!-- 5. Session Security -->
+        <tr>
+          <td style="text-align: center; font-weight: 600;">5</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">Session Cookie Protection</div>
+            <div class="text-xs text-muted" style="margin-top: 2px;">Session cookie only transmitted over HTTPS (SSL).</div>
+          </td>
+          <td><code style="font-size: 11px; font-weight: 600;">SESSION_COOKIE_SECURE</code> configuration</td>
+          <td>System Settings</td>
+          <td style="text-align: center;">
+            {% if compliance_checks.session_secure or config_name != 'production' %}
+              <span class="badge badge--success"><span class="badge__dot"></span> Compliant</span>
+            {% else %}
+              <span class="badge badge--danger"><span class="badge__dot"></span> Non-secure</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        <!-- 6. Remember Security -->
+        <tr>
+          <td style="text-align: center; font-weight: 600;">6</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">Remember-Me Cookie Protection</div>
+            <div class="text-xs text-muted" style="margin-top: 2px;">Remember tokens secure flag verification.</div>
+          </td>
+          <td><code style="font-size: 11px; font-weight: 600;">REMEMBER_COOKIE_SECURE</code> config</td>
+          <td>System Settings</td>
+          <td style="text-align: center;">
+            {% if compliance_checks.remember_secure or config_name != 'production' %}
+              <span class="badge badge--success"><span class="badge__dot"></span> Compliant</span>
+            {% else %}
+              <span class="badge badge--danger"><span class="badge__dot"></span> Non-secure</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        <!-- 7. CSRF Form Validation -->
+        <tr>
+          <td style="text-align: center; font-weight: 600;">7</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">Input Validation &amp; CSRF</div>
+            <div class="text-xs text-muted" style="margin-top: 2px;">Validate inputs and protect forms from spoofing.</div>
+          </td>
+          <td><code style="font-size: 11px; font-weight: 600;">WTF_CSRF_ENABLED</code> token checks</td>
+          <td>Flask-WTF Check</td>
+          <td style="text-align: center;">
+            {% if compliance_checks.csrf_enabled %}
+              <span class="badge badge--success"><span class="badge__dot"></span> Compliant</span>
+            {% else %}
+              <span class="badge badge--danger"><span class="badge__dot"></span> Disabled</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        <!-- 8. Open-Source Compliance -->
+        <tr>
+          <td style="text-align: center; font-weight: 600;">8</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">Open-Source Compliance</div>
+            <div class="text-xs text-muted" style="margin-top: 2px;">Log dependencies, licenses, and prevent copyleft contamination.</div>
+          </td>
+          <td><code style="font-size: 11px; font-weight: 600;">OPEN_SOURCE_COMPLIANCE.md</code> in root</td>
+          <td>File Check</td>
+          <td style="text-align: center;">
+            {% if compliance_checks.opensource_doc %}
+              <span class="badge badge--success"><span class="badge__dot"></span> Compliant</span>
+            {% else %}
+              <span class="badge badge--danger"><span class="badge__dot"></span> Missing</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        <!-- 9. Compliance Records Documentation -->
+        <tr>
+          <td style="text-align: center; font-weight: 600;">9</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">Records &amp; Documentation</div>
+            <div class="text-xs text-muted" style="margin-top: 2px;">Maintain Changelog, Architecture design, and Security audits.</div>
+          </td>
+          <td>Changelog, Architecture, Audit files in <code style="font-size: 11px; font-weight: 600;">/legal_records</code></td>
+          <td>Directory Check</td>
+          <td style="text-align: center;">
+            {% if compliance_checks.changelog_doc and compliance_checks.architecture_doc and compliance_checks.security_doc %}
+              <span class="badge badge--success"><span class="badge__dot"></span> Compliant</span>
+            {% else %}
+              <span class="badge badge--warning"><span class="badge__dot"></span> Partially Missing</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        <!-- 10. Deployment Controls -->
+        <tr>
+          <td style="text-align: center; font-weight: 600;">10</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">Before Launch Checklist</div>
+            <div class="text-xs text-muted" style="margin-top: 2px;">Deployment and backup logs configured.</div>
+          </td>
+          <td><code style="font-size: 11px; font-weight: 600;">DEPLOYMENT.md</code> checklist manual</td>
+          <td>File Check</td>
+          <td style="text-align: center;">
+            {% if compliance_checks.deployment_doc %}
+              <span class="badge badge--success"><span class="badge__dot"></span> Compliant</span>
+            {% else %}
+              <span class="badge badge--danger"><span class="badge__dot"></span> Missing</span>
+            {% endif %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: Create User                                                -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="create-user-modal">
+  <div class="modal" style="max-width:600px; border-radius:18px;">
+    <div class="modal__header" style="background:linear-gradient(to right, rgba(0,51,102,0.05), transparent); padding:20px 24px;">
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; margin:0;">
+        <i data-lucide="user-plus" style="color:var(--gold);"></i>
+        Create New User
+      </h3>
+      <button class="modal__close" onclick="closeModal('create-user-modal')"><i data-lucide="x"></i></button>
+    </div>
+    <form action="{{ url_for('admin.create_user') }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal__body" style="padding:24px;">
+        <div class="grid grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Full Name <span class="required">*</span></label>
+            <input type="text" name="full_name" class="form-control" placeholder="Dr. John Doe" required id="create-user-name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email <span class="required">*</span></label>
+            <input type="email" name="email" class="form-control" placeholder="john@gtu.ac.in" required id="create-user-email">
+          </div>
+        </div>
+        <div class="grid grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Password <span class="required">*</span></label>
+            <input type="password" name="password" class="form-control" placeholder="Min 6 characters" minlength="6" required id="create-user-password">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Role <span class="required">*</span></label>
+            <select name="role" class="form-control" required id="create-user-role">
+              {% for r in roles %}
+                <option value="{{ r }}">{{ role_labels[r] }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <select name="department_id" class="form-control" id="create-user-dept">
+              <option value="">— None —</option>
+              {% for dept in departments %}
+                <option value="{{ dept.id }}">{{ dept.name }} ({{ dept.code }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Designation</label>
+            <input type="text" name="designation" class="form-control" placeholder="e.g. Assistant Professor" id="create-user-designation">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control" placeholder="+91 9876543210" id="create-user-phone">
+        </div>
+      </div>
+      <div class="modal__footer" style="padding:16px 24px;">
+        <button type="button" class="btn btn--secondary" onclick="closeModal('create-user-modal')">Cancel</button>
+        <button type="submit" class="btn btn--primary flex items-center gap-2" id="btn-submit-create-user">
+          <i data-lucide="check" style="width:16px;height:16px;"></i>
+          Create User
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: Edit User                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="edit-user-modal">
+  <div class="modal" style="max-width:600px; border-radius:18px;">
+    <div class="modal__header" style="background:linear-gradient(to right, rgba(245,158,11,0.06), transparent); padding:20px 24px;">
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; margin:0;">
+        <i data-lucide="user-cog" style="color:var(--gold);"></i>
+        Edit User
+      </h3>
+      <button class="modal__close" onclick="closeModal('edit-user-modal')"><i data-lucide="x"></i></button>
+    </div>
+    <form id="edit-user-form" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal__body" style="padding:24px;">
+        <div class="grid grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Full Name <span class="required">*</span></label>
+            <input type="text" name="full_name" class="form-control" required id="edit-user-name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email <span class="required">*</span></label>
+            <input type="email" name="email" class="form-control" required id="edit-user-email">
+          </div>
+        </div>
+        <div class="grid grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Role <span class="required">*</span></label>
+            <select name="role" class="form-control" required id="edit-user-role">
+              {% for r in roles %}
+                <option value="{{ r }}">{{ role_labels[r] }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <select name="department_id" class="form-control" id="edit-user-dept">
+              <option value="">— None —</option>
+              {% for dept in departments %}
+                <option value="{{ dept.id }}">{{ dept.name }} ({{ dept.code }})</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Designation</label>
+            <input type="text" name="designation" class="form-control" id="edit-user-designation">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="text" name="phone" class="form-control" id="edit-user-phone">
+          </div>
+        </div>
+        <div class="form-group" style="border-top:1px solid var(--border-color); padding-top:16px; margin-top:8px;">
+          <label class="form-label" style="display:flex; align-items:center; gap:6px;">
+            <i data-lucide="lock" style="width:14px;height:14px;color:var(--warning);"></i>
+            Reset Password <span class="text-xs text-muted" style="font-weight:400;">(leave blank to keep current)</span>
+          </label>
+          <input type="password" name="new_password" class="form-control" placeholder="New password (min 6 chars)" id="edit-user-password">
+        </div>
+      </div>
+      <div class="modal__footer" style="padding:16px 24px;">
+        <button type="button" class="btn btn--secondary" onclick="closeModal('edit-user-modal')">Cancel</button>
+        <button type="submit" class="btn btn--gold flex items-center gap-2" id="btn-submit-edit-user">
+          <i data-lucide="save" style="width:16px;height:16px;"></i>
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: Create Department                                          -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="create-dept-modal">
+  <div class="modal" style="max-width:520px; border-radius:18px;">
+    <div class="modal__header" style="background:linear-gradient(to right, rgba(0,51,102,0.05), transparent); padding:20px 24px;">
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; margin:0;">
+        <i data-lucide="building-2" style="color:var(--gold);"></i>
+        Create Department
+      </h3>
+      <button class="modal__close" onclick="closeModal('create-dept-modal')"><i data-lucide="x"></i></button>
+    </div>
+    <form action="{{ url_for('admin.create_department') }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal__body" style="padding:24px;">
+        <div class="grid grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Department Name <span class="required">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Computer Engineering" required id="create-dept-name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Code <span class="required">*</span></label>
+            <input type="text" name="code" class="form-control" placeholder="e.g. CE" maxlength="10" required style="text-transform:uppercase;" id="create-dept-code">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">HOD Name</label>
+          <input type="text" name="hod_name" class="form-control" placeholder="e.g. Dr. Rajesh Patel" id="create-dept-hod">
+        </div>
+        <div class="grid grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Department Email</label>
+            <input type="email" name="dept_email" class="form-control" placeholder="dept@gtu.ac.in" id="create-dept-email">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="text" name="dept_phone" class="form-control" placeholder="+91 79 XXXXXX" id="create-dept-phone">
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer" style="padding:16px 24px;">
+        <button type="button" class="btn btn--secondary" onclick="closeModal('create-dept-modal')">Cancel</button>
+        <button type="submit" class="btn btn--primary flex items-center gap-2" id="btn-submit-create-dept">
+          <i data-lucide="check" style="width:16px;height:16px;"></i>
+          Create Department
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: Edit Department                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="edit-dept-modal">
+  <div class="modal" style="max-width:520px; border-radius:18px;">
+    <div class="modal__header" style="background:linear-gradient(to right, rgba(245,158,11,0.06), transparent); padding:20px 24px;">
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; margin:0;">
+        <i data-lucide="building-2" style="color:var(--gold);"></i>
+        Edit Department
+      </h3>
+      <button class="modal__close" onclick="closeModal('edit-dept-modal')"><i data-lucide="x"></i></button>
+    </div>
+    <form id="edit-dept-form" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal__body" style="padding:24px;">
+        <div class="grid grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Department Name <span class="required">*</span></label>
+            <input type="text" name="name" class="form-control" required id="edit-dept-name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Code <span class="required">*</span></label>
+            <input type="text" name="code" class="form-control" maxlength="10" required style="text-transform:uppercase;" id="edit-dept-code">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">HOD Name</label>
+          <input type="text" name="hod_name" class="form-control" id="edit-dept-hod">
+        </div>
+        <div class="grid grid-2" style="gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Department Email</label>
+            <input type="email" name="dept_email" class="form-control" id="edit-dept-email">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="text" name="dept_phone" class="form-control" id="edit-dept-phone">
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer" style="padding:16px 24px;">
+        <button type="button" class="btn btn--secondary" onclick="closeModal('edit-dept-modal')">Cancel</button>
+        <button type="submit" class="btn btn--gold flex items-center gap-2" id="btn-submit-edit-dept">
+          <i data-lucide="save" style="width:16px;height:16px;"></i>
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ═══════ Tab Switching ═══════
+  function switchTab(e, tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    lucide.createIcons();
+  }
+
+  // ═══════ User Filtering ═══════
+  function filterUsers() {
+    const role = document.getElementById('filter-role').value;
+    const dept = document.getElementById('filter-dept').value;
+    const status = document.getElementById('filter-status').value;
+    const search = document.getElementById('search-users').value.toLowerCase().trim();
+
+    document.querySelectorAll('.user-row').forEach(row => {
+      let show = true;
+      if (role && row.dataset.role !== role) show = false;
+      if (dept && row.dataset.dept !== dept) show = false;
+      if (status && row.dataset.status !== status) show = false;
+      if (search && !row.dataset.name.includes(search) && !row.dataset.email.includes(search)) show = false;
+      row.style.display = show ? '' : 'none';
+    });
+  }
+
+  // ═══════ Edit User Modal (AJAX) ═══════
+  async function openEditUserModal(userId) {
+    try {
+      const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      const resp = await fetch(`/admin/api/users/${userId}`, {
+        headers: csrfMeta ? { 'X-CSRFToken': csrfMeta.content } : {}
+      });
+      if (!resp.ok) throw new Error('Failed to fetch user data');
+      const data = await resp.json();
+
+      document.getElementById('edit-user-form').action = `/admin/users/${data.id}/edit`;
+      document.getElementById('edit-user-name').value = data.full_name;
+      document.getElementById('edit-user-email').value = data.email;
+      document.getElementById('edit-user-role').value = data.role;
+      document.getElementById('edit-user-dept').value = data.department_id || '';
+      document.getElementById('edit-user-designation').value = data.designation;
+      document.getElementById('edit-user-phone').value = data.phone;
+      document.getElementById('edit-user-password').value = '';
+
+      openModal('edit-user-modal');
+      lucide.createIcons();
+    } catch (err) {
+      alert('Error loading user data: ' + err.message);
+    }
+  }
+
+  // ═══════ Edit Department Modal (AJAX) ═══════
+  async function openEditDeptModal(deptId) {
+    try {
+      const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      const resp = await fetch(`/admin/api/departments/${deptId}`, {
+        headers: csrfMeta ? { 'X-CSRFToken': csrfMeta.content } : {}
+      });
+      if (!resp.ok) throw new Error('Failed to fetch department data');
+      const data = await resp.json();
+
+      document.getElementById('edit-dept-form').action = `/admin/departments/${data.id}/edit`;
+      document.getElementById('edit-dept-name').value = data.name;
+      document.getElementById('edit-dept-code').value = data.code;
+      document.getElementById('edit-dept-hod').value = data.hod_name;
+      document.getElementById('edit-dept-email').value = data.email;
+      document.getElementById('edit-dept-phone').value = data.phone;
+
+      openModal('edit-dept-modal');
+      lucide.createIcons();
+    } catch (err) {
+      alert('Error loading department data: ' + err.message);
+    }
+  }
+</script>
+{% endblock %}

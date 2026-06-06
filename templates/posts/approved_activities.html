@@ -54,7 +54,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.02);
   }
   .dept-section__header {
-    background: linear-gradient(135deg, rgba(0, 51, 102, 0.05) 0%, transparent 100%);
+    background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.05) 0%, transparent 100%);
     padding: 16px 24px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -83,7 +83,7 @@
     border-bottom: none;
   }
   .activity-row:hover {
-    background: rgba(0, 51, 102, 0.015);
+    background: rgba(var(--primary-rgb), 0.015);
   }
   .activity-row__info {
     flex: 1;
@@ -137,7 +137,7 @@
 <!-- Stats Cards -->
 <div class="grid grid-4 mb-8" style="gap:16px;">
   <div class="approved-stat-card">
-    <div class="approved-stat-icon" style="background: rgba(0, 51, 102, 0.08); color: var(--primary);">
+    <div class="approved-stat-icon" style="background: rgba(var(--primary-rgb), 0.08); color: var(--primary);">
       <i data-lucide="clipboard-check" style="width:22px;height:22px;"></i>
     </div>
     <div>
@@ -215,16 +215,20 @@
                 <i data-lucide="tag" style="width:11px;height:11px;"></i>
                 {{ post.source_label }}
               </span>
+              <span class="flex items-center gap-1" style="color:var(--primary-light); font-weight:600;">
+                <i data-lucide="calendar-plus" style="width:11px;height:11px;"></i>
+                Published: {{ post.created_at.strftime('%b %d, %Y') }}
+              </span>
               {% if post.start_date %}
                 <span class="flex items-center gap-1">
                   <i data-lucide="calendar" style="width:11px;height:11px;"></i>
-                  {{ post.start_date.strftime('%b %d, %Y') }}
+                  Start: {{ post.start_date.strftime('%b %d, %Y') }}
                 </span>
               {% endif %}
               {% if post.end_date %}
                 <span class="flex items-center gap-1">
                   <i data-lucide="calendar-days" style="width:11px;height:11px; color:var(--danger);"></i>
-                  {{ post.end_date.strftime('%b %d, %Y') }}
+                  Deadline: {{ post.end_date.strftime('%b %d, %Y') }}
                 </span>
               {% endif %}
               {% if post.approver %}
@@ -266,7 +270,7 @@
           </span>
 
           <!-- View Detail -->
-          <a href="{{ url_for('posts.index') }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size:11px; padding:6px 12px; border-radius:8px; font-weight:600; flex-shrink:0;">
+          <a href="{{ url_for('posts.view_post', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size:11px; padding:6px 12px; border-radius:8px; font-weight:600; flex-shrink:0;">
             <i data-lucide="eye" style="width:13px;height:13px;"></i> View
           </a>
         </div>

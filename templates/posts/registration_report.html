@@ -42,7 +42,7 @@
   }
   
   .sem-badge {
-    background: rgba(0, 51, 102, 0.05);
+    background: rgba(var(--primary-rgb), 0.05);
     color: var(--primary);
     padding: 4px 10px;
     border-radius: 6px;
@@ -68,7 +68,7 @@
 
   <!-- Faculty Lead -->
   <div class="report-stat-card">
-    <div class="report-stat-icon" style="background: rgba(0, 51, 102, 0.08); color: var(--primary);">
+    <div class="report-stat-icon" style="background: rgba(var(--primary-rgb), 0.08); color: var(--primary);">
       <i data-lucide="user-check" style="width:20px;height:20px;"></i>
     </div>
     <div>
@@ -145,7 +145,7 @@
           </thead>
           <tbody>
             {% for reg in registrations %}
-              <tr style="border-bottom:1px solid var(--border-color); transition:background 0.15s ease;" onmouseover="this.style.background='rgba(0, 51, 102, 0.01)';" onmouseout="this.style.background='transparent';">
+              <tr style="border-bottom:1px solid var(--border-color); transition:background 0.15s ease;" onmouseover="this.style.background='rgba(var(--primary-rgb), 0.01)';" onmouseout="this.style.background='transparent';">
                 <td style="padding:12px 14px; font-weight:600; color:var(--text-primary);">{{ reg.student_name }}</td>
                 <td style="padding:12px 14px; font-weight:500; font-family:monospace; color:var(--text-secondary);">{{ reg.enrollment_no }}</td>
                 <td style="padding:12px 14px; font-weight:600; color:var(--text-secondary);">{{ reg.department or 'N/A' }}</td>

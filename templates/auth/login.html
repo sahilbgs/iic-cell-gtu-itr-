@@ -12,9 +12,12 @@
 </head>
 <body>
   <div class="auth-page">
+    <div class="portal-watermark"></div>
     <div class="auth-card">
       <div class="auth-card__logo">
-        <div class="auth-card__logo-icon">GTU</div>
+        <div class="auth-card__logo-icon" style="background: transparent;">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="IIC Logo" class="brand-logo-img">
+        </div>
         <h2>Welcome Back</h2>
         <p>Sign in to your R&D &amp; IIC Portal</p>
       </div>
@@ -58,20 +61,20 @@
         </button>
       </form>
 
-      <p style="text-align:center;margin-top:1.5rem;font-size:.8rem;color:rgba(255,255,255,.45);">
+      <p style="text-align:center;margin-top:1.5rem;font-size:.8rem;color:var(--text-secondary);">
         Don't have an account? <a href="{{ url_for('auth.register') }}" style="color:var(--gold);font-weight:600">Register</a>
       </p>
 
       <!-- Classy Demo Credentials Component -->
-      <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 1.25rem;">
+      <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
         <style>
           .demo-btn {
             text-align: left;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-surface-hover);
+            border: 1px solid var(--border-color);
             padding: 8px 12px;
             border-radius: 8px;
-            color: #fff;
+            color: var(--text-primary);
             cursor: pointer;
             font-size: 0.75rem;
             transition: all var(--transition-fast);
@@ -79,7 +82,7 @@
             width: 100%;
           }
           .demo-btn:hover {
-            background: rgba(255, 215, 0, 0.1) !important;
+            background: rgba(var(--gold-rgb), 0.08) !important;
             border-color: var(--gold) !important;
             transform: translateY(-1px);
           }
@@ -101,8 +104,8 @@
           }
         </style>
         
-        <details style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--border-radius); padding: 10px 14px;">
-          <summary style="font-size: 0.8rem; color: #fff; font-weight: 600; list-style: none; display: flex; align-items: center; justify-content: space-between; outline: none; cursor: pointer;">
+        <details style="background: var(--bg-surface-hover); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 10px 14px;">
+          <summary style="font-size: 0.8rem; color: var(--text-primary); font-weight: 600; list-style: none; display: flex; align-items: center; justify-content: space-between; outline: none; cursor: pointer;">
             <span style="display: flex; align-items: center; gap: 8px;">
               <i data-lucide="key-round" style="width: 14px; height: 14px; color: var(--gold);"></i>
               Quick Demo Accounts (Click to Fill)
@@ -129,8 +132,8 @@
             </button>
           </div>
           
-          <div style="text-align: center; margin-top: 10px; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-            Default Password: <code style="color: var(--gold); background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 4px; font-weight: 600;">password123</code>
+          <div style="text-align: center; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted);">
+            Default Password: <code style="color: var(--gold); background: var(--bg-body); padding: 2px 6px; border-radius: 4px; font-weight: 600; border: 1px solid var(--border-color);">password123</code>
           </div>
         </details>
       </div>

@@ -15,6 +15,7 @@ POST_STATUSES = [
     ('IN_PROGRESS', 'In Progress'),
     ('COMPLETED', 'Completed'),
     ('ON_HOLD', 'On Hold'),
+    ('EXPIRED', 'Expired'),
 ]
 
 APPROVAL_STATUSES = [
@@ -91,9 +92,39 @@ class PrincipalPost(db.Model):
             'NOT_STARTED': 0,
             'ON_HOLD': 25,
             'IN_PROGRESS': 50,
-            'COMPLETED': 100
+            'COMPLETED': 100,
+            'EXPIRED': 0
         }
         return percentages.get(self.progress_status, 0)
+
+    @classmethod
+    def check_and_update_expired(cls):
+        from datetime import date
+        today = date.today()
+        # Find active/pending posts whose end_date is set and has passed
+        expired_candidates = cls.query.filter(
+            cls.progress_status.in_(['NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD']),
+            cls.end_date != None,
+            cls.end_date < today
+        ).all()
+        
+        updated = False
+        for post in expired_candidates:
+            # Check if "in process" (has department allocations, faculty assigned, registrations, or progress)
+            has_allocation = len(post.departments) > 0 or post.department_id is not None
+            something_happened = (
+                post.progress_status in ['IN_PROGRESS', 'ON_HOLD'] or
+                post.assigned_faculty_id is not None or
+                len(post.registrations) > 0
+            )
+            
+            is_in_process = has_allocation or something_happened
+            if not is_in_process:
+                post.progress_status = 'EXPIRED'
+                updated = True
+                
+        if updated:
+            db.session.commit()
 
     def __repr__(self):
         return f'<PrincipalPost {self.id}: {self.title[:50]}>'

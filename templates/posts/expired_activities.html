@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Expired Activities — Archival Portal{% endblock %}
+{% block page_title %}Expired Activities & Archive{% endblock %}
+
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <span>Expired Activities</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto mb-10">
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h3 style="font-family:'Outfit', sans-serif; font-weight:800; color:var(--primary); margin:0;">Expired Shared Activities</h3>
+      <p class="text-xs text-muted mt-1" style="margin:0;">Archive of all shared notices and activities that passed their deadline without department allocation or active progress.</p>
+    </div>
+    
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn--secondary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding: 8px 20px;">
+      <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="card card--flat" style="border-radius: 14px; overflow: hidden; border-top: 4px solid var(--danger); box-shadow: var(--shadow-md);">
+    <div class="card__header" style="background: var(--bg-surface-hover); padding: 18px 24px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+      <h4 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;">
+        <i data-lucide="alert-triangle" style="color:var(--danger); width:20px; height:20px;"></i>
+        Expired Activities Archive
+      </h4>
+      <span class="badge badge--danger" style="font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 8px;">
+        {{ posts|length }} Activity / Notices Expired
+      </span>
+    </div>
+    
+    <div class="card__body" style="padding: 0; overflow-x: auto;">
+      {% if posts %}
+        <table style="width:100%; border-collapse:collapse; min-width:900px; text-align:left; font-size:13.5px; background:var(--bg-surface);">
+          <thead>
+            <tr style="background:var(--bg-surface-hover); border-bottom:1px solid var(--border-color); color:var(--text-muted); font-weight:700;">
+              <th style="padding:16px 24px;">Activity Topic</th>
+              <th style="padding:16px 24px;">Source</th>
+              <th style="padding:16px 24px; text-align:center;">Published Date</th>
+              <th style="padding:16px 24px; text-align:center;">Deadline</th>
+              <th style="padding:16px 24px; text-align:center;">Status</th>
+              <th style="padding:16px 24px; text-align:center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for post in posts %}
+              <tr style="border-bottom:1px solid var(--border-color); transition:background 0.2s ease;" onmouseover="this.style.background='rgba(var(--primary-rgb), 0.015)';" onmouseout="this.style.background='transparent';">
+                
+                <!-- Topic -->
+                <td style="padding:16px 24px; font-weight:600; color:var(--text-primary);">
+                  <div style="font-family:'Outfit', sans-serif; font-size:14.5px; color:var(--primary); font-weight:700;">
+                    {{ post.title }}
+                  </div>
+                  <small class="text-muted block mt-1" style="font-weight:500; font-size:11.5px;">{{ post.summary[:100] }}...</small>
+                </td>
+                
+                <!-- Source -->
+                <td style="padding:16px 24px;">
+                  <span class="badge badge--{{ 'info' if post.source == 'COMPANY' else 'warning' if post.source == 'FIRM' else 'neutral' }}" style="font-size: 10px; font-weight:700; text-transform:uppercase; padding: 3px 8px; border-radius:6px;">
+                    {{ post.source_label }}
+                  </span>
+                </td>
+                
+                <!-- Published Date -->
+                <td style="padding:16px 24px; text-align:center; color:var(--text-muted);">
+                  {{ post.created_at.strftime('%b %d, %Y') }}
+                </td>
+                
+                <!-- Deadline -->
+                <td style="padding:16px 24px; text-align:center; color:var(--danger); font-weight:600;">
+                  {{ post.end_date.strftime('%b %d, %Y') if post.end_date else 'No Limit' }}
+                </td>
+
+                <!-- Status -->
+                <td style="padding:16px 24px; text-align:center;">
+                  <span class="badge badge--neutral" style="font-size:10px; padding: 3px 8px; border-radius:6px; background:rgba(239, 68, 68, 0.1); color:var(--danger); font-weight:700;">
+                    EXPIRED
+                  </span>
+                </td>
+                
+                <!-- Actions -->
+                <td style="padding:16px 24px; text-align:center;">
+                  <div style="display:flex; justify-content:center; gap:8px;">
+                    <a href="{{ url_for('posts.view_post', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size:11.5px; padding:6px 12px; border-radius:8px;">
+                      <i data-lucide="eye" style="width:14px;height:14px;"></i> View
+                    </a>
+                    {% if current_user.role == 'PRINCIPAL' %}
+                      <form action="{{ url_for('posts.delete', post_id=post.id) }}" method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Are you sure you want to delete this expired post?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn--danger btn--sm flex items-center gap-1" style="font-size:11.5px; padding:6px 12px; border-radius:8px;">
+                          <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+                
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div style="text-align:center; padding:60px 20px; color:var(--text-muted);">
+          <i data-lucide="alert-triangle" style="width:52px; height:52px; margin:0 auto 16px auto; display:block; opacity:0.4; color:var(--danger);"></i>
+          <h5 class="font-semibold text-muted" style="margin:0;">No Expired Activities</h5>
+          <p class="text-xs text-muted mt-1" style="margin:0;">Activities that expire without any department coordination are archived here. Currently none are expired.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

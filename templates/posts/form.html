@@ -47,10 +47,13 @@
           <div class="flex items-center justify-between" style="background:var(--bg-surface-hover); padding:12px; border-radius:6px; border:1px solid var(--border-color);">
             <div class="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" id="use_ai" checked style="cursor:pointer;">
-              <label for="use_ai" class="form-label mb-0 cursor-pointer" style="font-weight:600; color:var(--text-primary); font-size:13px;">Use Local AI Model (Phi-3)</label>
+              <label for="use_ai" class="form-label mb-0 cursor-pointer" style="font-weight:600; color:var(--text-primary); font-size:13px;">Use Smart AI Extraction</label>
             </div>
             <span class="badge badge--success" style="font-size:10px;">Offline Safe</span>
           </div>
+          <small class="text-muted" style="display:block; font-size:11px; margin-top:4px; line-height:1.4;">
+            Automatically detects event type, extracts dates, venues, themes, focus areas, and contact info. Removes duplicate content and formats the text professionally.
+          </small>
 
           <button type="button" class="btn btn--primary w-full flex items-center justify-center gap-2 mt-2" id="extractBtn" style="padding:12px;">
             <i data-lucide="sparkles" style="width:16px;height:16px;"></i> Run Auto-Extraction
@@ -175,7 +178,7 @@
 
     dragDropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
-      dragDropZone.style.background = 'rgba(0, 51, 102, 0.05)';
+      dragDropZone.style.background = 'rgba(var(--primary-rgb), 0.05)';
       dragDropZone.style.borderColor = 'var(--primary)';
     });
 

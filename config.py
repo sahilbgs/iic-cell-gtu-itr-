@@ -68,6 +68,7 @@ class ProductionConfig(Config):
     """Production configuration."""
     DEBUG = False
     SESSION_COOKIE_SECURE = True
+    REMEMBER_COOKIE_SECURE = True
 
 
 class TestingConfig(Config):

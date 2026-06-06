@@ -18,9 +18,21 @@
       </h4>
       <p class="text-muted text-xs mt-1" style="margin:0;">Real-time departmental execution, assigned faculty leads, and student registration audits for all approved activities.</p>
     </div>
-    <span class="badge badge--success" style="font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px;">
-      MONITORING ACTIVE
-    </span>
+    <div class="flex items-center gap-2" style="flex-wrap:wrap;">
+      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'DEPT_COORDINATOR', 'FACULTY'] %}
+        <a href="{{ url_for('posts.completed_activities_list') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--success); color:#fff; border:none; font-weight:600; border-radius:8px; padding:6px 12px; font-size:11px; text-decoration:none;">
+          <i data-lucide="archive" style="width:13px;height:13px;"></i> Completed
+        </a>
+      {% endif %}
+      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON'] %}
+        <a href="{{ url_for('posts.expired_activities_list') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--danger); color:#fff; border:none; font-weight:600; border-radius:8px; padding:6px 12px; font-size:11px; text-decoration:none;">
+          <i data-lucide="alert-triangle" style="width:13px;height:13px;"></i> Expired
+        </a>
+      {% endif %}
+      <span class="badge badge--success" style="font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px;">
+        MONITORING ACTIVE
+      </span>
+    </div>
   </div>
   <div class="card__body" style="padding:0; overflow-x:auto;">
     {% set approved_posts = principal_posts | selectattr('approval_status', 'equalto', 'APPROVED') | list %}
@@ -37,9 +49,9 @@
         </thead>
         <tbody>
           {% for post in approved_posts %}
-            <tr style="border-bottom:1px solid var(--border-color); transition:background 0.2s ease;" onmouseover="this.style.background='rgba(0, 51, 102, 0.01)';" onmouseout="this.style.background='transparent';">
+            <tr style="border-bottom:1px solid var(--border-color); transition:background 0.2s ease;" onmouseover="this.style.background='rgba(var(--primary-rgb), 0.01)';" onmouseout="this.style.background='transparent';">
               <td style="padding:14px 20px; font-weight:600; color:var(--text-primary);">
-                <a href="#" onclick="openModal('detail-modal-{{ post.id }}'); return false;" style="color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:6px;">
+                <a href="{{ url_for('posts.view_post', post_id=post.id) }}" style="color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:6px;">
                   <i data-lucide="external-link" style="width:12px;height:12px;"></i>
                   {{ post.title }}
                 </a>
@@ -108,7 +120,7 @@
 {% endif %}
 
 <!-- ═══════ Principal's Shared Activities & Notices ═══════ -->
-<div class="card card--flat mb-8" style="background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(0, 51, 102, 0.02) 100%); border-left: 4px solid var(--primary); box-shadow: 0 4px 20px -2px rgba(0, 51, 102, 0.05);">
+<div class="card card--flat mb-8" style="background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(var(--primary-rgb), 0.02) 100%); border-left: 4px solid var(--primary); box-shadow: 0 4px 20px -2px rgba(var(--primary-rgb), 0.05);">
   <div class="card__header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap:12px;">
     <div>
       <h4 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; margin:0;">
@@ -117,22 +129,32 @@
       </h4>
       <p class="text-muted text-xs mt-1" style="margin:0;">Announcements, collaboration requests, and circulars posted by the Principal from companies, firms, and universities.</p>
     </div>
-    {% if current_user.role == 'PRINCIPAL' %}
     <div class="flex items-center gap-2" style="flex-wrap:wrap;">
-      <a href="{{ url_for('posts.approved_activities') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--success); color:#fff; border:none; font-weight:600; border-radius:8px; padding:8px 16px;">
-        <i data-lucide="clipboard-check" style="width:14px;height:14px;"></i> Approved Activities
-      </a>
-      <a href="{{ url_for('posts.manage') }}" class="btn btn--secondary btn--sm flex items-center gap-1">
-        <i data-lucide="settings" style="width:14px;height:14px;"></i> Manage Posts
-      </a>
+      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'DEPT_COORDINATOR', 'FACULTY'] %}
+        <a href="{{ url_for('posts.completed_activities_list') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--success); color:#fff; border:none; font-weight:600; border-radius:8px; padding:8px 16px; text-decoration:none;">
+          <i data-lucide="archive" style="width:14px;height:14px;"></i> Completed Activities
+        </a>
+      {% endif %}
+      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON'] %}
+        <a href="{{ url_for('posts.expired_activities_list') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--danger); color:#fff; border:none; font-weight:600; border-radius:8px; padding:8px 16px; text-decoration:none;">
+          <i data-lucide="alert-triangle" style="width:14px;height:14px;"></i> Expired Activities
+        </a>
+      {% endif %}
+      {% if current_user.role == 'PRINCIPAL' %}
+        <a href="{{ url_for('posts.approved_activities') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--primary); color:#fff; border:none; font-weight:600; border-radius:8px; padding:8px 16px; text-decoration:none;">
+          <i data-lucide="clipboard-check" style="width:14px;height:14px;"></i> Approved Activities
+        </a>
+        <a href="{{ url_for('posts.manage') }}" class="btn btn--secondary btn--sm flex items-center gap-1">
+          <i data-lucide="settings" style="width:14px;height:14px;"></i> Manage Posts
+        </a>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
   <div class="card__body">
     {% if principal_posts %}
       <div class="grid grid-auto">
         {% for post in principal_posts %}
-          <div class="card card--flat" style="display:flex; flex-direction:column; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:12px; padding:20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 12px 20px -3px rgba(0, 51, 102, 0.08)'; this.style.borderColor='rgba(0, 51, 102, 0.2)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.03)'; this.style.borderColor='var(--border-color)';">
+          <div class="card card--flat" style="display:flex; flex-direction:column; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:12px; padding:20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 12px 20px -3px rgba(var(--primary-rgb), 0.08)'; this.style.borderColor='rgba(var(--primary-rgb), 0.2)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.03)'; this.style.borderColor='var(--border-color)';">
             <div class="flex items-center gap-2 mb-2" style="flex-wrap:wrap;">
               <span class="badge badge--{{ 'info' if post.source == 'COMPANY' else 'warning' if post.source == 'FIRM' else 'neutral' }}" style="font-size: 9px; font-weight: 700; letter-spacing: 0.5px; border-radius: 6px; padding: 3px 8px; text-transform: uppercase;">
                 {{ post.source_label }}
@@ -170,7 +192,7 @@
 
             {% if post.attachment_path %}
               {% set ext = post.attachment_path.split('.')[-1].lower() %}
-              <div class="post-card-premium__inline-preview mb-4" style="border: 1px solid var(--border-color); border-radius: var(--border-radius); overflow: hidden; height: 160px; background: var(--bg-body); position: relative; cursor: pointer; box-shadow: var(--shadow-xs);" onclick="openModal('doc-modal-{{ post.id }}')" title="Click to view full flyer">
+              <div class="post-card-premium__inline-preview mb-4" style="border: 1px solid var(--border-color); border-radius: var(--border-radius); overflow: hidden; height: 160px; background: var(--bg-body); position: relative; cursor: pointer; box-shadow: var(--shadow-xs);" onclick="window.location.href='{{ url_for('posts.view_post', post_id=post.id) }}'" title="Click to view full flyer">
                 {% if ext == 'pdf' %}
                   <!-- Real PDF Document Card Preview -->
                   <iframe src="{{ url_for('posts.download_file', filename=post.attachment_path) }}#toolbar=0&navpanes=0&scrollbar=0" width="100%" height="100%" style="border: none; pointer-events: none;"></iframe>
@@ -188,7 +210,14 @@
               </div>
             {% endif %}
 
-            <div class="flex items-center gap-3 text-xs text-muted mb-4" style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: auto;">
+            <div class="flex items-center gap-3 text-xs text-muted mb-4" style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: auto; flex-wrap: wrap;">
+              <span class="flex items-center gap-1" style="color:var(--primary-light); font-weight:600;" title="Published Date">
+                <i data-lucide="calendar-plus" style="width:12px;height:12px;"></i>
+                Published: {{ post.created_at.strftime('%b %d, %Y') }}
+              </span>
+              {% if post.start_date or post.end_date %}
+                <span style="color:var(--border-color);">|</span>
+              {% endif %}
               {% if post.start_date %}
                 <span class="flex items-center gap-1">
                   <i data-lucide="calendar" style="width:12px;height:12px;color:var(--primary);"></i>
@@ -208,18 +237,18 @@
 
             <div class="flex items-center justify-between gap-2 mt-1">
               <div class="flex items-center gap-2">
-                <button class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size: 11px; padding: 6px 12px; font-weight:600;" onclick="openModal('detail-modal-{{ post.id }}')">
+                <a href="{{ url_for('posts.view_post', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size: 11px; padding: 6px 12px; font-weight:600;">
                   <i data-lucide="eye" style="width:14px;height:14px;"></i> Full Detail
-                </button>
+                </a>
                 {% if post.attachment_path %}
-                  <button class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size: 11px; padding: 6px 12px; font-weight:600; color: var(--primary);" onclick="openModal('doc-modal-{{ post.id }}')">
+                  <a href="{{ url_for('posts.view_post', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size: 11px; padding: 6px 12px; font-weight:600; color: var(--primary);">
                     <i data-lucide="file-text" style="width:14px;height:14px;"></i> View Doc
-                  </button>
+                  </a>
                   <a href="{{ url_for('posts.download_file', filename=post.attachment_path, download=1) }}" class="btn btn--secondary btn--sm flex items-center justify-center" style="padding:6px 8px; border-radius:var(--border-radius); border-color: var(--border-color); color: var(--primary);" title="Download Circular Flyer">
                     <i data-lucide="download-cloud" style="width:14px;height:14px;"></i>
                   </a>
                 {% endif %}
-                {% if current_user.role == 'PRINCIPAL' %}
+                {% if current_user.role == 'PRINCIPAL' and post.progress_status != 'COMPLETED' %}
                   <form action="{{ url_for('posts.delete', post_id=post.id) }}" method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Are you sure you want to delete this shared activity post?');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn--danger btn--sm flex items-center justify-center" style="padding:6px 8px; border-radius:var(--border-radius);" title="Delete Post">
@@ -428,192 +457,6 @@
             {% endif %}
           </div>
 
-          <!-- Premium Detail Modal -->
-          <div class="modal-overlay" id="detail-modal-{{ post.id }}">
-            <div class="modal" style="max-width: 650px; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-xl);">
-              <div class="modal__header" style="background: linear-gradient(to right, rgba(0, 51, 102, 0.04), transparent); padding: 20px 24px; border-bottom: 1px solid var(--border-color);">
-                <h3 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; margin:0;">
-                  <i data-lucide="megaphone" style="color:var(--primary);"></i>
-                  Activity Details
-                </h3>
-                <button class="modal__close" onclick="closeModal('detail-modal-{{ post.id }}')">
-                  <i data-lucide="x"></i>
-                </button>
-              </div>
-              <div class="modal__body" style="padding: 24px;">
-                <div class="flex items-center gap-2 mb-4">
-                  <span class="badge badge--{{ 'info' if post.source == 'COMPANY' else 'warning' if post.source == 'FIRM' else 'neutral' }}">
-                    {{ post.source_label }}
-                  </span>
-                  {% if post.departments %}
-                    {% for dept in post.departments %}
-                      <span class="badge badge--neutral">{{ dept.name }}</span>
-                    {% endfor %}
-                  {% endif %}
-                  <span class="badge badge--{{ 'success' if post.progress_status == 'COMPLETED' else 'info' if post.progress_status == 'IN_PROGRESS' else 'danger' if post.progress_status == 'ON_HOLD' else 'neutral' }}" style="margin-left: auto;">
-                    {{ post.status_label }} ({{ post.progress_percentage }}%)
-                  </span>
-                </div>
-
-                <h2 style="font-family:'Outfit', sans-serif; font-weight:700; font-size:1.4rem; line-height:1.4; color:var(--text-primary); margin-bottom:16px; margin-top: 8px;">
-                  {{ post.title }}
-                </h2>
-
-                <div class="grid grid-2 mb-6" style="background:var(--bg-surface-hover); padding:16px; border-radius:10px; border:1px solid var(--border-color);">
-                  <div>
-                    <small class="text-muted" style="display:block; margin-bottom:4px; font-weight: 500;">Start Date</small>
-                    <div class="flex items-center gap-2 font-semibold text-sm">
-                      <i data-lucide="calendar" style="color:var(--primary); width:16px; height:16px;"></i>
-                      {{ post.start_date.strftime('%B %d, %Y') if post.start_date else 'Not Specified' }}
-                    </div>
-                  </div>
-                  <div>
-                    <small class="text-muted" style="display:block; margin-bottom:4px; font-weight: 500;">End Date / Deadline</small>
-                    <div class="flex items-center gap-2 font-semibold text-sm">
-                      <i data-lucide="calendar-days" style="color:var(--danger); width:16px; height:16px;"></i>
-                      {{ post.end_date.strftime('%B %d, %Y') if post.end_date else 'Not Specified' }}
-                    </div>
-                  </div>
-                </div>
-
-                <div class="mb-5">
-                  <h5 class="font-semibold text-xs text-muted mb-2" style="letter-spacing: 1px; font-weight: 700;">SUMMARY</h5>
-                  <p class="text-sm font-medium mb-6" style="line-height:1.6; color:var(--text-secondary); background:rgba(0, 51, 102, 0.03); padding:14px; border-radius:8px; border-left:4px solid var(--primary); margin:0;">
-                    {{ post.summary }}
-                  </p>
-                </div>
-
-                <div class="mb-6">
-                  <h5 class="font-semibold text-xs text-muted mb-2" style="letter-spacing: 1px; font-weight: 700;">FULL ANNOUNCEMENT CONTENT</h5>
-                  <div class="text-sm" style="line-height:1.6; color:var(--text-primary); white-space: pre-wrap; background:var(--bg-surface); padding:16px; border-radius:10px; border:1px solid var(--border-color); max-height: 200px; overflow-y: auto; font-family: 'Inter', sans-serif;">
-                    {{ post.full_content }}
-                  </div>
-                </div>
-
-                {% if post.attachment_path %}
-                  {% set ext = post.attachment_path.split('.')[-1].lower() %}
-                  <div class="flex items-center justify-between mt-4" style="background:var(--bg-surface-hover); padding:14px 18px; border-radius:10px; border:1px solid var(--border-color); margin-bottom: 12px;">
-                    <div class="flex items-center gap-3">
-                      <i data-lucide="paperclip" style="color:var(--primary)"></i>
-                      <div>
-                        <span class="text-sm font-semibold block text-ellipsis" style="max-width: 250px; overflow: hidden; white-space: nowrap;">
-                          {{ post.attachment_path.split('/')[-1] }}
-                        </span>
-                        <small class="text-xs text-muted">
-                          {% if ext == 'pdf' %}
-                            Adobe Acrobat Document (PDF)
-                          {% elif ext in ['doc', 'docx'] %}
-                            Microsoft Word circular (DOCX)
-                          {% else %}
-                            Flyer / Circular Image ({{ ext.upper() }})
-                          {% endif %}
-                        </small>
-                      </div>
-                    </div>
-                    <a href="{{ url_for('posts.download_file', filename=post.attachment_path, download=1) }}" class="btn btn--primary btn--sm flex items-center gap-1" style="font-size:12px; padding: 6px 12px;">
-                      <i data-lucide="download" style="width:14px;height:14px;"></i> Download
-                    </a>
-                  </div>
-
-                  {% if ext == 'pdf' %}
-                    <!-- Embedded PDF Previewer -->
-                    <div class="modal-premium__pdf-viewer mb-4" style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; height: 350px; background: var(--bg-body); position: relative;">
-                      <iframe data-src="{{ url_for('posts.download_file', filename=post.attachment_path) }}#toolbar=0" width="100%" height="100%" style="border: none;"></iframe>
-                    </div>
-                  {% elif ext in ['png', 'jpg', 'jpeg', 'webp', 'gif'] %}
-                    <!-- Embedded Image Previewer -->
-                    <div class="modal-premium__img-viewer text-center mb-4" style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; max-height: 350px; background: var(--bg-body); padding: 10px;">
-                      <img src="{{ url_for('posts.download_file', filename=post.attachment_path) }}" alt="Circular Flyer" style="max-width: 100%; max-height: 330px; object-fit: contain; border-radius: 4px; box-shadow: var(--shadow-xs);">
-                    </div>
-                  {% endif %}
-                {% endif %}
-              </div>
-              <div class="modal__footer" style="background: var(--bg-surface-hover); padding: 14px 24px; display:flex; justify-content: flex-end; align-items:center; border-top: 1px solid var(--border-color); gap:12px;">
-                {% if current_user.role == 'PRINCIPAL' %}
-                  <form action="{{ url_for('posts.delete', post_id=post.id) }}" method="POST" style="display:inline; margin-right: auto;" onsubmit="return confirm('Are you sure you want to delete this shared activity post?');">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn--danger btn--sm flex items-center gap-1" style="border-radius: var(--border-radius-full); padding: 6px 16px; font-weight:600;">
-                      <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete Post
-                    </button>
-                  </form>
-                {% endif %}
-                <button class="btn btn--secondary btn--sm" onclick="closeModal('detail-modal-{{ post.id }}')">Close Details</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Premium Document Preview Modal -->
-          <div class="modal-overlay" id="doc-modal-{{ post.id }}">
-            <div class="modal modal-premium" style="max-width: 850px; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-xl);">
-              <div class="modal__header" style="background: linear-gradient(to right, rgba(0, 51, 102, 0.04), transparent); padding: 18px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; margin:0;">
-                  <i data-lucide="file-text" style="color:var(--primary);"></i>
-                  Document Preview
-                </h3>
-                <button class="modal__close" onclick="closeModal('doc-modal-{{ post.id }}')" style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
-                  <i data-lucide="x"></i>
-                </button>
-              </div>
-              <div class="modal__body" style="padding: 20px; background: var(--bg-surface);">
-                {% if post.attachment_path %}
-                  {% set ext = post.attachment_path.split('.')[-1].lower() %}
-                  
-                  <div class="modal-premium__attachment-card" style="margin-bottom: 16px; background:var(--bg-surface-hover); padding:12px 18px; border-radius:10px; border:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; gap: 16px;">
-                    <div class="flex items-center gap-3" style="min-width: 0; display: flex;">
-                      <div class="modal-premium__file-icon-badge" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: var(--border-radius); flex-shrink: 0; background: {% if ext == 'pdf' %}rgba(239, 68, 68, 0.1){% else %}rgba(0, 51, 102, 0.08){% endif %}; color: {% if ext == 'pdf' %}#ef4444{% else %}var(--primary){% endif %};">
-                        {% if ext == 'pdf' %}
-                          <i data-lucide="file-text" style="width:18px;height:18px;"></i>
-                        {% else %}
-                          <i data-lucide="image" style="width:18px;height:18px;"></i>
-                        {% endif %}
-                      </div>
-                      <div style="min-width: 0;">
-                        <span class="text-sm font-semibold block text-ellipsis" style="max-width: 400px; overflow: hidden; white-space: nowrap; display: block; color: var(--text-primary);">
-                          {{ post.attachment_path.split('/')[-1] }}
-                        </span>
-                        <small class="text-xs text-muted" style="display: block; margin-top: 1px;">
-                          {% if ext == 'pdf' %}
-                            Adobe Acrobat Document (PDF)
-                          {% else %}
-                            Flyer / Circular Image ({{ ext.upper() }})
-                          {% endif %}
-                        </small>
-                      </div>
-                    </div>
-                    <a href="{{ url_for('posts.download_file', filename=post.attachment_path, download=1) }}" class="btn btn--primary btn--sm flex items-center gap-1" style="font-size:12px; padding: 8px 16px; border-radius: var(--border-radius-full); flex-shrink: 0;">
-                      <i data-lucide="download" style="width:14px;height:14px;"></i> Download
-                    </a>
-                  </div>
-
-                  {% if ext == 'pdf' %}
-                    <!-- Embedded PDF Previewer -->
-                    <div class="modal-premium__pdf-viewer" style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; height: 550px; background: var(--bg-body); position: relative; box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);">
-                      <iframe data-src="{{ url_for('posts.download_file', filename=post.attachment_path) }}#toolbar=0" width="100%" height="100%" style="border: none;"></iframe>
-                    </div>
-                  {% elif ext in ['png', 'jpg', 'jpeg', 'webp', 'gif'] %}
-                    <!-- Embedded Image Previewer -->
-                    <div class="modal-premium__img-viewer text-center" style="border: 1px solid var(--border-color); border-radius: 8px; overflow-y: auto; height: 550px; background: var(--bg-body); padding: 10px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);">
-                      <img src="{{ url_for('posts.download_file', filename=post.attachment_path) }}" alt="Circular Flyer" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; box-shadow: var(--shadow-xs);">
-                    </div>
-                  {% else %}
-                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:200px; color:var(--text-muted); border: 1px dashed var(--border-color); border-radius: 8px;">
-                      <i data-lucide="file-text" style="width:48px; height:48px; opacity:0.6; margin-bottom: 12px;"></i>
-                      <span class="text-sm font-semibold">Preview not available for this file type.</span>
-                      <a href="{{ url_for('posts.download_file', filename=post.attachment_path, download=1) }}" class="btn btn--secondary btn--sm mt-3">Download File Instead</a>
-                    </div>
-                  {% endif %}
-                {% else %}
-                  <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:200px; color:var(--text-muted); border: 1px dashed var(--border-color); border-radius: 8px;">
-                    <i data-lucide="alert-circle" style="width:48px; height:48px; opacity:0.6; margin-bottom: 12px;"></i>
-                    <span class="text-sm font-semibold">No document attached to this post.</span>
-                  </div>
-                {% endif %}
-              </div>
-              <div class="modal__footer" style="background: var(--bg-surface-hover); padding: 12px 24px; display:flex; justify-content: flex-end; align-items:center; border-top: 1px solid var(--border-color); gap:12px;">
-                <button class="btn btn--secondary btn--sm" style="border-radius: var(--border-radius-full); padding: 6px 18px; font-weight:600;" onclick="closeModal('doc-modal-{{ post.id }}')">Close Preview</button>
-              </div>
-            </div>
-          </div>
         {% endfor %}
       </div>
     {% else %}

@@ -32,9 +32,12 @@
 </head>
 <body>
   <div class="auth-page">
+    <div class="portal-watermark"></div>
     <div class="auth-card">
       <div class="auth-card__logo">
-        <div class="auth-card__logo-icon">GTU</div>
+        <div class="auth-card__logo-icon" style="background: transparent;">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="IIC Logo" class="brand-logo-img">
+        </div>
         <h2>Create Account</h2>
         <p>Register as a Researcher, Coordinator, or Authority</p>
       </div>
@@ -111,7 +114,7 @@
                 <option value="{{ dept.id }}">{{ dept.name }} ({{ dept.code }})</option>
               {% endfor %}
             </select>
-            <small style="display:block; margin-top:4px; font-size:0.75rem; color:rgba(255,255,255,.55)">
+            <small style="display:block; margin-top:4px; font-size:0.75rem; color:var(--text-muted)">
               Optional for senior administration roles (e.g. Principal)
             </small>
           </div>
@@ -129,13 +132,24 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn--gold btn--lg btn--block" style="font-size:1rem; margin-top:1rem;">
+        <div style="margin-top: 1.25rem; margin-bottom: 1.25rem;">
+          <label class="form-check" for="privacy_consent" style="align-items: flex-start; gap: 8px; display: flex;">
+            <input type="checkbox" id="privacy_consent" name="privacy_consent" required style="margin-top: 3px; flex-shrink: 0;">
+            <span style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+              I consent to the collection and processing of my academic details as described in the 
+              <a href="{{ url_for('dashboard.privacy') }}" target="_blank" style="color: var(--gold); font-weight: 600; text-decoration: underline;">Privacy Policy</a>, 
+              and I agree to the <a href="{{ url_for('dashboard.terms') }}" target="_blank" style="color: var(--gold); font-weight: 600; text-decoration: underline;">Terms of Service</a>.
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn--gold btn--lg btn--block" style="font-size:1rem; margin-top:0.5rem;">
           <i data-lucide="user-plus" style="width:18px; height:18px"></i>
           Register Account
         </button>
       </form>
 
-      <p style="text-align:center; margin-top:1.5rem; font-size:.8rem; color:rgba(255,255,255,.45);">
+      <p style="text-align:center; margin-top:1.5rem; font-size:.8rem; color:var(--text-secondary);">
         Already have an account? <a href="{{ url_for('auth.login') }}" style="color:var(--gold); font-weight:600">Sign In</a>
       </p>
     </div>

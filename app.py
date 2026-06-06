@@ -91,6 +91,30 @@ def create_app(config_name=None):
     def server_error(e):
         return render_template('errors/500.html'), 500
 
+    @app.after_request
+    def add_security_headers(response):
+        """Inject secure response headers for legal/security compliance."""
+        # Content Security Policy (CSP): Allow self, Google Fonts, Lucide icons (unpkg.com), Chart.js (jsdelivr)
+        csp_policies = [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' unpkg.com cdn.jsdelivr.net",
+            "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+            "font-src 'self' fonts.gstatic.com unpkg.com",
+            "img-src 'self' data: blob:",
+            "connect-src 'self'",
+            "frame-ancestors 'none'"
+        ]
+        response.headers['Content-Security-Policy'] = "; ".join(csp_policies)
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        
+        # Strict-Transport-Security (HSTS) - enforce HTTPS in production
+        if not app.debug and not app.testing:
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+            
+        return response
+
     # Template context processors
     @app.context_processor
     def inject_globals():
@@ -172,4 +196,4 @@ def register_cli(app):
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5100)

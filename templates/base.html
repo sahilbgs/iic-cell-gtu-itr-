@@ -31,10 +31,15 @@
   <!-- Sidebar Backdrop (mobile) -->
   <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
+  <!-- Portal Watermark Background -->
+  <div class="portal-watermark"></div>
+
   <!-- ═══════════ SIDEBAR ═══════════ -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar__brand">
-      <div class="sidebar__brand-icon">GTU</div>
+      <div class="sidebar__brand-icon" style="background: transparent;">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="IIC Logo" class="brand-logo-img">
+      </div>
       <div class="sidebar__brand-text">
         R&D &amp; IIC Portal
         <small>Gujarat Technological University</small>
@@ -49,10 +54,23 @@
         <span>Dashboard</span>
       </a>
 
-      <a href="{% if current_user.role == 'PRINCIPAL' %}{{ url_for('posts.manage') }}{% else %}{{ url_for('posts.index') }}{% endif %}" class="sidebar__link {% if request.blueprint == 'posts' %}active{% endif %}">
+      <a href="{% if current_user.role == 'PRINCIPAL' %}{{ url_for('posts.manage') }}{% else %}{{ url_for('posts.index') }}{% endif %}" class="sidebar__link {% if request.blueprint == 'posts' and request.endpoint != 'posts.calendar_view' %}active{% endif %}">
         <i data-lucide="megaphone"></i>
         <span>Shared Activities</span>
       </a>
+
+      <a href="{{ url_for('posts.calendar_view') }}" class="sidebar__link {% if request.endpoint == 'posts.calendar_view' %}active{% endif %}">
+        <i data-lucide="calendar"></i>
+        <span>Activity Calendar</span>
+      </a>
+
+      {% if current_user.is_authenticated and current_user.role == 'PRINCIPAL' %}
+      <div class="sidebar__section-title">Administration</div>
+      <a href="{{ url_for('admin.index') }}" class="sidebar__link {% if request.blueprint == 'admin' %}active{% endif %}">
+        <i data-lucide="shield-check"></i>
+        <span>Admin Panel</span>
+      </a>
+      {% endif %}
     </nav>
 
     <div class="sidebar__user">
@@ -99,6 +117,8 @@
         </button>
         <div class="dropdown__menu">
           <a href="{{ url_for('auth.profile') }}" class="dropdown__item"><i data-lucide="user"></i> Profile</a>
+          <a href="{{ url_for('dashboard.privacy') }}" class="dropdown__item"><i data-lucide="shield-alert"></i> Privacy Policy</a>
+          <a href="{{ url_for('dashboard.terms') }}" class="dropdown__item"><i data-lucide="gavel"></i> Terms of Service</a>
           <a href="#" class="dropdown__item"><i data-lucide="settings"></i> Settings</a>
           <div class="dropdown__divider"></div>
           <a href="{{ url_for('auth.logout') }}" class="dropdown__item" style="color:var(--danger)">
@@ -118,6 +138,132 @@
       {% block content %}{% endblock %}
     </div>
   </main>
+
+  <!-- Cookie / Privacy Consent Banner (DPDP Act 2023 Compliant) -->
+  <div id="consent-banner" class="consent-banner" style="display: none;">
+    <div class="consent-banner__content">
+      <div class="consent-banner__icon">
+        <i data-lucide="shield-check"></i>
+      </div>
+      <div class="consent-banner__text">
+        <h4 class="consent-banner__title">Data Privacy &amp; Consent</h4>
+        <p class="consent-banner__desc">
+          We collect minimal academic data and use cookies to run this portal securely. By continuing, you agree to our 
+          <a href="{{ url_for('dashboard.privacy') }}" class="consent-link">Privacy Policy</a> and 
+          <a href="{{ url_for('dashboard.terms') }}" class="consent-link">Terms of Service</a>.
+        </p>
+      </div>
+    </div>
+    <div class="consent-banner__actions">
+      <button id="btn-accept-consent" class="btn btn--primary btn--sm">Accept &amp; Continue</button>
+    </div>
+  </div>
+
+  <style>
+    .consent-banner {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      max-width: 480px;
+      width: calc(100% - 48px);
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 640px) {
+      .consent-banner {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+    }
+    .consent-banner__content {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .consent-banner__icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(var(--primary-rgb), 0.1);
+      border-radius: var(--border-radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+    .consent-banner__icon svg {
+      width: 20px;
+      height: 20px;
+    }
+    .consent-banner__text {
+      flex: 1;
+    }
+    .consent-banner__title {
+      font-family: var(--font-heading);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      color: var(--text-primary);
+    }
+    .consent-banner__desc {
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      line-height: var(--leading-normal);
+      margin: 0;
+    }
+    .consent-link {
+      color: var(--primary);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    .consent-link:hover {
+      color: var(--primary-light);
+    }
+    .consent-banner__actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    @keyframes slideInUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if consent is already recorded
+      if (!localStorage.getItem('gtu_portal_consent')) {
+        const banner = document.getElementById('consent-banner');
+        if (banner) {
+          banner.style.setProperty('display', 'flex', 'important');
+        }
+      }
+      
+      const acceptBtn = document.getElementById('btn-accept-consent');
+      if (acceptBtn) {
+        acceptBtn.addEventListener('click', function() {
+          localStorage.setItem('gtu_portal_consent', 'accepted');
+          const banner = document.getElementById('consent-banner');
+          if (banner) {
+            banner.style.display = 'none';
+          }
+        });
+      }
+    });
+  </script>
 
   <!-- App JS -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>

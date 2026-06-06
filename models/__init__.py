@@ -6,10 +6,13 @@ from models.user import User
 from models.department import Department
 from models.principal_post import PrincipalPost
 from models.student_registration import StudentRegistration
+from models.activity_report import ActivityReport
 
 __all__ = [
     'User',
     'Department',
     'PrincipalPost',
     'StudentRegistration',
+    'ActivityReport',
 ]
+

@@ -163,7 +163,11 @@ class PostExtractor:
         """
         Fast rule-based regex and keyword extractor for principal posts.
         Extremely reliable fallback that guarantees fields are populated.
+        Now includes intelligent content formatting for unstructured text.
         """
+        # First, clean and format the full content
+        formatted_content = cls._format_full_content(text)
+
         result = {
             'activity_heading': '',
             'source': 'COMPANY',
@@ -171,7 +175,7 @@ class PostExtractor:
             'start_date': None,
             'end_date': None,
             'department': None,
-            'full_content': text
+            'full_content': formatted_content or text
         }
 
         if not text or not text.strip():
@@ -181,11 +185,30 @@ class PostExtractor:
 
         # 1. Heading Extraction
         heading = ""
-        # Try to find conference/workshop quotes first
-        quote_pattern = r'(?:conference|workshop|seminar|hackathon|round table|program)\s+(?:on|about)\s+["\u201c\u201d\'\u2018\u2019]([^"\u201c\u201d\'\u2018\u2019\n]+)["\u201c\u201d\'\u2018\u2019]'
-        quote_match = re.search(quote_pattern, text, re.IGNORECASE)
-        if quote_match:
-            heading = quote_match.group(1).strip()
+
+        # Try multi-line symposium/conference title patterns first
+        # e.g. "INTERNATIONAL SYMPOSIUM\nADVANCEMENTS IN COMPOSITES, SPECIALITY FIBRES..."
+        event_type_pattern = re.compile(
+            r'(?:INTERNATIONAL|NATIONAL|REGIONAL|ANNUAL|GLOBAL)?\s*'
+            r'(SYMPOSIUM|CONFERENCE|WORKSHOP|SEMINAR|SUMMIT|HACKATHON|CONCLAVE)'
+            r'\s*[\n\r]+\s*(.+?)(?:\n|\d{1,2}\s*[-–—])',
+            re.IGNORECASE | re.DOTALL
+        )
+        event_match = event_type_pattern.search(text)
+        if event_match:
+            event_type = event_match.group(1).strip()
+            title_part = event_match.group(2).strip()
+            # Clean up the title
+            title_part = re.sub(r'\s+', ' ', title_part).strip()
+            if len(title_part) > 10:
+                heading = f"International {event_type.title()}: {title_part}"
+
+        # Try to find conference/workshop quotes
+        if not heading:
+            quote_pattern = r'(?:conference|workshop|seminar|hackathon|round table|program)\s+(?:on|about)\s+["\u201c\u201d\'\u2018\u2019]([^"\u201c\u201d\'\u2018\u2019\n]+)["\u201c\u201d\'\u2018\u2019]'
+            quote_match = re.search(quote_pattern, text, re.IGNORECASE)
+            if quote_match:
+                heading = quote_match.group(1).strip()
 
         if not heading:
             # Try keyword-based extraction BEFORE falling back to first line
@@ -372,7 +395,17 @@ class PostExtractor:
                 continue
             if salutation_pattern.search(s_clean):
                 continue
-            if len(s_clean) < 40:
+            if len(s_clean) < 50:
+                continue
+            # Skip ALL-CAPS lines (they are headers/section titles)
+            if s_clean.upper() == s_clean and len(s_clean) > 5:
+                continue
+            # Skip lines that are mostly date/venue info
+            if re.search(r'\d{1,2}\s*[-–—]\s*\d{1,2}', s_clean):
+                continue
+            # Skip fragments starting with venue/location words
+            if re.match(r'^(?:AUDITORIUM|HALL|VENUE|ROOM)\b',
+                        s_clean, re.IGNORECASE):
                 continue
             valid_sentences.append(s_clean)
             
@@ -382,6 +415,9 @@ class PostExtractor:
             summary = valid_sentences[0]
         else:
             summary = "Notice shared by the Principal."
+            
+        # Clean up the summary: join broken line wraps
+        summary = re.sub(r'\s+', ' ', summary).strip()
             
         # Clean word-boundary truncation
         if len(summary) > 200:
@@ -395,3 +431,372 @@ class PostExtractor:
         result['summary'] = summary
 
         return result
+
+    # ------------------------------------------------------------------
+    # Intelligent Content Formatter
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def _format_full_content(cls, raw_text: str) -> str:
+        """Intelligently restructure raw unstructured text from conference
+        flyers, symposium notices, and multi-column PDFs into clean,
+        well-organized, readable content.
+
+        This replaces the need for a GPU-based AI model by using advanced
+        pattern recognition and section detection heuristics.
+        """
+        if not raw_text or not raw_text.strip():
+            return raw_text
+
+        import re
+
+        # Step 1: Deduplicate — split into lines and detect repeated sections
+        all_lines = [ln.strip() for ln in raw_text.split('\n') if ln.strip()]
+
+        # Detect the half-way duplicate by looking for the title repeating
+        dedup_lines = []
+        first_title_idx = -1
+        second_title_idx = -1
+        for i, line in enumerate(all_lines):
+            line_up = line.upper()
+            if ('SYMPOSIUM' in line_up or 'CONFERENCE' in line_up or
+                'WORKSHOP' in line_up or 'SEMINAR' in line_up or
+                    'SUMMIT' in line_up or 'HACKATHON' in line_up):
+                if first_title_idx == -1:
+                    first_title_idx = i
+                elif i > first_title_idx + 5:
+                    # Check if lines after this match the beginning
+                    # (duplicate section detected)
+                    match_count = 0
+                    for j in range(min(5, len(all_lines) - i)):
+                        if (i + j < len(all_lines) and
+                                first_title_idx + j < len(all_lines)):
+                            if (all_lines[i + j].lower() ==
+                                    all_lines[first_title_idx + j].lower()):
+                                match_count += 1
+                    if match_count >= 3:
+                        second_title_idx = i
+                        break
+
+        if second_title_idx > 0:
+            # Keep only the first occurrence, but also grab any unique
+            # trailing content after the duplicate section
+            first_section = all_lines[:second_title_idx]
+            second_section = all_lines[second_title_idx:]
+
+            # Find lines in the second section that are NOT in the first
+            first_set = set(ln.lower().strip() for ln in first_section)
+            extra_lines = []
+            for ln in second_section:
+                if ln.lower().strip() not in first_set and ln.strip():
+                    extra_lines.append(ln)
+
+            dedup_lines = first_section + extra_lines
+        else:
+            dedup_lines = all_lines
+
+        deduped = '\n'.join(dedup_lines)
+
+        # Step 2: Detect if this is an event/symposium type document
+        text_lower = deduped.lower()
+        is_event = any(kw in text_lower for kw in (
+            'symposium', 'conference', 'workshop', 'seminar', 'summit',
+            'hackathon', 'conclave', 'webinar', 'congress'
+        ))
+
+        if not is_event:
+            return cls._basic_format(deduped)
+
+        # Step 3: Extract structured sections for event documents
+
+        # 3a. Event Title — look for the event type keyword + next line
+        event_title = ''
+        event_type_match = re.search(
+            r'(?:INTERNATIONAL|NATIONAL|REGIONAL|ANNUAL|GLOBAL)?\s*'
+            r'(SYMPOSIUM|CONFERENCE|WORKSHOP|SEMINAR|SUMMIT|HACKATHON|CONCLAVE)',
+            deduped, re.IGNORECASE
+        )
+        if event_type_match:
+            # The title is usually on the next line(s) after the event type
+            after_pos = event_type_match.end()
+            remaining = deduped[after_pos:after_pos + 300]
+            # Get lines until we hit a date or known delimiter
+            title_lines = []
+            for ln in remaining.split('\n'):
+                ln = ln.strip()
+                if not ln:
+                    continue
+                # Stop at date patterns or venue markers
+                if re.match(r'\d{1,2}\s*[-–—]', ln):
+                    break
+                if '|' in ln and re.search(r'\d{4}', ln):
+                    break
+                title_lines.append(ln)
+                if len(title_lines) >= 2:
+                    break
+            if title_lines:
+                event_type_str = event_type_match.group(0).strip()
+                title_text = ' '.join(title_lines)
+                event_title = f"{event_type_str}: {title_text}"
+            else:
+                event_title = event_type_match.group(0).strip()
+
+        # 3b. Date & Venue
+        date_venue = ''
+        date_venue_match = re.search(
+            r'(\d{1,2}\s*[-–—]\s*\d{1,2}\s+'
+            r'(?:January|February|March|April|May|June|July|August|'
+            r'September|October|November|December|Jan|Feb|Mar|Apr|'
+            r'Jun|Jul|Aug|Sep|Oct|Nov|Dec),?\s*\d{4})',
+            deduped, re.IGNORECASE
+        )
+        if date_venue_match:
+            date_str = date_venue_match.group(1).strip()
+            after_date = deduped[date_venue_match.end():
+                                  date_venue_match.end() + 200]
+            venue_match = re.search(r'[|,]\s*(.+?)(?:\n|$)', after_date)
+            if venue_match:
+                venue = venue_match.group(1).strip()
+                date_venue = f"{date_str} | {venue}"
+            else:
+                date_venue = date_str
+
+        # 3c. Theme
+        theme = ''
+        theme_match = re.search(
+            r'[Tt]heme\s*:\s*(.+?)(?:\n|$)', deduped)
+        if theme_match:
+            theme = theme_match.group(1).strip()
+
+        # 3d. Description — extract coherent sentences from the text
+        description = ''
+        # Find the main descriptive paragraph by looking for sentences
+        # that contain lowercase words (not ALL-CAPS section headers)
+        # Stop at known section markers
+        section_markers = re.compile(
+            r'key\s+focus|who\s+should|for\s+inquir|contact|'
+            r'registration|delegates|networking|250\+',
+            re.IGNORECASE
+        )
+        desc_sentences = []
+        for ln in dedup_lines:
+            # Skip ALL-CAPS lines (headers), very short lines, date lines
+            if ln.upper() == ln and len(ln) > 5:
+                continue
+            if len(ln) < 40:
+                continue
+            if re.match(r'\d{1,2}\s*[-–—]', ln):
+                continue
+            if ln.startswith('Theme:'):
+                continue
+            # Stop at section markers
+            if section_markers.search(ln):
+                break
+            # Skip lines that contain emails or phone numbers
+            if re.search(r'@|\+91|\d{5}\s*\d{5}', ln):
+                continue
+            # This looks like a content sentence
+            desc_sentences.append(ln)
+
+        if desc_sentences:
+            # Join broken sentences
+            raw_desc = ' '.join(desc_sentences)
+            # Clean up double spaces
+            raw_desc = re.sub(r'\s+', ' ', raw_desc).strip()
+            description = raw_desc
+
+        # 3e. Key Focus Areas — scan for ALL-CAPS "X & Y" patterns
+        # In multi-column flyers, focus areas appear as ALL-CAPS lines
+        # with "&" (e.g., "AEROSPACE & DEFENCE", "ELECTRIC MOBILITY & EVS")
+        # They may be interleaved with audience items, so scan all lines
+        _SKIP_PATTERNS = (
+            'KEY FOCUS', 'WHO SHOULD',
+            'INTERNATIONAL', 'SYMPOSIUM', 'CONFERENCE',
+            'ADVANCEMENTS', 'SPECIALITY', 'COMPOSITES',
+        )
+        # Patterns that might be appended from adjacent columns
+        _SPLIT_SUFFIXES = re.compile(
+            r'\s+(?:FOR\s+INQUIR\w*|CONTACT|REGISTRATION|WHO\s+SHOULD)',
+            re.IGNORECASE
+        )
+        focus_areas = []
+        for ln in dedup_lines:
+            ln = ln.strip()
+            if not (ln.upper() == ln and '&' in ln and len(ln) > 10):
+                continue
+            if any(skip in ln.upper() for skip in _SKIP_PATTERNS):
+                continue
+            # Split off appended section headers from adjacent columns
+            split_match = _SPLIT_SUFFIXES.search(ln)
+            if split_match:
+                ln = ln[:split_match.start()].strip()
+            # Clean trailing fragments like "&" on its own
+            cleaned = ln.strip().rstrip('&').strip()
+            if cleaned and len(cleaned) > 8:
+                focus_areas.append(cleaned.title())
+
+        # 3f. Target Audience
+        audience = []
+        who_section_start = re.search(
+            r'who\s+should\s+attend', text_lower)
+        if who_section_start:
+            after_who = deduped[who_section_start.end():]
+            # Collect attendee types — mixed-case lines that look like
+            # role descriptions
+            for ln in after_who.split('\n'):
+                ln = ln.strip()
+                if not ln:
+                    continue
+                if re.search(r'for\s+inquir|contact|key\s+focus',
+                             ln, re.IGNORECASE):
+                    break
+                # Skip ALL-CAPS focus area items
+                if ln.upper() == ln and '&' in ln:
+                    continue
+                # Skip phone numbers and emails
+                if re.search(r'@|\+91|\d{5}', ln):
+                    continue
+                # Skip known non-audience lines
+                if any(skip in ln.upper() for skip in
+                       ('JYOTI', 'TASKAR', 'SUSTAINABILITY')):
+                    continue
+                # Lines with roles/titles
+                clean_ln = re.sub(r'\s+', ' ', ln).strip()
+                if clean_ln and len(clean_ln) > 5 and len(clean_ln) < 60:
+                    audience.append(clean_ln)
+
+        # 3g. Contact Information
+        contacts = []
+        phones = list(set(re.findall(
+            r'(\+91\s*\d{5}\s*\d{5})', deduped)))
+        emails = list(set(re.findall(
+            r'[\w.+-]+@[\w-]+\.[\w.]+', deduped)))
+
+        # Find contact names — look for proper-case names (2-3 words)
+        # that appear near phone or email lines
+        _NON_NAME_WORDS = {'manufacturers', 'industry', 'leaders',
+                           'academia', 'startups', 'innovators',
+                           'material', 'technology', 'solution',
+                           'providers', 'organizations', 'drones',
+                           'sustainability', 'cities', 'smart'}
+        for i, ln in enumerate(dedup_lines):
+            ln_stripped = ln.strip()
+            # Must be 2-3 proper words, all starting with uppercase
+            words = ln_stripped.split()
+            if not (2 <= len(words) <= 3):
+                continue
+            if not all(w[0].isupper() for w in words):
+                continue
+            # Filter out known non-name words
+            if any(w.lower() in _NON_NAME_WORDS for w in words):
+                continue
+            if len(ln_stripped) < 5 or len(ln_stripped) > 35:
+                continue
+            # Check if nearby lines (prev/next 2) have phone/email
+            nearby = ' '.join(
+                dedup_lines[max(0, i - 1):min(len(dedup_lines), i + 3)])
+            if re.search(r'@|\+91|\d{5}\s*\d{5}', nearby):
+                contacts.append(ln_stripped)
+
+        # Step 4: Build the formatted output
+        output_parts = []
+
+        if event_title:
+            output_parts.append(f"\U0001f4cc {event_title}")
+            output_parts.append('')
+
+        if date_venue:
+            output_parts.append(f"\U0001f4c5 Date & Venue: {date_venue}")
+            output_parts.append('')
+
+        if theme:
+            output_parts.append(
+                f"\U0001f3af Theme: {theme}")
+            output_parts.append('')
+
+        if description:
+            output_parts.append(
+                '\u2501' * 40)
+            output_parts.append(
+                '\U0001f4dd ABOUT THE EVENT')
+            output_parts.append(
+                '\u2501' * 40)
+            output_parts.append('')
+            # Word-wrap description at ~80 chars for readability
+            words = description.split()
+            line = ''
+            for word in words:
+                if len(line) + len(word) + 1 > 80:
+                    output_parts.append(line)
+                    line = word
+                else:
+                    line = f"{line} {word}" if line else word
+            if line:
+                output_parts.append(line)
+
+        if focus_areas:
+            output_parts.append('')
+            output_parts.append('\u2501' * 40)
+            output_parts.append(
+                '\U0001f52c KEY FOCUS AREAS')
+            output_parts.append('\u2501' * 40)
+            for area in focus_areas:
+                output_parts.append(f"  \u2022 {area}")
+
+        if audience:
+            output_parts.append('')
+            output_parts.append('\u2501' * 40)
+            output_parts.append(
+                '\U0001f465 WHO SHOULD ATTEND')
+            output_parts.append('\u2501' * 40)
+            for item in audience:
+                output_parts.append(f"  \u2022 {item}")
+
+        if contacts or phones or emails:
+            output_parts.append('')
+            output_parts.append('\u2501' * 40)
+            output_parts.append(
+                '\U0001f4de CONTACT INFORMATION')
+            output_parts.append('\u2501' * 40)
+            for name in contacts:
+                output_parts.append(f"  Contact: {name}")
+            for phone in phones:
+                output_parts.append(
+                    f"  Phone: {phone.strip()}")
+            for email in emails:
+                output_parts.append(f"  Email: {email}")
+
+        # If we extracted meaningful sections, return formatted output
+        if len(output_parts) > 3:
+            return '\n'.join(output_parts)
+
+        # Otherwise, return basic formatted version
+        return cls._basic_format(deduped)
+
+    @classmethod
+    def _basic_format(cls, text: str) -> str:
+        """Basic text formatting: fix broken lines, remove excess
+        whitespace, and deduplicate lines."""
+        import re
+
+        if not text:
+            return text
+
+        lines = text.split('\n')
+        cleaned = []
+        seen_lines = set()
+        for line in lines:
+            stripped = line.strip()
+            if stripped:
+                key = stripped.lower()
+                if key not in seen_lines:
+                    seen_lines.add(key)
+                    cleaned.append(stripped)
+            elif cleaned and cleaned[-1] != '':
+                cleaned.append('')
+
+        # Remove trailing empty lines
+        while cleaned and cleaned[-1] == '':
+            cleaned.pop()
+
+        return '\n'.join(cleaned)

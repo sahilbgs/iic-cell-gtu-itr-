@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Publication Calendar{% endblock %}
+{% block page_title %}Shared Activities Calendar{% endblock %}
+
+{% block head %}
+<style>
+  .calendar-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+  }
+  .fc {
+    font-family: 'Inter', sans-serif;
+  }
+  .fc-theme-standard td, .fc-theme-standard th {
+    border-color: var(--border-color) !important;
+  }
+  .fc .fc-toolbar-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 1.5rem;
+  }
+  .fc .fc-button-primary {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    font-weight: 600;
+    text-transform: capitalize;
+    border-radius: var(--border-radius) !important;
+  }
+  .fc .fc-button-primary:hover {
+    background-color: var(--primary-light) !important;
+    border-color: var(--primary-light) !important;
+  }
+  .fc .fc-button-primary:disabled {
+    background-color: var(--gray-300) !important;
+    border-color: var(--gray-300) !important;
+  }
+  .fc .fc-daygrid-day-number {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    padding: 8px !important;
+    text-decoration: none !important;
+  }
+  .fc-day-today {
+    background: rgba(var(--primary-rgb), 0.04) !important;
+  }
+  .fc-event {
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px !important;
+    font-weight: 600;
+    font-size: 11px;
+    border: none !important;
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.2s ease;
+  }
+  .fc-event:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.95);
+  }
+  .legend-container {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    background: var(--bg-surface-hover);
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+  }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <span>Activity Calendar</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto mb-10">
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h3 style="font-family:'Outfit', sans-serif; font-weight:800; color:var(--primary); margin:0;">Activity Publication Calendar</h3>
+      <p class="text-xs text-muted mt-1" style="margin:0;">Interactive calendar timeline showing when institutional circulars and drive notices were officially published by the Principal.</p>
+    </div>
+    
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn--secondary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding: 8px 20px;">
+      <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="calendar-container">
+    <div id="calendar"></div>
+    
+    <div class="legend-container">
+      <span class="text-muted mr-2">LEGEND (Source Types):</span>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #2563eb;"></div>
+        <span>Company Drives</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #d97706;"></div>
+        <span>Firm Tasks / Invites</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #059669;"></div>
+        <span>University Notices</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    if (calendarEl) {
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,listMonth'
+        },
+        events: [
+          {% for post in posts %}
+          {
+            title: {{ post.title | tojson }},
+            start: {{ post.created_at.strftime('%Y-%m-%d') | tojson }},
+            url: {{ url_for('posts.view_post', post_id=post.id) | tojson }},
+            backgroundColor: {% if post.source == 'COMPANY' %}'#2563eb'{% elif post.source == 'FIRM' %}'#d97706'{% else %}'#059669'{% endif %},
+            borderColor: {% if post.source == 'COMPANY' %}'#2563eb'{% elif post.source == 'FIRM' %}'#d97706'{% else %}'#059669'{% endif %},
+            textColor: '#ffffff'
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ],
+        eventClick: function(info) {
+          if (info.event.url) {
+            window.location.href = info.event.url;
+            info.jsEvent.preventDefault();
+          }
+        }
+      });
+      calendar.render();
+    }
+  });
+</script>
+{% endblock %}

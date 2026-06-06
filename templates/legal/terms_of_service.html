@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service — GTU R&D &amp; IIC Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .legal-container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .legal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-xl);
+      padding: 40px;
+      box-shadow: var(--shadow-lg);
+    }
+    .legal-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+    .legal-header h1 {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+    .legal-meta {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .legal-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legal-section {
+      margin-bottom: 32px;
+    }
+    .legal-section h2 {
+      font-family: var(--font-heading);
+      font-size: var(--text-xl);
+      color: var(--primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .legal-section h2 i, .legal-section h2 svg {
+      color: var(--gold);
+    }
+    .legal-section p {
+      color: var(--text-secondary);
+      line-height: var(--leading-normal);
+      margin-bottom: 16px;
+      font-size: var(--text-sm);
+    }
+    .legal-list {
+      margin-left: 20px;
+      margin-bottom: 20px;
+      list-style-type: disc;
+    }
+    .legal-list li {
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+      line-height: var(--leading-normal);
+      margin-bottom: 8px;
+    }
+    .legal-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      font-weight: 600;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: color var(--transition-fast);
+    }
+    .legal-back-btn:hover {
+      color: var(--primary);
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-watermark"></div>
+
+  <div class="legal-container">
+    <a href="javascript:history.back()" class="legal-back-btn">
+      <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+      Back to Previous Page
+    </a>
+
+    <div class="legal-card">
+      <div class="legal-header">
+        <h1>Terms of Service</h1>
+        <div class="legal-meta">
+          <span><i data-lucide="calendar" style="width: 14px; height: 14px;"></i> Last Updated: June 2026</span>
+          <span><i data-lucide="gavel" style="width: 14px; height: 14px;"></i> IT Act, 2000 Compliance</span>
+          <span><i data-lucide="globe" style="width: 14px; height: 14px;"></i> GTU-ITR GSET</span>
+        </div>
+      </div>
+
+      <div class="legal-body">
+        <div class="legal-section">
+          <h2><i data-lucide="info"></i> 1. Acceptance of Terms</h2>
+          <p>
+            By accessing and using the GTU Graduate School of Engineering and Technology R&amp;D and IIC Portal ("Portal"), 
+            you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, you must not access or use the Portal.
+          </p>
+          <p>
+            These terms constitute a legal agreement between you (the user) and GTU Graduate School of Engineering and Technology (the portal host) 
+            under the Indian Information Technology Act, 2000.
+          </p>
+        </div>
+
+        <div class="legal-section">
+          <h2><i data-lucide="user-check"></i> 2. Account Registration and Security</h2>
+          <p>Users must register with official university credentials (`@gtu.ac.in` emails) to access coordinate features:</p>
+          <ul class="legal-list">
+            <li>You agree to provide true, accurate, and current information during registration.</li>
+            <li>You are responsible for maintaining the confidentiality of your account credentials and password.</li>
+            <li>Any activity performed through your account is considered your official university action.</li>
+            <li>You must notify the administration immediately of any unauthorized access or breach of security.</li>
+          </ul>
+        </div>
+
+        <div class="legal-section">
+          <h2><i data-lucide="shield-alert"></i> 3. Acceptable Use Policy</h2>
+          <p>The Portal is created exclusively for managing academic R&amp;D activities, IIC events, publication tracking, and student registrations. Prohibited actions include:</p>
+          <ul class="legal-list">
+            <li>Submitting false publications, forged patent certificates, or plagiarized research proposals.</li>
+            <li>Attempting to bypass access controls, gain unauthorized administrative access, or scan the system for vulnerabilities.</li>
+            <li>Uploading files containing malware, viruses, or corrupted scripts.</li>
+            <li>Scraping the directory or database of users for commercial communication or spam.</li>
+            <li>Using the Portal for any activity that violates applicable local, state, national, or international laws in India.</li>
+          </ul>
+        </div>
+
+        <div class="legal-section">
+          <h2><i data-lucide="cpu"></i> 4. AI-Powered Assistant Disclosure</h2>
+          <p>
+            The Portal integrates artificial intelligence models (such as Microsoft Phi-3 and Anthropic Claude) to assist users in classifying funding schemes, 
+            drafting proposal outlines, composing emails, and organizing event registration fields.
+          </p>
+          <ul class="legal-list">
+            <li><strong>User Accountability:</strong> All AI outputs are drafts. You are fully responsible for validating the factual accuracy and academic integrity of any content generated by the AI before formal submission.</li>
+            <li><strong>AI Imperfections:</strong> AI models may generate inaccurate or incomplete statements. The university does not guarantee the reliability of AI-generated content.</li>
+          </ul>
+        </div>
+
+        <div class="legal-section">
+          <h2><i data-lucide="copyright"></i> 5. Intellectual Property Rights</h2>
+          <p>
+            The software codebase, database schemas, graphic designs, logos, and layouts of this Portal are owned by GTU Graduate School of Engineering and Technology.
+          </p>
+          <p>
+            Open-source components integrated into this Portal are governed by their respective open-source licenses (e.g. MIT, BSD, Apache). Users must respect copyright and intellectual property rights for all academic materials, publications, and patents submitted.
+          </p>
+        </div>
+
+        <div class="legal-section">
+          <h2><i data-lucide="alert-triangle"></i> 6. Limitation of Liability</h2>
+          <p>
+            The Portal is provided on an "as-is" and "as-available" basis. To the maximum extent permitted under Indian law (specifically the Information Technology Act, 2000):
+          </p>
+          <ul class="legal-list">
+            <li>We do not warrant that the Portal will be permanently error-free, uninterrupted, or secure.</li>
+            <li>We are not liable for any data loss, proposal rejection, or project funding issues caused by service downtime or database failures.</li>
+            <li>The university disclaims liability for any actions taken based on AI-generated suggestions.</li>
+          </ul>
+        </div>
+
+        <div class="legal-section">
+          <h2><i data-lucide="scale"></i> 7. Governing Law and Jurisdiction</h2>
+          <p>
+            These Terms of Service are governed by and construed in accordance with the laws of the Republic of India. Any disputes arising in connection with the Portal shall be subject to the exclusive jurisdiction of the competent courts in Ahmedabad, Gujarat, India.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+    
+    // Apply local storage dark mode theme if active
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</body>
+</html>

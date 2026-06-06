@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Report Form — {{ post.title }}{% endblock %}
+{% block page_title %}Generate Activity Report{% endblock %}
+
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <a href="{{ url_for('posts.view_post', post_id=post.id) }}">{{ post.title[:30] }}...</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <span>Report Form</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mb-10">
+  <div class="flex items-center justify-between mb-6">
+    <a href="{{ url_for('posts.view_post', post_id=post.id) }}" class="btn btn--secondary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding: 8px 20px;">
+      <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Activity Details
+    </a>
+    
+    {% if report and report.status == 'SUBMITTED' %}
+      <div class="flex items-center gap-2">
+        <span class="badge badge--success flex items-center gap-1" style="padding: 6px 12px; font-size: 11.5px; font-weight: 700; border-radius: 8px;">
+          <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> REPORT SUBMITTED
+        </span>
+        <a href="{{ url_for('posts.report_download', post_id=post.id) }}" class="btn btn--primary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding: 8px 20px;">
+          <i data-lucide="download" style="width:16px;height:16px;"></i> Download Word Report (.docx)
+        </a>
+      </div>
+    {% else %}
+      <span class="badge badge--warning flex items-center gap-1" style="padding: 6px 12px; font-size: 11.5px; font-weight: 700; border-radius: 8px;">
+        <i data-lucide="file-edit" style="width: 14px; height: 14px;"></i> DRAFT MODE
+      </span>
+    {% endif %}
+  </div>
+
+  <div class="grid grid-3" style="grid-template-columns: 2fr 1fr; gap: 30px; align-items: start;">
+    
+    <!-- LEFT: Report Fields Form -->
+    <div class="card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-md); border-top: 4px solid var(--primary);">
+      <div class="card__header" style="background: var(--bg-surface-hover); padding: 20px 24px; border-bottom: 1px solid var(--border-color);">
+        <h4 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;">
+          <i data-lucide="file-text" style="width:22px; height:22px;"></i>
+          Report Details Builder
+        </h4>
+        <p class="text-xs text-muted mt-1" style="margin:0;">Fill the details below. Most are pre-filled from your post. These will be formatted precisely matching the official GTU activity report format.</p>
+      </div>
+      
+      <div class="card__body" style="padding: 24px; background: var(--bg-surface);">
+        <form method="POST" enctype="multipart/form-data" id="reportForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" id="formAction" value="SAVE">
+
+          <!-- 1) Title of Event -->
+          <div class="form-group mb-6">
+            <label class="form-label" for="title" style="font-weight:700;">1) Title of Event <span class="text-danger">*</span></label>
+            {% if can_edit %}
+              <textarea id="title" name="title" class="form-textarea" rows="2" required>{{ report_data.title }}</textarea>
+            {% else %}
+              <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; font-size: 14.5px; font-weight: 600; color: var(--text-primary);">{{ report_data.title }}</div>
+            {% endif %}
+          </div>
+
+          <!-- 2) Type of Event -->
+          <div class="grid grid-2 mb-6">
+            <div class="form-group">
+              <label class="form-label" for="event_type" style="font-weight:700;">2) Type of Event <span class="text-danger">*</span></label>
+              {% if can_edit %}
+                <input type="text" id="event_type" name="event_type" class="form-control" value="{{ report_data.event_type }}" placeholder="e.g. Expert Talk / Online workshop / Webinar" required>
+              {% else %}
+                <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; font-size: 14.5px; font-weight: 600; color: var(--text-primary);">{{ report_data.event_type }}</div>
+              {% endif %}
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="event_mode" style="font-weight:700;">Event Mode <span class="text-danger">*</span></label>
+              {% if can_edit %}
+                <select id="event_mode" name="event_mode" class="form-select" required>
+                  <option value="Offline" {% if report_data.event_mode == 'Offline' %}selected{% endif %}>Offline (On campus)</option>
+                  <option value="Online" {% if report_data.event_mode == 'Online' %}selected{% endif %}>Online (Webinar / MS Teams)</option>
+                  <option value="Hybrid" {% if report_data.event_mode == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+                </select>
+              {% else %}
+                <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; font-size: 14.5px; font-weight: 600; color: var(--text-primary);">{{ report_data.event_mode }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- 3) Date, Time, Venue Details -->
+          <div style="background: rgba(var(--primary-rgb), 0.02); padding: 18px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px;">
+            <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); font-size: 13.5px; margin-bottom: 12px; display:flex; align-items:center; gap:6px;">
+              <i data-lucide="calendar" style="width:16px;height:16px;"></i>
+              3) Date, Time and Venue Details
+            </h5>
+            
+            <div class="grid grid-2 mb-4">
+              <div class="form-group">
+                <label class="form-label text-xs" for="event_date" style="font-weight:600;">Date Text <span class="text-danger">*</span></label>
+                {% if can_edit %}
+                  <input type="text" id="event_date" name="event_date" class="form-control" value="{{ report_data.event_date }}" required placeholder="e.g. Monday, 9th February 2026">
+                {% else %}
+                  <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: 600; color: var(--text-primary);">{{ report_data.event_date }}</div>
+                {% endif %}
+              </div>
+              <div class="form-group">
+                <label class="form-label text-xs" for="event_time" style="font-weight:600;">Time Text <span class="text-danger">*</span></label>
+                {% if can_edit %}
+                  <input type="text" id="event_time" name="event_time" class="form-control" value="{{ report_data.event_time }}" required placeholder="e.g. 12:00 PM to 2:00 PM">
+                {% else %}
+                  <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: 600; color: var(--text-primary);">{{ report_data.event_time }}</div>
+                {% endif %}
+              </div>
+            </div>
+            
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label class="form-label text-xs" for="venue" style="font-weight:600;">Venue <span class="text-danger">*</span></label>
+                {% if can_edit %}
+                  <input type="text" id="venue" name="venue" class="form-control" value="{{ report_data.venue }}" required placeholder="e.g. Seminar Hall, GTU-ITR, Mehsana">
+                {% else %}
+                  <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: 600; color: var(--text-primary);">{{ report_data.venue }}</div>
+                {% endif %}
+              </div>
+              <div class="form-group">
+                <label class="form-label text-xs" for="participants_demographic" style="font-weight:600;">Participants Target <span class="text-danger">*</span></label>
+                {% if can_edit %}
+                  <input type="text" id="participants_demographic" name="participants_demographic" class="form-control" value="{{ report_data.participants_demographic }}" required placeholder="e.g. GTU-ITR students and faculty members">
+                {% else %}
+                  <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: 600; color: var(--text-primary);">{{ report_data.participants_demographic }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- 4) Organized By & 5) Supported By -->
+          <div class="grid grid-2 mb-6">
+            <div class="form-group">
+              <label class="form-label" for="organized_by" style="font-weight:700;">4) Organized By <span class="text-danger">*</span></label>
+              {% if can_edit %}
+                <input type="text" id="organized_by" name="organized_by" class="form-control" value="{{ report_data.organized_by }}" required placeholder="e.g. GTU-ITR IIC Cell">
+              {% else %}
+                <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; font-size: 14.5px; font-weight: 600; color: var(--text-primary);">{{ report_data.organized_by }}</div>
+              {% endif %}
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="supported_by" style="font-weight:700;">5) Supported By</label>
+              {% if can_edit %}
+                <input type="text" id="supported_by" name="supported_by" class="form-control" value="{{ report_data.supported_by }}" placeholder="e.g. Institution's Innovation Council (IIC)">
+              {% else %}
+                <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; font-size: 14.5px; font-weight: 600; color: var(--text-primary);">{{ report_data.supported_by or 'N/A' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- 6) Description of Event -->
+          <div class="form-group mb-6">
+            <label class="form-label" for="description" style="font-weight:700;">6) Description of Event <span class="text-danger">*</span></label>
+            {% if can_edit %}
+              <textarea id="description" name="description" class="form-textarea" rows="10" required placeholder="Write a thorough summary of the event proceedings, key points discussed, expert feedback, student learnings, etc...">{{ report_data.description }}</textarea>
+            {% else %}
+              <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.7; white-space: pre-wrap;">{{ report_data.description }}</div>
+            {% endif %}
+          </div>
+
+          <!-- 7) Number of Participants -->
+          <div class="form-group mb-6">
+            <label class="form-label" for="num_participants" style="font-weight:700;">7) Number of Participants <span class="text-danger">*</span></label>
+            {% if can_edit %}
+              <input type="number" id="num_participants" name="num_participants" class="form-control" style="max-width: 200px;" value="{{ report_data.num_participants }}" required placeholder="e.g. 111" min="0">
+              <small class="text-muted block mt-1">This has been pre-filled from student registrations for this post.</small>
+            {% else %}
+              <div class="report-preview-box" style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 700; color: var(--text-primary); width: fit-content; min-width: 80px; text-align: center;">{{ report_data.num_participants }}</div>
+            {% endif %}
+          </div>
+
+          <!-- 8) Geotag Photographs of the Event -->
+          <div style="border-top: 1px solid var(--border-color); padding-top: 24px; margin-top: 24px; margin-bottom: 24px;">
+            <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+              <i data-lucide="image" style="width:20px;height:20px;"></i>
+              8) Geotag Photographs of the Event
+            </h5>
+            
+            <!-- Existing/Submitted Photos List -->
+            {% if report_data.photos %}
+              <div style="font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:12px;">Event Photographs:</div>
+              <div class="grid grid-2 mb-6" style="gap:20px;">
+                {% for photo in report_data.photos %}
+                  {% if can_edit %}
+                    <!-- Edit Mode layout -->
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-body); display:flex; gap:12px; padding:10px; position:relative;">
+                      <img src="{{ url_for('posts.download_file', filename=photo.path) }}" style="width:70px; height:70px; object-fit:cover; border-radius:6px;" alt="Existing photo">
+                      <div style="flex:1; min-width:0; display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                          <small style="display:block; font-weight:700; color:var(--text-muted); font-size:9px;">CAPTION</small>
+                          <input type="text" name="caption_existing_{{ loop.index0 }}" class="form-control" style="font-size:11px; padding:4px 8px; height:28px;" value="{{ photo.caption }}">
+                        </div>
+                        <label style="font-size:11px; display:flex; align-items:center; gap:4px; color:var(--danger); cursor:pointer; font-weight:600; margin-top:4px;">
+                          <input type="checkbox" name="delete_photo_{{ loop.index0 }}" value="true" class="photo-delete-checkbox">
+                          Delete Photo
+                        </label>
+                      </div>
+                    </div>
+                  {% else %}
+                    <!-- Preview Mode layout: beautiful framed photograph -->
+                    <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--bg-body); padding: 14px; text-align: center; box-shadow: var(--shadow-xs);">
+                      <img src="{{ url_for('posts.download_file', filename=photo.path) }}" style="max-width:100%; max-height:220px; object-fit:contain; border-radius:8px; display:block; margin:0 auto 10px auto; box-shadow:0 2px 6px rgba(0,0,0,0.05);" alt="Event Photograph">
+                      <div style="font-size:12.5px; font-weight:600; color:var(--text-secondary); line-height:1.45; font-style:italic;">
+                        "{{ photo.caption or 'Event Photograph' }}"
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <!-- New Photo Upload Slots -->
+            {% if can_edit %}
+              <div style="font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:10px;">Upload New Geotagged Photos (Max 6 slots):</div>
+              <div style="display:flex; flex-direction:column; gap:12px;">
+                {% for slot in range(6) %}
+                  <div style="background:var(--bg-body); border:1px dashed var(--border-color); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                      <span style="font-size:11px; font-weight:700; color:var(--primary);">PHOTO SLOT #{{ slot + 1 }}</span>
+                      <small class="text-muted">JPG, JPEG, PNG only</small>
+                    </div>
+                    <div class="grid grid-2" style="grid-template-columns: 1fr 1.5fr; gap:12px; align-items:center;">
+                      <input type="file" name="photo_slot_{{ slot }}" accept=".jpg,.jpeg,.png" style="font-size:12px; width:100%;">
+                      <input type="text" name="caption_slot_{{ slot }}" placeholder="Enter photograph caption..." class="form-control" style="font-size:12px; padding:6px 10px; margin:0;">
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Form Buttons -->
+          {% if can_edit %}
+            <div style="border-top:1px solid var(--border-color); padding-top:20px; display:flex; justify-content:flex-end; gap:12px;">
+              <button type="button" onclick="submitForm('SAVE')" class="btn btn--secondary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding:10px 24px;">
+                <i data-lucide="save" style="width:16px;height:16px;"></i> Save Draft
+              </button>
+              
+              <button type="button" onclick="submitForm('SUBMIT')" class="btn btn--success flex items-center gap-2" style="border-radius: var(--border-radius-full); padding:10px 24px; background:var(--success); color:#fff; border:none; box-shadow: var(--shadow-sm);">
+                <i data-lucide="check-circle" style="width:16px;height:16px;"></i> Submit &amp; Complete Activity
+              </button>
+            </div>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+    
+    <!-- RIGHT: Sidebar Info & Guides -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
+      
+      <!-- Preview Card -->
+      {% if report %}
+        <div class="card glass-panel" style="padding:24px; border-radius: var(--border-radius-lg); text-align:center;">
+          <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:12px; font-size:1rem; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+            Export Document
+          </h5>
+          <p class="text-xs text-muted mb-4">You can download the compiled report as an official Microsoft Word (.docx) document formatted with page frames, logos, and stacked photographs.</p>
+          
+          <!-- Download Button -->
+          <a href="{{ url_for('posts.report_download', post_id=post.id) }}" class="btn btn--primary flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding:10px; width: 100%;">
+            <i data-lucide="download" style="width:16px;height:16px;"></i> Download Word Report
+          </a>
+        </div>
+      {% endif %}
+      
+      <!-- Reference Details Card -->
+      <div class="card" style="padding:24px; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm);">
+        <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:12px; font-size:1rem; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+          Original Notice Reference
+        </h5>
+        
+        <div style="display:flex; flex-direction:column; gap:12px; font-size:13px;">
+          <div>
+            <strong style="display:block; color:var(--text-secondary); font-size:11px; text-transform:uppercase; letter-spacing:0.5px;">Topic Heading:</strong>
+            <span style="font-weight:600; color:var(--text-primary);">{{ post.title }}</span>
+          </div>
+          <div>
+            <strong style="display:block; color:var(--text-secondary); font-size:11px; text-transform:uppercase; letter-spacing:0.5px;">Summary:</strong>
+            <span style="color:var(--text-secondary); font-style:italic;">{{ post.summary }}</span>
+          </div>
+          <div>
+            <strong style="display:block; color:var(--text-secondary); font-size:11px; text-transform:uppercase; letter-spacing:0.5px;">Allocated Department(s):</strong>
+            <span style="font-weight:600; color:var(--text-primary);">
+              {% if post.departments %}
+                {{ post.departments | map(attribute='name') | join(', ') }}
+              {% else %}
+                N/A
+              {% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guidelines Card -->
+      <div class="card glass-card" style="padding:24px; border-radius: var(--border-radius-lg); background:rgba(var(--primary-rgb), 0.01);">
+        <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:12px; font-size:1rem; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+          Official Guidelines
+        </h5>
+        <ul style="font-size:12px; line-height:1.6; color:var(--text-secondary); padding-left:16px; margin:0; display:flex; flex-direction:column; gap:8px;">
+          <li>Make sure to specify a clear, concise **Date** text (e.g. <em>Monday, 9th February 2026</em>).</li>
+          <li>In **Venue**, clarify the mode or online platforms used (e.g. <em>Seminar Hall, GTU-ITR, Mehsana</em>).</li>
+          <li>For **Geotag Photographs**, upload files captured through geotag cameras that overlay GPS location and timestamp coordinates directly on the image as a watermark.</li>
+          <li>Once you submit, the report is locked and shared with the Principal &amp; Chairperson, and this activity is officially closed.</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function submitForm(actionValue) {
+    document.getElementById('formAction').value = actionValue;
+    const form = document.getElementById('reportForm');
+    
+    if (actionValue === 'SUBMIT') {
+      const deleteCount = document.querySelectorAll('.photo-delete-checkbox:checked').length;
+      const existingCount = document.querySelectorAll('.photo-delete-checkbox').length;
+      
+      // Calculate how many photos will remain/be added
+      let filesAdded = 0;
+      for(let i=0; i<6; i++) {
+        const input = document.querySelector(`input[name=photo_slot_${i}]`);
+        if (input && input.files && input.files.length > 0) {
+          filesAdded++;
+        }
+      }
+      
+      const totalPhotos = (existingCount - deleteCount) + filesAdded;
+      if (totalPhotos === 0) {
+        alert('You must provide at least one geotagged photograph of the event to submit the final report.');
+        return;
+      }
+      
+      if (!confirm('Are you sure you want to SUBMIT this report? This will finalize the report and mark the activity as COMPLETED. It will be removed from your active feed and shared with the Principal & Chairperson.')) {
+        return;
+      }
+    }
+    
+    // Submit the form
+    form.submit();
+  }
+</script>
+{% endblock %}
