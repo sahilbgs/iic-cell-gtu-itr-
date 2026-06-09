@@ -66,6 +66,8 @@ An integrated portal for GTU-ITR (Gujarat Technological University - Graduate Sc
 
 ---
 
+---
+
 ## 🔑 Default Credentials
 
 For quick testing and evaluation, the database seed command creates the following default accounts (all using password: `password123`):
@@ -78,6 +80,28 @@ For quick testing and evaluation, the database seed command creates the followin
 | **Dept. Coordinator** | `deptcoord.ce@gtu.ac.in` | Dr. CE Coordinator |
 | **Faculty (CE)** | `faculty.ce@gtu.ac.in` | Prof. Arun Mehta |
 | **Student Rep** | `student@gtu.ac.in` | Rahul Student |
+
+---
+
+## 🌐 Production Deployment
+
+To run this application securely in a production environment, follow these steps:
+
+### 1. Set Production Environment Variables
+In your production environment or `.env` file, configure the following variables:
+```bash
+FLASK_ENV=production
+FLASK_DEBUG=0
+SECRET_KEY=your_strong_random_secret_key
+```
+> **Note:** The application will **fail to start** in production if `SECRET_KEY` is missing or still set to the default development key. You can generate a secure key using:
+> `python -c "import secrets; print(secrets.token_hex(32))"`
+
+### 2. Run with WSGI Server
+Do not use `flask run` in production. Instead, run the app using **Gunicorn** (pre-configured in `requirements.txt`):
+```bash
+gunicorn wsgi:app
+```
 
 ---
 

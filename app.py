@@ -21,6 +21,16 @@ def create_app(config_name=None):
     from config import config as config_dict
     app.config.from_object(config_dict.get(config_name, config_dict['default']))
 
+    # Production safety checks
+    if config_name == 'production' or not app.config.get('DEBUG'):
+        secret_key = app.config.get('SECRET_KEY')
+        if not secret_key or secret_key == 'gtu-rd-portal-dev-key-change-in-production':
+            raise ValueError(
+                "CRITICAL SECURITY ERROR: SECRET_KEY environment variable is either not set or "
+                "using the default development key in production environment! Please set a unique, "
+                "secure SECRET_KEY in your production .env/environment configuration."
+            )
+
     # Ensure required directories exist
     os.makedirs(app.config.get('UPLOAD_FOLDER', 'uploads'), exist_ok=True)
     os.makedirs(app.config.get('EXPORT_FOLDER', 'exports'), exist_ok=True)
