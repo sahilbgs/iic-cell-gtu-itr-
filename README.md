@@ -98,10 +98,32 @@ SECRET_KEY=your_strong_random_secret_key
 > `python -c "import secrets; print(secrets.token_hex(32))"`
 
 ### 2. Run with WSGI Server
-Do not use `flask run` in production. Instead, run the app using **Gunicorn** (pre-configured in `requirements.txt`):
-```bash
-gunicorn wsgi:app
-```
+Do not use `flask run` in production. Werkzeug (the development server) is not designed for production concurrency or security.
+
+* **For Linux Servers (VPS, Cloud)**: Use **Gunicorn** (pre-configured in `requirements.txt`):
+  ```bash
+  gunicorn wsgi:app
+  ```
+
+* **For Windows Local PC Servers (Direct Domain/Local Network)**: Gunicorn does not support Windows natively. Use **Waitress** (pre-configured in `requirements.txt`):
+  ```bash
+  # Ensure all dependencies including waitress are installed
+  pip install -r requirements.txt
+  
+  # Run the production server on port 5000
+  waitress-serve --host=0.0.0.0 --port=5000 wsgi:app
+  ```
+
+### 3. Map Local PC to a Public Domain
+If you are hosting the app from a local PC and connecting a domain directly, choose one of these methods:
+- **Cloudflare Tunnel (Highly Recommended)**:
+  - No port forwarding required on your router.
+  - Provides automatic free SSL (HTTPS) out of the box.
+  - Connect your Cloudflare account, set up a tunnel pointing to `http://localhost:5000`, and bind it to your domain.
+- **Port Forwarding (Standard Router Setup)**:
+  - Set a static local IP on your host PC (e.g., `192.168.1.100`).
+  - Port forward port `80` (HTTP) and `443` (HTTPS) from your router's settings to your host PC's local IP on port `5000`.
+  - Update your Domain Registrar DNS settings by creating an `A Record` pointing to your router's public WAN IP address.
 
 ---
 
