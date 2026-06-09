@@ -59,69 +59,6 @@ def logout():
     return redirect(url_for('auth.login'))
 
 
-# --------------------------------------------------------------------------- #
-#  Register  (Principal / management creates accounts)
-# --------------------------------------------------------------------------- #
-@auth_bp.route('/register', methods=['GET', 'POST'])
-def register():
-    """Register a new user account."""
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard.index'))
-
-    departments = Department.query.order_by(Department.name).all()
-
-    if request.method == 'POST':
-        email = request.form.get('email', '').strip().lower()
-        full_name = request.form.get('full_name', '').strip()
-        password = request.form.get('password', '')
-        confirm_password = request.form.get('confirm_password', '')
-        role = request.form.get('role', 'FACULTY')
-        department_id = request.form.get('department_id', type=int)
-        phone = request.form.get('phone', '').strip()
-        designation = request.form.get('designation', '').strip()
-
-        # Validation
-        errors = []
-        if not email:
-            errors.append('Email is required.')
-        if not full_name:
-            errors.append('Full name is required.')
-        if len(password) < 6:
-            errors.append('Password must be at least 6 characters.')
-        if password != confirm_password:
-            errors.append('Passwords do not match.')
-        if role not in ROLES:
-            errors.append('Invalid role selected.')
-        if User.query.filter_by(email=email).first():
-            errors.append('An account with that email already exists.')
-
-        if errors:
-            for err in errors:
-                flash(err, 'danger')
-            return render_template('auth/register.html',
-                                   departments=departments,
-                                   roles=ROLES,
-                                   role_labels=ROLE_LABELS)
-
-        user = User(
-            email=email,
-            full_name=full_name,
-            role=role,
-            department_id=department_id or None,
-            phone=phone or None,
-            designation=designation or None,
-        )
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-
-        flash('Account created successfully! Please log in.', 'success')
-        return redirect(url_for('auth.login'))
-
-    return render_template('auth/register.html',
-                           departments=departments,
-                           roles=ROLES,
-                           role_labels=ROLE_LABELS)
 
 
 # --------------------------------------------------------------------------- #
