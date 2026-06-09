@@ -1,7 +1,7 @@
 """
 GTU-ITR R&D & IIC Portal - Admin Panel Routes
 Blueprint: admin  |  Prefix: /admin
-Only accessible by PRINCIPAL role.
+Only accessible by CHAIRPERSON role.
 """
 from functools import wraps
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort
@@ -13,12 +13,12 @@ from models.department import Department
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
-def principal_required(f):
-    """Decorator: only PRINCIPAL can access admin routes."""
+def chairperson_required(f):
+    """Decorator: only CHAIRPERSON can access admin routes."""
     @wraps(f)
     @login_required
     def decorated(*args, **kwargs):
-        if current_user.role != 'PRINCIPAL':
+        if current_user.role != 'CHAIRPERSON':
             abort(403)
         return f(*args, **kwargs)
     return decorated
@@ -28,7 +28,7 @@ def principal_required(f):
 #  Admin Dashboard
 # --------------------------------------------------------------------------- #
 @admin_bp.route('/')
-@principal_required
+@chairperson_required
 def index():
     """Admin panel – manage users, departments, faculties, and legal compliance."""
     import os
@@ -59,20 +59,23 @@ def index():
     passed_checks = sum(1 for v in compliance_checks.values() if v)
     compliance_score = int((passed_checks / total_checks) * 100) if total_checks > 0 else 0
     
+    config_name = os.environ.get('FLASK_ENV', 'development')
+    
     return render_template('admin/index.html',
                            users=users,
                            departments=departments,
                            roles=ROLES,
                            role_labels=ROLE_LABELS,
                            compliance_checks=compliance_checks,
-                           compliance_score=compliance_score)
+                           compliance_score=compliance_score,
+                           config_name=config_name)
 
 
 # --------------------------------------------------------------------------- #
 #  USER MANAGEMENT
 # --------------------------------------------------------------------------- #
 @admin_bp.route('/users/create', methods=['POST'])
-@principal_required
+@chairperson_required
 def create_user():
     """Create a new user account."""
     email = request.form.get('email', '').strip().lower()
@@ -118,7 +121,7 @@ def create_user():
 
 
 @admin_bp.route('/users/<int:user_id>/edit', methods=['POST'])
-@principal_required
+@chairperson_required
 def edit_user(user_id):
     """Edit an existing user."""
     user = User.query.get_or_404(user_id)
@@ -150,7 +153,7 @@ def edit_user(user_id):
 
 
 @admin_bp.route('/users/<int:user_id>/toggle-active', methods=['POST'])
-@principal_required
+@chairperson_required
 def toggle_user_active(user_id):
     """Activate / deactivate a user."""
     user = User.query.get_or_404(user_id)
@@ -165,7 +168,7 @@ def toggle_user_active(user_id):
 
 
 @admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
-@principal_required
+@chairperson_required
 def delete_user(user_id):
     """Delete a user permanently."""
     user = User.query.get_or_404(user_id)
@@ -183,7 +186,7 @@ def delete_user(user_id):
 #  DEPARTMENT MANAGEMENT
 # --------------------------------------------------------------------------- #
 @admin_bp.route('/departments/create', methods=['POST'])
-@principal_required
+@chairperson_required
 def create_department():
     """Create a new department."""
     name = request.form.get('name', '').strip()
@@ -222,7 +225,7 @@ def create_department():
 
 
 @admin_bp.route('/departments/<int:dept_id>/edit', methods=['POST'])
-@principal_required
+@chairperson_required
 def edit_department(dept_id):
     """Edit an existing department."""
     dept = Department.query.get_or_404(dept_id)
@@ -238,7 +241,7 @@ def edit_department(dept_id):
 
 
 @admin_bp.route('/departments/<int:dept_id>/delete', methods=['POST'])
-@principal_required
+@chairperson_required
 def delete_department(dept_id):
     """Delete a department (only if no users are linked)."""
     dept = Department.query.get_or_404(dept_id)
@@ -257,7 +260,7 @@ def delete_department(dept_id):
 #  API: User data for edit modal (AJAX)
 # --------------------------------------------------------------------------- #
 @admin_bp.route('/api/users/<int:user_id>', methods=['GET'])
-@principal_required
+@chairperson_required
 def api_get_user(user_id):
     """Return user data as JSON for edit modal."""
     user = User.query.get_or_404(user_id)
@@ -274,7 +277,7 @@ def api_get_user(user_id):
 
 
 @admin_bp.route('/api/departments/<int:dept_id>', methods=['GET'])
-@principal_required
+@chairperson_required
 def api_get_department(dept_id):
     """Return department data as JSON for edit modal."""
     dept = Department.query.get_or_404(dept_id)

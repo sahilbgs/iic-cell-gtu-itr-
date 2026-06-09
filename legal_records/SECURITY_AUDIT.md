@@ -23,7 +23,7 @@ This document records the security controls, password handling, data validation 
 
 ## 4. HTTP Security Headers
 On every response, the server injects the following security headers:
-- `Content-Security-Policy`: Restricts scripts and styles to trusted domains (`self`, Google Fonts, Lucide icons on `unpkg.com`, Chart.js on `cdn.jsdelivr.net`).
-- `X-Frame-Options: DENY`: Prevents UI redressing and clickjacking.
+- `Content-Security-Policy`: Restricts scripts, styles, and frames to trusted domains (`self`, Google Fonts, Lucide icons on `unpkg.com`, Chart.js on `cdn.jsdelivr.net`, and blob scripts).
+- `X-Frame-Options: SAMEORIGIN`: Prevents clickjacking by blocking external domains from framing the site, while allowing the portal to embed its own files (e.g. PDF previews).
 - `X-Content-Type-Options: nosniff`: Instructs browsers not to sniff MIME types away from declared Content-Types.
 - `Referrer-Policy: strict-origin-when-cross-origin`: Controls referrer leaks.

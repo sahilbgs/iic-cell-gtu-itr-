@@ -19,7 +19,7 @@
       <p class="text-muted text-xs mt-1" style="margin:0;">Real-time departmental execution, assigned faculty leads, and student registration audits for all approved activities.</p>
     </div>
     <div class="flex items-center gap-2" style="flex-wrap:wrap;">
-      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'DEPT_COORDINATOR', 'FACULTY'] %}
+      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'HOD', 'FACULTY'] %}
         <a href="{{ url_for('posts.completed_activities_list') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--success); color:#fff; border:none; font-weight:600; border-radius:8px; padding:6px 12px; font-size:11px; text-decoration:none;">
           <i data-lucide="archive" style="width:13px;height:13px;"></i> Completed
         </a>
@@ -37,12 +37,13 @@
   <div class="card__body" style="padding:0; overflow-x:auto;">
     {% set approved_posts = principal_posts | selectattr('approval_status', 'equalto', 'APPROVED') | list %}
     {% if approved_posts %}
-      <table style="width:100%; border-collapse:collapse; min-width:800px; text-align:left; font-size:13px;">
+      <table style="width:100%; border-collapse:collapse; min-width:900px; text-align:left; font-size:13px;">
         <thead>
           <tr style="background:var(--bg-surface-hover); border-bottom:1px solid var(--border-color); color:var(--text-muted); font-weight:700;">
             <th style="padding:14px 20px;">Activity / Topic</th>
-            <th style="padding:14px 20px;">Department(s)</th>
-            <th style="padding:14px 20px;">Faculty Lead</th>
+            <th style="padding:14px 20px;">Source (Kahase)</th>
+            <th style="padding:14px 20px;">Allocated By (Kisne)</th>
+            <th style="padding:14px 20px;">Allocated To (Kisko)</th>
             <th style="padding:14px 20px; text-align:center;">Registrations</th>
             <th style="padding:14px 20px; width:200px;">Progress Status</th>
           </tr>
@@ -57,29 +58,48 @@
                 </a>
               </td>
               <td style="padding:14px 20px;">
-                {% if post.departments %}
-                  <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                    {% for dept in post.departments %}
-                      <span style="font-size:9px; font-weight:700; background:var(--gray-100); color:var(--gray-700); padding:2px 6px; border-radius:4px; text-transform:uppercase;">
-                        {{ dept.code }}
-                      </span>
-                    {% endfor %}
+                <span class="badge badge--{{ 'info' if post.source == 'COMPANY' else 'warning' if post.source == 'FIRM' else 'neutral' }}" style="font-size: 9px; font-weight: 700; letter-spacing: 0.5px; border-radius: 6px; padding: 3px 8px; text-transform: uppercase;">
+                  {{ post.source_label }}
+                </span>
+                <div class="text-muted text-xs mt-1" style="font-size: 10px;">
+                  By: {{ post.creator.full_name if post.creator else 'Principal' }}
+                </div>
+              </td>
+              <td style="padding:14px 20px;">
+                <span class="flex items-center gap-1 font-medium" style="color:var(--text-primary); font-size:12px;">
+                  <i data-lucide="user-check" style="width:14px;height:14px;color:var(--primary);"></i>
+                  {{ post.approver.full_name if post.approver else 'Chairperson' }}
+                </span>
+                {% if post.approval_date %}
+                  <div class="text-muted text-xs mt-1" style="font-size: 10px;">
+                    {{ post.approval_date.strftime('%b %d, %Y') }}
                   </div>
-                {% else %}
-                  <span class="text-muted" style="font-size:11px;">N/A</span>
                 {% endif %}
               </td>
               <td style="padding:14px 20px;">
-                {% if post.assigned_faculty %}
-                  <span class="flex items-center gap-1 font-medium" style="color:var(--text-primary); font-size:12px;">
-                    <i data-lucide="user-check" style="width:14px;height:14px;color:var(--success);"></i>
-                    {{ post.assigned_faculty.full_name }}
-                  </span>
-                {% else %}
-                  <span class="badge" style="background:rgba(245, 158, 11, 0.1); color:#d97706; font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px;">
-                    Unassigned
-                  </span>
-                {% endif %}
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                    {% if post.departments %}
+                      {% for dept in post.departments %}
+                        <span style="font-size:9px; font-weight:700; background:var(--gray-100); color:var(--gray-700); padding:2px 6px; border-radius:4px; text-transform:uppercase;">
+                          {{ dept.code }}
+                        </span>
+                      {% endfor %}
+                    {% else %}
+                      <span class="text-muted" style="font-size:11px;">N/A</span>
+                    {% endif %}
+                  </div>
+                  {% if post.assigned_faculty %}
+                    <span class="flex items-center gap-1 font-medium" style="color:var(--text-primary); font-size:12px; margin-top:2px;">
+                      <i data-lucide="user" style="width:13px;height:13px;color:var(--success);"></i>
+                      {{ post.assigned_faculty.full_name }}
+                    </span>
+                  {% else %}
+                    <span class="badge" style="background:rgba(245, 158, 11, 0.1); color:#d97706; font-size:9px; font-weight:600; padding:2px 6px; border-radius:4px; width:fit-content; margin-top:2px;">
+                      Unassigned
+                    </span>
+                  {% endif %}
+                </div>
               </td>
               <td style="padding:14px 20px; text-align:center;">
                 {% if post.has_registration_form %}
@@ -88,7 +108,7 @@
                     {{ post.registrations|length }} Registered
                   </a>
                 {% else %}
-                  <span class="text-muted" style="font-size:11px; font-style:italic;">No Form Created</span>
+                  <span class="text-muted" style="font-size:11px; font-style:italic;">No Form</span>
                 {% endif %}
               </td>
               <td style="padding:14px 20px;">
@@ -130,7 +150,7 @@
       <p class="text-muted text-xs mt-1" style="margin:0;">Announcements, collaboration requests, and circulars posted by the Principal from companies, firms, and universities.</p>
     </div>
     <div class="flex items-center gap-2" style="flex-wrap:wrap;">
-      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'DEPT_COORDINATOR', 'FACULTY'] %}
+      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'HOD', 'FACULTY'] %}
         <a href="{{ url_for('posts.completed_activities_list') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--success); color:#fff; border:none; font-weight:600; border-radius:8px; padding:8px 16px; text-decoration:none;">
           <i data-lucide="archive" style="width:14px;height:14px;"></i> Completed Activities
         </a>
@@ -320,16 +340,63 @@
             {% if current_user.role in ['CHAIRPERSON', 'PRINCIPAL'] %}
               {% if post.approval_status == 'APPROVED' %}
                 <div style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 14px;">
-                  <span class="text-xs flex items-center gap-1" style="color:var(--success); font-weight:600;">
-                    <i data-lucide="check-circle" style="width:13px;height:13px;"></i>
-                    Approved &amp; allocated to <strong style="margin-left:3px;">
-                      {% if post.departments %}
-                        {{ post.departments | map(attribute='code') | join(', ') }}
-                      {% else %}
-                        N/A
-                      {% endif %}
-                    </strong>
-                  </span>
+                  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                    <span class="text-xs flex items-center gap-1" style="color:var(--success); font-weight:600;">
+                      <i data-lucide="check-circle" style="width:13px;height:13px;"></i>
+                      Approved &amp; allocated to <strong style="margin-left:3px;">
+                        {% if post.departments %}
+                          {{ post.departments | map(attribute='code') | join(', ') }}
+                        {% else %}
+                          N/A
+                        {% endif %}
+                      </strong>
+                    </span>
+                    {% if current_user.role == 'CHAIRPERSON' %}
+                      <button type="button" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size:10px; padding:3px 8px; border-radius:6px; border-color:var(--border-color); color:var(--text-secondary); background:var(--bg-surface-hover);" onclick="toggleEditAllocation({{ post.id }})">
+                        <i data-lucide="edit" style="width:12px;height:12px;color:var(--primary);"></i> Edit Allocation
+                      </button>
+                    {% endif %}
+                  </div>
+
+                  {% if current_user.role == 'CHAIRPERSON' %}
+                    <div id="edit-allocation-form-{{ post.id }}" style="display:none; margin-top:12px; margin-left: 22px; background:var(--bg-surface-hover); border:1px solid var(--border-color); padding:16px; border-radius:10px; box-shadow: var(--shadow-sm);">
+                      <form action="{{ url_for('posts.approve', post_id=post.id) }}" method="POST" style="display:flex; flex-direction:column; gap:10px;" onsubmit="
+                        const checked = this.querySelectorAll('input[name=department_ids]:checked');
+                        if (checked.length === 0) {
+                          alert('Please select at least one department to allocate this activity.');
+                          return false;
+                        }
+                      ">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                          <small style="font-weight: 700; font-size: 11px; color: var(--text-secondary);">EDIT DEPARTMENTS (Select multiple):</small>
+                          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; margin-bottom: 6px;">
+                            {% for dept in departments %}
+                              <label class="dept-checkbox-label" style="display: flex; align-items: center; gap: 6px; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 8px; font-size: 11px; cursor: pointer; font-weight: 600; color: var(--text-primary); transition: all 0.2s ease;">
+                                <input type="checkbox" name="department_ids" value="{{ dept.id }}" {% if dept in post.departments %}checked{% endif %} style="cursor: pointer; accent-color: var(--primary);">
+                                {{ dept.code }}
+                              </label>
+                            {% endfor %}
+                          </div>
+                        </div>
+
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                          <small style="font-weight: 700; font-size: 11px; color: var(--text-secondary);">EDIT APPROVAL NOTE:</small>
+                          <textarea name="approval_note" placeholder="Edit note (optional)…" rows="2" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-color); font-size:12px; background:var(--bg-surface); color:var(--text-primary); font-family:'Inter',sans-serif; resize:vertical;">{{ post.approval_note or '' }}</textarea>
+                        </div>
+
+                        <div style="display:flex; gap:8px; margin-top:4px;">
+                          <button type="submit" class="btn btn--sm flex items-center justify-center gap-1" style="font-size:11px; padding:7px 14px; border-radius:8px; font-weight:700; background:var(--success); color:#fff; border:none; cursor:pointer; flex:1;">
+                            <i data-lucide="check" style="width:13px;height:13px;"></i> Save Changes
+                          </button>
+                          <button type="button" class="btn btn--secondary btn--sm flex items-center justify-center gap-1" style="font-size:11px; padding:7px 14px; border-radius:8px; flex:1;" onclick="toggleEditAllocation({{ post.id }})">
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  {% endif %}
+
                   {% if post.assigned_faculty %}
                     <div style="font-size:11px; color:var(--text-secondary); margin: 4px 0 0 22px; font-weight:600; display:flex; align-items:center; gap:4px;">
                       <i data-lucide="user-check" style="width:13px;height:13px;color:var(--success);"></i>
@@ -361,11 +428,11 @@
             {% endif %}
 
             {% if post.approval_status == 'APPROVED' %}
-              {% set user_is_coord = (current_user.role == 'DEPT_COORDINATOR' and current_user.department_id in post.departments | map(attribute='id') | list) %}
+              {% set user_is_coord = (current_user.role == 'HOD' and current_user.department_id in post.departments | map(attribute='id') | list) %}
               {% set user_is_assigned = (current_user.id == post.assigned_faculty_id) %}
 
               {% if user_is_coord or user_is_assigned %}
-                <!-- Department Coordinator & Faculty Lead Operations -->
+                <!-- HOD & Faculty Lead Operations -->
                 <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px; display:flex; flex-direction:column; gap:10px;">
                   
                   <!-- 1. Faculty Assignment (Only Coordinator) -->
@@ -446,7 +513,7 @@
                       {% else %}
                         <span style="font-size:11px; font-style:italic; color:var(--text-muted); display:flex; align-items:center; gap:4px;">
                           <i data-lucide="alert-circle" style="width:13px;height:13px;"></i>
-                          No registration form created yet by coordinator.
+                          No registration form created yet by HOD.
                         </span>
                       {% endif %}
                     {% endif %}
@@ -473,4 +540,17 @@
     {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function toggleEditAllocation(postId) {
+    const form = document.getElementById('edit-allocation-form-' + postId);
+    if (form.style.display === 'none') {
+      form.style.display = 'block';
+    } else {
+      form.style.display = 'none';
+    }
+  }
+</script>
 {% endblock %}

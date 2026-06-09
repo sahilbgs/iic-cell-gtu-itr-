@@ -51,7 +51,7 @@ def management_required(f):
 
 
 def dept_or_above_required(f):
-    """Restrict to Dept Coordinator and above (excludes Faculty and Student Rep)."""
+    """Restrict to HOD and above (excludes Faculty and Student Rep)."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
@@ -66,7 +66,7 @@ def can_access_department(department_id):
     """
     Check if the current user can access data from a specific department.
     - PRINCIPAL, CHAIRPERSON, RD_COORDINATOR: access all departments
-    - DEPT_COORDINATOR, FACULTY: only their own department
+    - HOD, FACULTY: only their own department
     - STUDENT_REP: only their own department (view only)
     """
     if current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR'):

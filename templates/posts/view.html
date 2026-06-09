@@ -137,7 +137,7 @@
 
         {% if post.approval_status == 'APPROVED' %}
           {% set is_mgmt = current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR') %}
-          {% set is_coord = current_user.role == 'DEPT_COORDINATOR' and current_user.department_id in post.departments | map(attribute='id') | list %}
+          {% set is_coord = current_user.role == 'HOD' and current_user.department_id in post.departments | map(attribute='id') | list %}
           {% set is_assigned = current_user.id == post.assigned_faculty_id %}
           
           {% if is_mgmt or is_coord or is_assigned %}
@@ -259,43 +259,116 @@
 
     <!-- Administrative details if chairperson/principal -->
     {% if current_user.role in ['CHAIRPERSON', 'PRINCIPAL'] %}
-      <div class="card glass-card" style="padding: 24px; border-radius: var(--border-radius-lg);">
-        <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:16px; font-size:1rem; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-          Chairperson Review Status
+      <div class="card glass-card" style="padding: 24px; border-radius: var(--border-radius-lg); border-left: 4px solid var(--primary);">
+        <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:20px; font-size:1rem; border-bottom:1px solid var(--border-color); padding-bottom:10px; display:flex; align-items:center; gap:8px;">
+          <i data-lucide="git-branch" style="width:18px; height:18px; color:var(--primary);"></i>
+          Activity Allocation Path
         </h5>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Status:</span>
-            <span class="badge" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; border-radius: 6px; padding: 3px 8px; text-transform: uppercase;
-              {% if post.approval_status == 'APPROVED' %}background: rgba(16, 185, 129, 0.1); color: var(--success);
-              {% elif post.approval_status == 'REJECTED' %}background: rgba(239, 68, 68, 0.1); color: var(--danger);
-              {% else %}background: rgba(245, 158, 11, 0.1); color: #d97706;{% endif %}">
-              {{ post.approval_label }}
-            </span>
+        <div style="display:flex; flex-direction:column; gap:20px; position:relative; padding-left:14px; border-left: 2px dashed var(--border-color); margin-left: 8px;">
+          
+          <!-- Step 1: Origin -->
+          <div style="position:relative;">
+            <div style="position:absolute; left:-22px; top:2px; width:14px; height:14px; border-radius:50%; background:var(--primary); border:3px solid var(--bg-surface); box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.25);"></div>
+            <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">1. Origin (Kahase)</div>
+            <div style="font-size:13.5px; font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+              <span class="badge badge--{{ 'info' if post.source == 'COMPANY' else 'warning' if post.source == 'FIRM' else 'neutral' }}" style="font-size: 9px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">
+                {{ post.source_label }}
+              </span>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+              <strong>Created by:</strong> {{ post.creator.full_name if post.creator else 'Principal' }} (Principal)
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+              On {{ post.created_at.strftime('%B %d, %Y') }}
+            </div>
           </div>
-          {% if post.approval_status == 'APPROVED' %}
-            {% if post.approver %}
+
+          <!-- Step 2: Allocation & Approval -->
+          <div style="position:relative;">
+            {% set step2_color = 'var(--success)' if post.approval_status == 'APPROVED' else 'var(--danger)' if post.approval_status == 'REJECTED' else '#f59e0b' %}
+            <div style="position:absolute; left:-22px; top:2px; width:14px; height:14px; border-radius:50%; background:{{ step2_color }}; border:3px solid var(--bg-surface); box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.15);"></div>
+            <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">2. Allocation (Kisne)</div>
+            <div style="font-size:13px; font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+              <span class="badge" style="font-size: 9px; font-weight: 700; border-radius: 4px; padding: 2px 6px; text-transform: uppercase;
+                {% if post.approval_status == 'APPROVED' %}background: rgba(16, 185, 129, 0.1); color: var(--success);
+                {% elif post.approval_status == 'REJECTED' %}background: rgba(239, 68, 68, 0.1); color: var(--danger);
+                {% else %}background: rgba(245, 158, 11, 0.1); color: #d97706;{% endif %}">
+                {{ post.approval_label }}
+              </span>
+            </div>
+            {% if post.approval_status == 'APPROVED' %}
               <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
-                <strong>Approved by:</strong> {{ post.approver.full_name }}
+                <strong>Allocated by:</strong> {{ post.approver.full_name if post.approver else 'Chairperson' }} (Chairperson)
+              </div>
+              {% if post.approval_date %}
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                  On {{ post.approval_date.strftime('%B %d, %Y') }}
+                </div>
+              {% endif %}
+              {% if post.approval_note %}
+                <p style="font-size:11.5px; color:var(--success); font-style:italic; margin-top:6px; background:rgba(16,185,129,0.03); padding:8px; border-radius:6px; border-left:2px solid var(--success);">
+                  "{{ post.approval_note }}"
+                </p>
+              {% endif %}
+            {% elif post.approval_status == 'REJECTED' %}
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                <strong>Rejected by:</strong> {{ post.approver.full_name if post.approver else 'Chairperson' }} (Chairperson)
+              </div>
+              {% if post.rejection_reason %}
+                <p style="font-size:11.5px; color:var(--danger); font-style:italic; margin-top:6px; background:rgba(239,68,68,0.03); padding:8px; border-radius:6px; border-left:2px solid var(--danger);">
+                  "{{ post.rejection_reason }}"
+                </p>
+              {% endif %}
+            {% else %}
+              <div style="font-size:12px; color:var(--text-muted); font-style:italic; margin-top:4px;">
+                Awaiting review and allocation by Chairperson.
               </div>
             {% endif %}
-            {% if post.approval_date %}
-              <div style="font-size:12px; color:var(--text-secondary);">
-                <strong>Approval date:</strong> {{ post.approval_date.strftime('%b %d, %Y') }}
+          </div>
+
+          <!-- Step 3: Allocated Target & Lead Faculty -->
+          {% if post.approval_status == 'APPROVED' %}
+          <div style="position:relative;">
+            <div style="position:absolute; left:-22px; top:2px; width:14px; height:14px; border-radius:50%; background:var(--success); border:3px solid var(--bg-surface); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);"></div>
+            <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">3. Allocated Targets (Kisko)</div>
+            
+            <div style="font-size:12.5px; color:var(--text-secondary); margin-top:4px; display:flex; flex-direction:column; gap:6px;">
+              <div>
+                <strong>Allocated Department(s):</strong>
+                <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:4px;">
+                  {% for dept in post.departments %}
+                    <span style="font-size:9.5px; font-weight:700; background:var(--gray-100); color:var(--gray-700); padding:2px 6px; border-radius:4px; text-transform:uppercase;">
+                      {{ dept.code }} - {{ dept.name }}
+                    </span>
+                  {% endfor %}
+                </div>
               </div>
-            {% endif %}
-            {% if post.approval_note %}
-              <p style="font-size:12px; color:var(--success); font-style:italic; margin-top:6px; background:rgba(16,185,129,0.03); padding:8px; border-radius:6px; border-left:2px solid var(--success);">
-                "{{ post.approval_note }}"
-              </p>
-            {% endif %}
-          {% elif post.approval_status == 'REJECTED' %}
-            {% if post.rejection_reason %}
-              <p style="font-size:12px; color:var(--danger); font-style:italic; margin-top:6px; background:rgba(239,68,68,0.03); padding:8px; border-radius:6px; border-left:2px solid var(--danger);">
-                "{{ post.rejection_reason }}"
-              </p>
-            {% endif %}
+              
+              <div style="border-top: 1px dashed var(--border-color); padding-top:8px; margin-top:4px;">
+                <strong>Faculty Lead Assigned:</strong>
+                {% if post.assigned_faculty %}
+                  <div style="font-size:13px; font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:6px; margin-top:4px;">
+                    <i data-lucide="user-check" style="width:14px;height:14px;color:var(--success);"></i>
+                    {{ post.assigned_faculty.full_name }}
+                  </div>
+                  <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                    Assigned by the HOD.
+                  </div>
+                {% else %}
+                  <div style="margin-top:4px;">
+                    <span class="badge" style="background:rgba(245, 158, 11, 0.1); color:#d97706; font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px;">
+                      Unassigned
+                    </span>
+                  </div>
+                  <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                    Waiting for HOD to assign a Faculty Lead.
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
           {% endif %}
+
         </div>
       </div>
     {% endif %}

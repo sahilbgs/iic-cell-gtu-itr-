@@ -64,7 +64,7 @@
         <span>Activity Calendar</span>
       </a>
 
-      {% if current_user.is_authenticated and current_user.role == 'PRINCIPAL' %}
+      {% if current_user.is_authenticated and current_user.role == 'CHAIRPERSON' %}
       <div class="sidebar__section-title">Administration</div>
       <a href="{{ url_for('admin.index') }}" class="sidebar__link {% if request.blueprint == 'admin' %}active{% endif %}">
         <i data-lucide="shield-check"></i>
@@ -79,7 +79,7 @@
       </div>
       <div class="sidebar__user-info">
         <div class="sidebar__user-name">{{ current_user.full_name if current_user.is_authenticated else 'Guest' }}</div>
-        <div class="sidebar__user-role">{{ current_user.role|capitalize if current_user.is_authenticated else '' }}</div>
+        <div class="sidebar__user-role">{{ current_user.role_label if current_user.is_authenticated else '' }}</div>
       </div>
     </div>
   </aside>

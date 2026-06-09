@@ -97,15 +97,15 @@ def create_app(config_name=None):
         # Content Security Policy (CSP): Allow self, Google Fonts, Lucide icons (unpkg.com), Chart.js (jsdelivr)
         csp_policies = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' unpkg.com cdn.jsdelivr.net",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' unpkg.com cdn.jsdelivr.net blob:",
             "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
             "font-src 'self' fonts.gstatic.com unpkg.com",
             "img-src 'self' data: blob:",
             "connect-src 'self'",
-            "frame-ancestors 'none'"
+            "frame-ancestors 'self'"
         ]
         response.headers['Content-Security-Policy'] = "; ".join(csp_policies)
-        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         
@@ -172,7 +172,7 @@ def register_cli(app):
             ('principal@gtu.ac.in', 'Principal User', 'PRINCIPAL', None, 'Principal'),
             ('chairperson@gtu.ac.in', 'Dr. IIC Chairperson', 'CHAIRPERSON', ce_dept.id, 'IIC Chairperson'),
             ('rdcoord@gtu.ac.in', 'Dr. R&D Coordinator', 'RD_COORDINATOR', it_dept.id, 'R&D Coordinator'),
-            ('deptcoord.ce@gtu.ac.in', 'Dr. CE Coordinator', 'DEPT_COORDINATOR', ce_dept.id, 'Dept Coordinator'),
+            ('hod.ce@gtu.ac.in', 'Dr. CE HOD', 'HOD', ce_dept.id, 'HOD'),
             ('faculty.ce@gtu.ac.in', 'Prof. Arun Mehta', 'FACULTY', ce_dept.id, 'Assistant Professor'),
             ('faculty.it@gtu.ac.in', 'Prof. Sneha Desai', 'FACULTY', it_dept.id, 'Associate Professor'),
             ('student@gtu.ac.in', 'Rahul Student', 'STUDENT_REP', ce_dept.id, 'Student Rep'),
@@ -196,4 +196,4 @@ def register_cli(app):
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5100)
+    app.run(debug=True, port=5000)

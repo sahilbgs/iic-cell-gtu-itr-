@@ -661,7 +661,7 @@ def download_file(filename):
 
 @posts_bp.route('/<int:post_id>/assign-faculty', methods=['POST'])
 @login_required
-@role_required('DEPT_COORDINATOR')
+@role_required('HOD')
 def assign_faculty(post_id):
     """Department Coordinator assigns a faculty lead to an approved post."""
     post = PrincipalPost.query.get_or_404(post_id)
@@ -695,7 +695,7 @@ def update_progress(post_id):
     post = PrincipalPost.query.get_or_404(post_id)
     
     # Authorization check
-    is_coord = current_user.role == 'DEPT_COORDINATOR' and current_user.department_id in [d.id for d in post.departments]
+    is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
     is_assigned = current_user.id == post.assigned_faculty_id
     
     if not (is_coord or is_assigned):
@@ -714,7 +714,7 @@ def update_progress(post_id):
 
 @posts_bp.route('/<int:post_id>/form-builder', methods=['GET', 'POST'])
 @login_required
-@role_required('DEPT_COORDINATOR')
+@role_required('HOD')
 def form_builder(post_id):
     """Coordinator accesses and configures the student registration form builder."""
     post = PrincipalPost.query.get_or_404(post_id)
@@ -764,7 +764,7 @@ def form_builder(post_id):
 
 @posts_bp.route('/<int:post_id>/form-builder/auto', methods=['POST'])
 @login_required
-@role_required('DEPT_COORDINATOR')
+@role_required('HOD')
 def form_builder_auto(post_id):
     """AJAX endpoint to auto-suggest custom fields based on post details."""
     post = PrincipalPost.query.get_or_404(post_id)
@@ -851,7 +851,7 @@ def registration_report(post_id):
     
     # Authorization checks
     is_mgmt = current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR')
-    is_coord = current_user.role == 'DEPT_COORDINATOR' and current_user.department_id in [d.id for d in post.departments]
+    is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
     is_assigned = current_user.id == post.assigned_faculty_id
     
     if not (is_mgmt or is_coord or is_assigned):
@@ -909,7 +909,7 @@ def report_form(post_id):
     
     # Check if user is authorized
     is_mgmt = current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR')
-    is_coord = current_user.role == 'DEPT_COORDINATOR' and current_user.department_id in [d.id for d in post.departments]
+    is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
     is_assigned = current_user.id == post.assigned_faculty_id
     
     if not (is_mgmt or is_coord or is_assigned):
@@ -1095,7 +1095,7 @@ def report_download(post_id):
     report = ActivityReport.query.filter_by(post_id=post.id).first_or_404()
     
     is_mgmt = current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR')
-    is_coord = current_user.role == 'DEPT_COORDINATOR' and current_user.department_id in [d.id for d in post.departments]
+    is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
     is_assigned = current_user.id == post.assigned_faculty_id
     
     if not (is_mgmt or is_coord or is_assigned):
@@ -1122,7 +1122,7 @@ def report_download(post_id):
 
 @posts_bp.route('/completed')
 @login_required
-@role_required('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'DEPT_COORDINATOR', 'FACULTY')
+@role_required('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'HOD', 'FACULTY')
 def completed_activities_list():
     """Page listing all completed activities with submitted reports (scoped by role)."""
     if current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR'):
@@ -1132,7 +1132,7 @@ def completed_activities_list():
             PrincipalPost.progress_status == 'COMPLETED',
             ActivityReport.status == 'SUBMITTED'
         ).order_by(PrincipalPost.created_at.desc()).all()
-    elif current_user.role == 'DEPT_COORDINATOR' and current_user.department_id:
+    elif current_user.role == 'HOD' and current_user.department_id:
         completed_posts = PrincipalPost.query.join(
             ActivityReport, PrincipalPost.id == ActivityReport.post_id
         ).filter(

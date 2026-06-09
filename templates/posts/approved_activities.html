@@ -243,6 +243,17 @@
                   Allocated: {{ post.departments | map(attribute='code') | join(', ') }}
                 </span>
               {% endif %}
+              {% if post.assigned_faculty %}
+                <span class="flex items-center gap-1" style="color:var(--success); font-weight:600;">
+                  <i data-lucide="user" style="width:11px;height:11px; color:var(--success);"></i>
+                  Faculty Lead: {{ post.assigned_faculty.full_name }}
+                </span>
+              {% else %}
+                <span class="flex items-center gap-1" style="color:#d97706; font-style:italic;">
+                  <i data-lucide="user-x" style="width:11px;height:11px; color:#d97706;"></i>
+                  Faculty Lead: Unassigned
+                </span>
+              {% endif %}
             </div>
           </div>
 

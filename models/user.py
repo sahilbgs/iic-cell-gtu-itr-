@@ -12,7 +12,7 @@ ROLES = [
     'PRINCIPAL',
     'CHAIRPERSON',
     'RD_COORDINATOR',
-    'DEPT_COORDINATOR',
+    'HOD',
     'FACULTY',
     'STUDENT_REP',
 ]
@@ -21,7 +21,7 @@ ROLE_LABELS = {
     'PRINCIPAL': 'Principal',
     'CHAIRPERSON': 'Chairperson',
     'RD_COORDINATOR': 'R&D Coordinator',
-    'DEPT_COORDINATOR': 'Dept. Coordinator',
+    'HOD': 'HOD',
     'FACULTY': 'Faculty',
     'STUDENT_REP': 'Student Representative',
 }

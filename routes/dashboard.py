@@ -53,9 +53,9 @@ def index():
     if current_user.role == 'CHAIRPERSON':
         departments = Department.query.order_by(Department.name).all()
 
-    # Fetch faculty members of coordinator's department
+    # Fetch faculty members of HOD's department
     dept_faculty = []
-    if current_user.role == 'DEPT_COORDINATOR':
+    if current_user.role == 'HOD':
         dept_faculty = User.query.filter_by(role='FACULTY', department_id=current_user.department_id).order_by(User.full_name).all()
 
     return render_template('dashboard.html',
