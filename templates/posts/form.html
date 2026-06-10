@@ -2,335 +2,480 @@
 
 {% block title %}{% if post %}Modify Post — {{ post.title }}{% else %}Share External Activity{% endif %}{% endblock %}
 {% block page_title %}{% if post %}Edit Shared Activity{% else %}Share External Notice / Activity{% endif %}{% endblock %}
+
 {% block breadcrumb %}
   <div class="topbar__breadcrumb">
     <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
     <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
-    <a href="{{ url_for('posts.manage') }}">Manage Shared Activities</a>
+    <a href="{{ url_for('posts.manage') }}">Activities</a>
     <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
-    <span>{% if post %}Edit{% else %}New{% endif %}</span>
+    <span>{% if post %}Edit{% else %}New Activity{% endif %}</span>
   </div>
 {% endblock %}
 
 {% block content %}
-<div class="grid grid-2 stagger max-w-7xl mx-auto" style="grid-template-columns: 4fr 5fr; gap: 28px;">
-  
-  <!-- LEFT COLUMN: AI Parsing Panel (Only visible for new posts) -->
-  <div>
-    {% if not post %}
-      <div class="card card--flat" style="border-top: 4px solid var(--primary); height: 100%;">
-        <div class="card__header">
-          <h4 style="display:flex; align-items:center; gap:8px;">
-            <i data-lucide="sparkles" style="color:var(--primary)"></i>
-            AI Quick Pre-Filler
-          </h4>
-          <p class="text-muted text-sm">Paste the raw email or circular text you received from the company, firm, or university here to automatically pre-fill the form using local AI!</p>
+<style>
+/* ══════════════════════════════════════════════════════════
+   WYSIWYG ACTIVITY EDITOR — Direct Edit Mode
+   ══════════════════════════════════════════════════════════ */
+
+.af-page {
+  --af-primary: #6366f1;
+  --af-primary-rgb: 99, 102, 241;
+  --af-radius-lg: 20px;
+  --af-radius: 12px;
+  --af-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 100px;
+}
+
+/* Layout */
+.af-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* ── AI Assistant Sidebar ── */
+.af-ai-card {
+  background: linear-gradient(135deg, rgba(99,102,241,0.04) 0%, rgba(139,92,246,0.03) 100%);
+  border: 1px solid rgba(99,102,241,0.15);
+  border-radius: var(--af-radius-lg);
+  padding: 24px;
+  position: sticky;
+  top: calc(var(--topbar-height) + 24px);
+}
+.af-drop {
+  border: 2px dashed rgba(99,102,241,0.3);
+  border-radius: var(--af-radius);
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(99,102,241,0.02);
+  transition: all 0.2s;
+  margin-bottom: 16px;
+}
+.af-drop:hover { background: rgba(99,102,241,0.06); border-color: var(--af-primary); }
+
+/* ── WYSIWYG Editor ── */
+.wysiwyg-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.w-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--af-radius-lg);
+  box-shadow: var(--af-shadow);
+  padding: 30px;
+}
+
+/* Inline Inputs */
+.inline-input {
+  background: transparent;
+  border: 1px dashed transparent;
+  outline: none;
+  font-family: inherit;
+  color: inherit;
+  width: 100%;
+  transition: all 0.2s;
+}
+.inline-input:hover, .inline-input:focus {
+  background: rgba(var(--af-primary-rgb), 0.04);
+  border: 1px dashed rgba(var(--af-primary-rgb), 0.5);
+  border-radius: 6px;
+}
+
+/* Title Input */
+.w-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 1.85rem;
+  line-height: 1.35;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  padding: 4px 8px;
+  margin-left: -8px;
+}
+
+/* Inline Select / Badges */
+.inline-select-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.inline-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--border-color);
+  cursor: pointer;
+  appearance: none;
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+.inline-badge:hover, .inline-badge:focus {
+  border-color: var(--af-primary);
+  background: rgba(var(--af-primary-rgb), 0.05);
+  outline: none;
+}
+.inline-badge--source { background: rgba(14,165,233,0.1); color: #0284c7; border-color: rgba(14,165,233,0.2); }
+.inline-badge--dept { background: var(--bg-surface-hover); }
+.inline-badge--status { background: rgba(16,185,129,0.1); color: var(--success); border-color: rgba(16,185,129,0.2); }
+
+/* Inline Dates */
+.inline-date {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px dashed transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+.inline-date:hover, .inline-date:focus {
+  border-color: var(--af-primary);
+  background: rgba(var(--af-primary-rgb), 0.05);
+  color: var(--af-primary);
+}
+
+/* Summary Box */
+.w-summary-box {
+  background: rgba(var(--af-primary-rgb), 0.03);
+  border-left: 4px solid var(--af-primary);
+  padding: 18px 22px;
+  border-radius: 0 12px 12px 0;
+  position: relative;
+}
+.w-summary-textarea {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Full Content Box */
+.w-content-textarea {
+  font-family: 'Inter', sans-serif;
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: var(--text-primary);
+  min-height: 400px;
+  resize: vertical;
+  padding: 16px;
+  margin-left: -16px;
+  width: calc(100% + 32px);
+}
+
+/* ── Sticky Action Bar ── */
+.af-bar {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--af-radius-lg);
+  box-shadow: var(--af-shadow);
+  padding: 20px 28px;
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 1024px) {
+  .af-layout { grid-template-columns: 1fr; }
+  .af-ai-card { position: static; }
+}
+</style>
+
+<form method="POST" enctype="multipart/form-data" id="postForm">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="pre_attachment_path" id="pre_attachment_path" value="">
+
+<div class="af-page">
+
+  <div class="af-layout">
+
+    <!-- ══════ LEFT: AI ASSISTANT ══════ -->
+    <div>
+      {% if not post %}
+      <div class="af-ai-card">
+        <h4 style="display:flex;align-items:center;gap:8px;font-family:'Outfit';font-weight:700;margin-bottom:16px;">
+          <i data-lucide="sparkles" style="color:var(--af-primary);"></i> Smart Assistant
+        </h4>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:20px;">
+          Paste an email or upload a document. The AI will instantly fill this entire live preview for you.
+        </p>
+
+        <input type="file" id="post_file" style="display:none;" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg">
+        <div class="af-drop" id="dragDropZone">
+          <i data-lucide="cloud-upload" style="color:var(--af-primary);width:32px;height:32px;margin-bottom:8px;"></i>
+          <div style="font-size:13px;font-weight:600;">Upload Document</div>
+          <div style="font-size:11px;color:var(--text-muted);">PDF, Word, or Images</div>
+          <div id="fileUploadInfo" style="margin-top:8px;font-size:12px;font-weight:600;color:var(--success);"></div>
         </div>
-        <div class="card__body" style="display:flex; flex-direction:column; gap:16px;">
+
+        <div style="margin-bottom:16px;">
+          <textarea id="pasted_text" rows="5" class="form-control" placeholder="Or paste raw email text here..." style="font-size:13px;resize:vertical;"></textarea>
+        </div>
+
+        <button type="button" class="btn btn--primary" id="extractBtn" style="width:100%;padding:10px;justify-content:center;">
+          <i data-lucide="zap" style="width:16px;height:16px;"></i> Auto-Fill Live View
+        </button>
+      </div>
+      {% else %}
+      <div class="af-ai-card" style="text-align:center;padding:40px 24px;">
+        <i data-lucide="lock" style="width:40px;height:40px;color:var(--text-muted);opacity:0.3;margin-bottom:16px;"></i>
+        <h5 style="font-size:15px;font-weight:600;color:var(--text-muted);">AI Pre-Filling Disabled</h5>
+        <p style="font-size:13px;color:var(--text-muted);margin-top:8px;">This post has already been created. You can directly edit the text in the live view on the right.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ══════ RIGHT: WYSIWYG EDITOR ══════ -->
+    <div class="wysiwyg-wrapper">
+
+      <div style="font-size:12px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px;">
+        <span style="display:inline-block;width:8px;height:8px;background:var(--success);border-radius:50%;box-shadow:0 0 8px var(--success);"></span>
+        Live WYSIWYG Editor
+      </div>
+
+      <!-- MAIN BANNER -->
+      <div class="w-card" style="border-left: 5px solid var(--af-primary);">
+        
+        <!-- Badges Row -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
           
-          <div class="form-group">
-            <label class="form-label" for="pasted_text">Paste Email / Circular Body Text</label>
-            <textarea id="pasted_text" rows="12" class="form-textarea" placeholder="Dear Principal, We are excited to announce a Collaborative Hackathon starting on June 10th and ending on June 25th for CE and IT students... Please paste the full email content here..." style="font-family:'Inter', sans-serif; font-size:13px; line-height:1.5;"></textarea>
-          </div>
+          <select id="source" name="source" class="inline-badge inline-badge--source" title="Source / Issued By">
+            {% for code, label in sources %}
+              <option value="{{ code }}" {% if post and post.source == code %}selected{% endif %}>Source: {{ label }}</option>
+            {% endfor %}
+          </select>
 
-          <div class="form-group">
-            <label class="form-label">Or Upload Document / Flier Image</label>
-            <input type="file" id="post_file" class="d-none" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg">
-            <div class="upload-zone" style="padding: 20px; border: 2px dashed var(--border-color); border-radius: 8px; text-align: center; cursor: pointer;" id="dragDropZone">
-              <i data-lucide="upload-cloud" style="width: 32px; height: 32px; color: var(--text-muted); margin-bottom: 8px; display: inline-block;"></i>
-              <div class="text-sm font-semibold">Drag & Drop Circular, Notice, or Flier</div>
-              <small class="text-muted block mt-1">Accepts PDF, Word, TXT, or Images (JPG/PNG) up to 10MB</small>
-              <div id="fileUploadInfo" class="mt-2 text-xs font-semibold text-primary"></div>
-            </div>
-          </div>
+          <select id="department_id" name="department_id" class="inline-badge inline-badge--dept" title="Department">
+            <option value="">Department: All / Institutional</option>
+            {% for dept in departments %}
+              <option value="{{ dept.id }}" {% if post and post.department_id == dept.id %}selected{% endif %}>Dept: {{ dept.code }}</option>
+            {% endfor %}
+          </select>
 
-          <div class="flex items-center justify-between" style="background:var(--bg-surface-hover); padding:12px; border-radius:6px; border:1px solid var(--border-color);">
-            <div class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" id="use_ai" checked style="cursor:pointer;">
-              <label for="use_ai" class="form-label mb-0 cursor-pointer" style="font-weight:600; color:var(--text-primary); font-size:13px;">Use Smart AI Extraction</label>
-            </div>
-            <span class="badge badge--success" style="font-size:10px;">Offline Safe</span>
-          </div>
-          <small class="text-muted" style="display:block; font-size:11px; margin-top:4px; line-height:1.4;">
-            Automatically detects event type, extracts dates, venues, themes, focus areas, and contact info. Removes duplicate content and formats the text professionally.
-          </small>
+          <select id="progress_status" name="progress_status" class="inline-badge inline-badge--status" title="Progress Status">
+            {% for code, label in statuses %}
+              <option value="{{ code }}" {% if post and post.progress_status == code %}selected{% endif %}>Status: {{ label }}</option>
+            {% endfor %}
+          </select>
 
-          <button type="button" class="btn btn--primary w-full flex items-center justify-center gap-2 mt-2" id="extractBtn" style="padding:12px;">
-            <i data-lucide="sparkles" style="width:16px;height:16px;"></i> Run Auto-Extraction
+          <div style="margin-left:auto;display:flex;align-items:center;background:var(--bg-surface-hover);border-radius:8px;padding:2px 6px;">
+            <i data-lucide="calendar" style="width:12px;height:12px;color:var(--text-muted);"></i>
+            <input type="date" id="start_date" name="start_date" class="inline-date" title="Start Date" value="{{ post.start_date.strftime('%Y-%m-%d') if post and post.start_date else '' }}">
+            <span style="color:var(--text-muted);font-size:11px;">→</span>
+            <input type="date" id="end_date" name="end_date" class="inline-date" title="End Date" value="{{ post.end_date.strftime('%Y-%m-%d') if post and post.end_date else '' }}">
+          </div>
+        </div>
+
+        <!-- Title -->
+        <input type="text" id="title" name="title" class="inline-input w-title" value="{{ post.title if post else '' }}" placeholder="Enter The Activity Title Here..." required>
+
+        <!-- Summary -->
+        <div class="w-summary-box">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <h5 style="font-family:'Outfit';font-weight:700;font-size:12px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin:0;">Executive Summary</h5>
+            <span id="summaryCount" style="font-size:10px;color:var(--text-muted);font-weight:600;">0/300</span>
+          </div>
+          <textarea id="summary" name="summary" class="inline-input w-summary-textarea" maxlength="300" placeholder="Type a brief 2-3 sentence overview that will appear on the home card..." required>{{ post.summary if post else '' }}</textarea>
+        </div>
+
+      </div>
+
+      <!-- FULL CONTENT -->
+      <div class="w-card">
+        <h4 style="font-family:'Outfit';font-weight:700;color:var(--af-primary);display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:1.1rem;">
+          <i data-lucide="file-text" style="width:20px;height:20px;"></i>
+          Full Notice Content
+        </h4>
+        <div style="border-bottom:1px solid var(--border-color);margin-bottom:16px;margin-left:-30px;margin-right:-30px;"></div>
+        
+        <textarea id="full_content" name="full_content" class="inline-input w-content-textarea" placeholder="Paste the complete notice details, schedules, rules, contact info, and registration details here..." required>{{ post.full_content if post else '' }}</textarea>
+      </div>
+
+      <!-- ATTACHMENT -->
+      <div class="w-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;background:var(--bg-surface-hover);">
+        <h4 style="font-family:'Outfit';font-weight:700;color:var(--af-primary);display:flex;align-items:center;gap:8px;margin:0;font-size:1.1rem;">
+          <i data-lucide="paperclip" style="width:20px;height:20px;"></i>
+          Official Attachment
+        </h4>
+        <input type="file" id="attachment" name="attachment" class="form-control" style="max-width:300px;background:var(--bg-surface);">
+      </div>
+      {% if post and post.attachment_path %}
+        <div style="margin-top:-12px;padding:12px 20px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:8px;display:flex;align-items:center;gap:8px;">
+          <i data-lucide="file-check" style="width:16px;height:16px;color:var(--success);"></i>
+          <span style="font-size:13px;font-weight:600;color:var(--success);">Currently Attached:</span>
+          <a href="{{ url_for('posts.download_file', filename=post.attachment_path, download=1) }}" style="color:var(--af-primary);font-size:13px;font-weight:700;" target="_blank">{{ post.attachment_path.split('/')[-1] }}</a>
+        </div>
+      {% endif %}
+
+      <!-- ACTION BAR -->
+      <div class="af-bar">
+        <div style="display:flex;align-items:center;gap:12px;color:var(--text-muted);font-size:13px;">
+          <span style="color:var(--success);font-weight:600;display:flex;align-items:center;gap:6px;">
+            <i data-lucide="check-circle" style="width:14px;height:14px;"></i> Live Preview Active
+          </span>
+          | Auto-formats as you type
+        </div>
+        <div style="display:flex;gap:12px;">
+          <a href="{{ url_for('posts.manage') }}" class="btn btn--secondary">Cancel</a>
+          <button type="submit" class="btn btn--primary" style="padding:10px 28px;background:linear-gradient(135deg, #6366f1, #8b5cf6);border:none;">
+            <i data-lucide="rocket" style="width:16px;height:16px;"></i>
+            {% if post %}Save Updates{% else %}Publish Activity{% endif %}
           </button>
         </div>
       </div>
-    {% else %}
-      <div class="card card--flat text-center py-12" style="background: var(--bg-surface); height: 100%; border: 1px dashed var(--border-color); display:flex; flex-direction:column; justify-content:center; align-items:center;">
-        <i data-lucide="lock" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 16px; opacity: 0.5;"></i>
-        <h5 class="font-semibold text-muted">AI Pre-Filling Disabled</h5>
-        <p class="text-xs text-muted max-w-xs mt-2" style="line-height:1.5;">This post has already been created. You can modify its fields directly inside the form on the right.</p>
-      </div>
-    {% endif %}
+
+    </div><!-- end right column -->
   </div>
-
-  <!-- RIGHT COLUMN: Post Form -->
-  <div>
-    <div class="card card--flat" style="border-top: 4px solid var(--primary);">
-      <div class="card__header">
-        <h4>Shared Post Details Form</h4>
-        <p class="text-muted text-sm">Review, tweak, and save the announcement card details. Fields marked with <span class="text-danger">*</span> are required.</p>
-      </div>
-      <div class="card__body">
-        <form method="POST" enctype="multipart/form-data">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="pre_attachment_path" id="pre_attachment_path" value="">
-          <div class="form-group">
-            <label class="form-label" for="title">Activity Heading <span class="text-danger">*</span></label>
-            <input type="text" id="title" name="title" class="form-control" value="{{ post.title if post else '' }}" placeholder="e.g. TCS Collaborative AI & Cloud Innovation Hackathon" required>
-          </div>
-
-          <div class="grid grid-2">
-            <div class="form-group">
-              <label class="form-label" for="source">Received From (Source) <span class="text-danger">*</span></label>
-              <select id="source" name="source" class="form-select" required>
-                {% for code, label in sources %}
-                  <option value="{{ code }}" {% if post and post.source == code %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="department_id">Associated Department</label>
-              <select id="department_id" name="department_id" class="form-select">
-                <option value="">-- All / Institutional --</option>
-                {% for dept in departments %}
-                  <option value="{{ dept.id }}" {% if post and post.department_id == dept.id %}selected{% endif %}>{{ dept.name }} ({{ dept.code }})</option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-3">
-            <div class="form-group">
-              <label class="form-label" for="start_date">Start Date</label>
-              <input type="date" id="start_date" name="start_date" class="form-control" value="{{ post.start_date.strftime('%Y-%m-%d') if post and post.start_date else '' }}">
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="end_date">End Date / Deadline</label>
-              <input type="date" id="end_date" name="end_date" class="form-control" value="{{ post.end_date.strftime('%Y-%m-%d') if post and post.end_date else '' }}">
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="progress_status">Progress Status <span class="text-danger">*</span></label>
-              <select id="progress_status" name="progress_status" class="form-select" required>
-                {% for code, label in statuses %}
-                  <option value="{{ code }}" {% if post and post.progress_status == code %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="summary">Activity Summary <span class="text-danger">*</span></label>
-            <textarea id="summary" name="summary" rows="3" class="form-textarea" placeholder="Provide a brief 2-3 sentence overview that will appear directly on the home card..." required>{{ post.summary if post else '' }}</textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="full_content">Full Announcement Content <span class="text-danger">*</span></label>
-            <textarea id="full_content" name="full_content" rows="6" class="form-textarea" placeholder="Paste the complete notice details, rules, contact info, and registration details here..." required>{{ post.full_content if post else '' }}</textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="attachment">Attachment Document (Optional)</label>
-            <input type="file" id="attachment" name="attachment" class="form-control">
-            {% if post and post.attachment_path %}
-              <div class="mt-2 text-xs font-semibold text-muted flex items-center gap-1">
-                <i data-lucide="paperclip" style="width:12px;height:12px;color:var(--primary);"></i>
-                Current attachment: 
-                <a href="{{ url_for('posts.download_file', filename=post.attachment_path, download=1) }}" class="text-primary hover:underline font-bold" target="_blank">
-                  {{ post.attachment_path.split('/')[-1] }}
-                </a>
-              </div>
-            {% endif %}
-          </div>
-
-          <div class="flex justify-end gap-2 mt-8 pt-4" style="border-top:1px solid var(--border-color)">
-            <a href="{{ url_for('posts.manage') }}" class="btn btn--secondary">Cancel</a>
-            <button type="submit" class="btn btn--primary">
-              <i data-lucide="save" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:2px"></i>
-              {% if post %}Save Updates{% else %}Publish Announcement{% endif %}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
 </div>
+</form>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-  // Dynamic Drag & Drop File Upload handling for Pre-Filler
-  const dragDropZone = document.getElementById('dragDropZone');
-  const postFileInput = document.getElementById('post_file');
-  const fileUploadInfo = document.getElementById('fileUploadInfo');
-
-  if (dragDropZone && postFileInput) {
-    dragDropZone.addEventListener('click', () => postFileInput.click());
-
-    dragDropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dragDropZone.style.background = 'rgba(var(--primary-rgb), 0.05)';
-      dragDropZone.style.borderColor = 'var(--primary)';
-    });
-
-    dragDropZone.addEventListener('dragleave', () => {
-      dragDropZone.style.background = '';
-      dragDropZone.style.borderColor = 'var(--border-color)';
-    });
-
-    dragDropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dragDropZone.style.background = '';
-      dragDropZone.style.borderColor = 'var(--border-color)';
-      if (e.dataTransfer.files.length) {
-        postFileInput.files = e.dataTransfer.files;
-        updateFileName();
-      }
-    });
-
-    postFileInput.addEventListener('change', updateFileName);
+  // Character counter for summary
+  const summaryEl = document.getElementById('summary');
+  const summaryCount = document.getElementById('summaryCount');
+  if (summaryEl && summaryCount) {
+    const updateCount = () => {
+      const len = summaryEl.value.length;
+      summaryCount.textContent = `${len}/300`;
+      summaryCount.style.color = len > 280 ? 'var(--danger)' : 'var(--text-muted)';
+    };
+    summaryEl.addEventListener('input', updateCount);
+    updateCount();
   }
 
-  function updateFileName() {
-    if (postFileInput.files.length) {
-      fileUploadInfo.innerHTML = `<i data-lucide="check" style="width:12px;height:12px;color:var(--success);display:inline-block;vertical-align:middle;"></i> Selected: ${postFileInput.files[0].name} (${(postFileInput.files[0].size/1024).toFixed(1)} KB)`;
+  // Auto-resize textareas to fit content
+  const tx = document.querySelectorAll("textarea");
+  for (let i = 0; i < tx.length; i++) {
+    tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;resize:none;");
+    tx[i].addEventListener("input", OnInput, false);
+  }
+  function OnInput() {
+    this.style.height = 0;
+    this.style.height = (this.scrollHeight) + "px";
+  }
+
+  // ── Drag & Drop ──
+  const ddz = document.getElementById('dragDropZone');
+  const pfi = document.getElementById('post_file');
+  const fui = document.getElementById('fileUploadInfo');
+
+  if (ddz && pfi) {
+    ddz.addEventListener('click', () => pfi.click());
+    ddz.addEventListener('dragover', (e) => { e.preventDefault(); ddz.style.borderColor = 'var(--af-primary)'; });
+    ddz.addEventListener('dragleave', () => ddz.style.borderColor = '');
+    ddz.addEventListener('drop', (e) => {
+      e.preventDefault(); ddz.style.borderColor = '';
+      if (e.dataTransfer.files.length) { pfi.files = e.dataTransfer.files; showFile(); }
+    });
+    pfi.addEventListener('change', showFile);
+  }
+  function showFile() {
+    if (pfi.files.length) {
+      fui.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> ' + pfi.files[0].name;
       lucide.createIcons();
-    } else {
-      fileUploadInfo.innerHTML = '';
     }
   }
 
-  // Dynamic AJAX parser
+  // ── AI Extraction ──
   const extractBtn = document.getElementById('extractBtn');
   const pastedTextarea = document.getElementById('pasted_text');
-  const useAiCheckbox = document.getElementById('use_ai');
 
   if (extractBtn) {
     extractBtn.addEventListener('click', function () {
-      const text = pastedTextarea.value.trim();
-      const file = postFileInput.files[0];
-
+      const text = pastedTextarea ? pastedTextarea.value.trim() : '';
+      const file = pfi ? pfi.files[0] : null;
       if (!text && !file) {
-        window.showToast('warning', 'Input Missing', 'Please paste email text or drag and drop a document first.');
+        window.showToast('warning', 'Input Missing', 'Paste text or upload a document first.');
         return;
       }
-
-      // Show loader
       extractBtn.disabled = true;
-      extractBtn.innerHTML = '<span class="spinner spinner--sm"></span> Auto-Extracting...';
+      extractBtn.innerHTML = '<span class="spinner spinner--sm"></span> Extracting...';
 
-      const formData = new FormData();
-      formData.append('pasted_text', text);
-      formData.append('use_ai', useAiCheckbox.checked ? 'true' : 'false');
-      if (file) {
-        formData.append('post_file', file);
-      }
-
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      const fd = new FormData();
+      fd.append('pasted_text', text);
+      fd.append('use_ai', 'true');
+      if (file) fd.append('post_file', file);
 
       fetch("{{ url_for('posts.extract') }}", {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-CSRFToken': csrfToken }
+        method: 'POST', body: fd,
+        headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }
       })
-      .then(res => res.json())
+      .then(r => r.json())
       .then(data => {
         if (data.success && data.extracted) {
-          const ext = data.extracted;
-          
-          // Pre-fill form fields
-          document.getElementById('title').value = ext.activity_heading || '';
-          document.getElementById('source').value = ext.source || 'COMPANY';
-          document.getElementById('summary').value = ext.summary || '';
-          document.getElementById('full_content').value = ext.full_content || '';
-          
-          if (ext.start_date) {
-            document.getElementById('start_date').value = ext.start_date;
-          } else {
-            document.getElementById('start_date').value = '';
-          }
-          if (ext.end_date) {
-            document.getElementById('end_date').value = ext.end_date;
-          } else {
-            document.getElementById('end_date').value = '';
+          const e = data.extracted;
+          document.getElementById('title').value = e.activity_heading || '';
+          document.getElementById('source').value = e.source || 'COMPANY';
+          document.getElementById('summary').value = e.summary || '';
+          document.getElementById('full_content').value = e.full_content || '';
+          document.getElementById('start_date').value = e.start_date || '';
+          document.getElementById('end_date').value = e.end_date || '';
+
+          if (e.department) {
+            const ds = document.getElementById('department_id');
+            for (let o of ds.options) {
+              if (o.text.includes('(' + e.department + ')') || o.text.toUpperCase().includes(e.department)) { o.selected = true; break; }
+            }
           }
 
-          // Match department select dropdown
-          if (ext.department) {
-            const deptSelect = document.getElementById('department_id');
-            let matched = false;
-            for (let option of deptSelect.options) {
-              if (option.text.includes('(' + ext.department + ')') || option.text.toUpperCase().includes(ext.department)) {
-                option.selected = true;
-                matched = true;
-                break;
-              }
-            }
-            if (!matched) {
-              deptSelect.value = ""; // Default to All
-            }
-          } else {
-            document.getElementById('department_id').value = "";
-          }
+          // Trigger auto-resize
+          document.getElementById('summary').dispatchEvent(new Event('input'));
+          document.getElementById('full_content').dispatchEvent(new Event('input'));
 
-          // Flash highlight animation for visual response
-          const fieldsToHighlight = ['title', 'source', 'start_date', 'end_date', 'department_id', 'summary', 'full_content'];
-          fieldsToHighlight.forEach(id => {
+          // Flash inputs
+          ['title','source','start_date','end_date','department_id','summary','full_content'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
-              el.style.transition = 'background 0.3s ease';
-              el.style.background = 'rgba(16, 185, 129, 0.15)'; // nice green highlight
-              setTimeout(() => {
-                el.style.background = '';
-              }, 1000);
+              el.style.transition = 'background 0.3s, border 0.3s';
+              el.style.background = 'rgba(16,185,129,0.1)';
+              el.style.border = '1px dashed var(--success)';
+              setTimeout(() => { el.style.background = ''; el.style.border = ''; }, 1500);
             }
           });
 
-          // Auto-attach uploaded document to the post
+          // Attachment
           if (data.saved_attachment) {
             document.getElementById('pre_attachment_path').value = data.saved_attachment;
-            const attachFileName = data.saved_attachment.split('/').pop();
-            // Show attachment confirmation below the attachment field
-            const attachField = document.getElementById('attachment');
-            let attachInfo = document.getElementById('autoAttachInfo');
-            if (!attachInfo) {
-              attachInfo = document.createElement('div');
-              attachInfo.id = 'autoAttachInfo';
-              attachInfo.className = 'mt-2 text-xs font-semibold flex items-center gap-1';
-              attachInfo.style.cssText = 'color: var(--success); background: rgba(16, 185, 129, 0.08); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);';
-              attachField.parentNode.appendChild(attachInfo);
+            const fn = data.saved_attachment.split('/').pop();
+            const af = document.getElementById('attachment');
+            let ai = document.getElementById('autoAttachInfo');
+            if (!ai) {
+              ai = document.createElement('div');
+              ai.id = 'autoAttachInfo';
+              ai.style.cssText = 'margin-top:12px;padding:12px 20px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:8px;display:flex;align-items:center;gap:8px;';
+              af.parentNode.parentNode.insertBefore(ai, af.parentNode.nextSibling);
             }
-             const downloadUrl = "{{ url_for('posts.download_file', filename='') }}" + data.saved_attachment;
-             attachInfo.innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px;color:var(--success);"></i> Document auto-attached: <a href="' + downloadUrl + '" class="text-primary hover:underline font-bold" target="_blank"><strong>' + attachFileName + '</strong></a>';
-             lucide.createIcons();
-           }
+            const dl = "{{ url_for('posts.download_file', filename='') }}" + data.saved_attachment;
+            ai.innerHTML = '<i data-lucide="check-circle" style="width:16px;height:16px;color:var(--success);"></i> <span style="font-size:13px;font-weight:600;color:var(--success);">Auto-attached:</span> <a href="' + dl + '" style="color:var(--af-primary);font-size:13px;font-weight:700;" target="_blank">' + fn + '</a>';
+            lucide.createIcons();
+          }
 
-          const toastMsg = data.ocr_used
-            ? 'Flier scanned with OCR! Fields pre-filled and document auto-attached.'
-            : data.saved_attachment
-              ? 'Fields pre-filled and document auto-attached successfully!'
-              : 'Heading, summary, dates, and department pre-filled successfully.';
-          window.showToast('success', data.ocr_used ? 'OCR Extraction Complete!' : 'Extraction Complete!', toastMsg);
+          const msg = data.ocr_used ? 'OCR scan complete! Live view updated.' : 'Live view updated successfully.';
+          window.showToast('success', 'Extraction Complete!', msg);
         } else {
-          window.showToast('error', 'Extraction Failed', data.error || 'Could not parse text.');
+          window.showToast('error', 'Failed', data.error || 'Could not parse.');
         }
       })
-      .catch(err => {
-        window.showToast('error', 'Connection Error', 'Something went wrong during extraction.');
-        console.error(err);
-      })
+      .catch(() => window.showToast('error', 'Error', 'Connection failed.'))
       .finally(() => {
         extractBtn.disabled = false;
-        extractBtn.innerHTML = '<i data-lucide="sparkles" style="width:16px;height:16px;"></i> Run Auto-Extraction';
+        extractBtn.innerHTML = '<i data-lucide="zap" style="width:16px;height:16px;"></i> Auto-Fill Live View';
         lucide.createIcons();
       });
     });
