@@ -66,9 +66,17 @@
 
       {% if current_user.is_authenticated and current_user.role == 'CHAIRPERSON' %}
       <div class="sidebar__section-title">Administration</div>
-      <a href="{{ url_for('admin.index') }}" class="sidebar__link {% if request.blueprint == 'admin' %}active{% endif %}">
+      <a href="{{ url_for('admin.index') }}" class="sidebar__link {% if request.blueprint == 'admin' and request.endpoint != 'admin.manage_landing_posts' %}active{% endif %}">
         <i data-lucide="shield-check"></i>
         <span>Admin Panel</span>
+      </a>
+      <a href="{{ url_for('admin.manage_landing_posts') }}" class="sidebar__link {% if request.endpoint == 'admin.manage_landing_posts' %}active{% endif %}">
+        <i data-lucide="image"></i>
+        <span>Landing Posts</span>
+      </a>
+      <a href="{{ url_for('admin.maintenance') }}" class="sidebar__link {% if request.endpoint == 'admin.maintenance' %}active{% endif %}">
+        <i data-lucide="database-backup"></i>
+        <span>Maintenance</span>
       </a>
       {% endif %}
     </nav>

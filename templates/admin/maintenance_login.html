@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Maintenance Access - IIC Portal{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 100px auto;">
+  <div class="card-header" style="text-align: center;">
+    <i data-lucide="shield-alert" style="width: 48px; height: 48px; color: var(--danger); margin-bottom: 16px;"></i>
+    <h2>Restricted Access</h2>
+    <p class="text-muted">Enter maintenance password to continue</p>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('admin.maintenance') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group">
+        <label for="password">Maintenance Password</label>
+        <input type="password" id="password" name="password" class="form-control" required autofocus>
+      </div>
+      <button type="submit" class="btn btn--primary" style="width: 100%; margin-top: 16px;">
+        Unlock Maintenance Panel
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

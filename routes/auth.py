@@ -27,7 +27,7 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
-        if user is None or not user.check_password(password):
+        if user is None or user.is_deleted or not user.check_password(password):
             flash('Invalid email or password.', 'danger')
             return render_template('auth/login.html')
 

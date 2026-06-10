@@ -14,6 +14,7 @@ class Department(db.Model):
     hod_name = db.Column(db.String(150), nullable=True)
     email = db.Column(db.String(120), nullable=True)
     phone = db.Column(db.String(20), nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
 
     # Relationships
     users = db.relationship('User', back_populates='department', lazy='dynamic')

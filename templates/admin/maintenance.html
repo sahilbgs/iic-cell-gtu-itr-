@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Maintenance & Data Recovery - IIC Portal{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: var(--space-6);">
+  <div class="page-header__content">
+    <h1 class="page-title"><i data-lucide="database-backup"></i> System Maintenance</h1>
+    <p class="page-subtitle">Restore soft-deleted records to the active database.</p>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr; gap: var(--space-6);">
+
+  <!-- Deleted Users -->
+  <div class="card">
+    <div class="card-header">
+      <h2 style="font-size: var(--text-xl);"><i data-lucide="users"></i> Deleted Users</h2>
+    </div>
+    <div class="card-body">
+      {% if deleted_users %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in deleted_users %}
+            <tr>
+              <td>{{ u.full_name }}</td>
+              <td>{{ u.email }}</td>
+              <td><span class="badge badge--secondary">{{ u.role }}</span></td>
+              <td>
+                <form action="{{ url_for('admin.restore_item', model_type='user', item_id=u.id) }}" method="POST" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn--success btn--sm" onclick="return confirm('Restore this user?');">
+                    <i data-lucide="refresh-cw"></i> Restore
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted">No deleted users found.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Deleted Departments -->
+  <div class="card">
+    <div class="card-header">
+      <h2 style="font-size: var(--text-xl);"><i data-lucide="building"></i> Deleted Departments</h2>
+    </div>
+    <div class="card-body">
+      {% if deleted_depts %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Department Name</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in deleted_depts %}
+            <tr>
+              <td>{{ d.name }}</td>
+              <td>
+                <form action="{{ url_for('admin.restore_item', model_type='department', item_id=d.id) }}" method="POST" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn--success btn--sm" onclick="return confirm('Restore this department?');">
+                    <i data-lucide="refresh-cw"></i> Restore
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted">No deleted departments found.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Deleted Landing Posts -->
+  <div class="card">
+    <div class="card-header">
+      <h2 style="font-size: var(--text-xl);"><i data-lucide="image"></i> Deleted Landing Posts</h2>
+    </div>
+    <div class="card-body">
+      {% if deleted_posts %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Created At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in deleted_posts %}
+            <tr>
+              <td>{{ p.title }}</td>
+              <td>{{ p.created_at.strftime('%Y-%m-%d') }}</td>
+              <td>
+                <form action="{{ url_for('admin.restore_item', model_type='landing_post', item_id=p.id) }}" method="POST" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn--success btn--sm" onclick="return confirm('Restore this post?');">
+                    <i data-lucide="refresh-cw"></i> Restore
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted">No deleted posts found.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

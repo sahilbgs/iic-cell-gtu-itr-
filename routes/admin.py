@@ -4,11 +4,14 @@ Blueprint: admin  |  Prefix: /admin
 Only accessible by CHAIRPERSON role.
 """
 from functools import wraps
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort, current_app
+from werkzeug.utils import secure_filename
+import os
 from flask_login import login_required, current_user
 from extensions import db
 from models.user import User, ROLES, ROLE_LABELS
 from models.department import Department
+from models.landing_post import LandingPost
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -34,8 +37,8 @@ def index():
     import os
     from flask import current_app
     
-    users = User.query.order_by(User.created_at.desc()).all()
-    departments = Department.query.order_by(Department.name).all()
+    users = User.query.filter_by(is_deleted=False).order_by(User.full_name).all()
+    departments = Department.query.filter_by(is_deleted=False).order_by(Department.name).all()
     
     # Legal & Compliance Verification checks
     base_path = current_app.root_path
@@ -170,15 +173,16 @@ def toggle_user_active(user_id):
 @admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
 @chairperson_required
 def delete_user(user_id):
-    """Delete a user permanently."""
-    user = User.query.get_or_404(user_id)
-    if user.id == current_user.id:
-        flash('You cannot delete your own account.', 'warning')
+    """Soft delete a user."""
+    if user_id == current_user.id:
+        flash('You cannot delete your own account.', 'danger')
         return redirect(url_for('admin.index'))
-    name = user.full_name
-    db.session.delete(user)
+    
+    user = User.query.get_or_404(user_id)
+    user.is_deleted = True
+    user.is_active = False # Deactivate as well
     db.session.commit()
-    flash(f'User "{name}" deleted permanently.', 'success')
+    flash(f'User {user.full_name} has been deleted.', 'success')
     return redirect(url_for('admin.index'))
 
 
@@ -200,9 +204,9 @@ def create_department():
         errors.append('Department name is required.')
     if not code:
         errors.append('Department code is required.')
-    if Department.query.filter_by(code=code).first():
+    if Department.query.filter_by(code=code, is_deleted=False).first():
         errors.append(f'Department with code "{code}" already exists.')
-    if Department.query.filter_by(name=name).first():
+    if Department.query.filter_by(name=name, is_deleted=False).first():
         errors.append(f'Department with name "{name}" already exists.')
 
     if errors:
@@ -243,17 +247,12 @@ def edit_department(dept_id):
 @admin_bp.route('/departments/<int:dept_id>/delete', methods=['POST'])
 @chairperson_required
 def delete_department(dept_id):
-    """Delete a department (only if no users are linked)."""
+    """Soft delete a department."""
     dept = Department.query.get_or_404(dept_id)
-    user_count = User.query.filter_by(department_id=dept.id).count()
-    if user_count > 0:
-        flash(f'Cannot delete "{dept.name}" — {user_count} user(s) are assigned to it. Reassign them first.', 'danger')
-        return redirect(url_for('admin.index'))
-    name = dept.name
-    db.session.delete(dept)
+    dept.is_deleted = True
     db.session.commit()
-    flash(f'Department "{name}" deleted successfully.', 'success')
-    return redirect(url_for('admin.index'))
+    flash(f'Department {dept.name} has been deleted.', 'success')
+    return redirect(url_for('admin.index', tab='departments-tab'))
 
 
 # --------------------------------------------------------------------------- #
@@ -289,3 +288,136 @@ def api_get_department(dept_id):
         'email': dept.email or '',
         'phone': dept.phone or '',
     })
+
+# --------------------------------------------------------------------------- #
+#  LANDING PAGE POSTS MANAGEMENT (Chairperson)
+# --------------------------------------------------------------------------- #
+from datetime import datetime
+
+@admin_bp.route('/landing-posts')
+@chairperson_required
+def manage_landing_posts():
+    """View and manage landing page posts."""
+    posts = LandingPost.query.filter_by(is_deleted=False).order_by(LandingPost.created_at.desc()).all()
+    return render_template('admin/landing_posts.html', posts=posts)
+
+@admin_bp.route('/landing-posts/create', methods=['POST'])
+@chairperson_required
+def create_landing_post():
+    """Create a new landing page post with optional media upload."""
+    title = request.form.get('title', '').strip()
+    description = request.form.get('description', '').strip()
+    media_file = request.files.get('media_file')
+    
+    if not title or not description:
+        flash('Title and description are required.', 'danger')
+        return redirect(url_for('admin.manage_landing_posts'))
+    
+    post = LandingPost(
+        title=title,
+        description=description,
+        author_id=current_user.id
+    )
+    
+    if media_file and media_file.filename:
+        filename = secure_filename(media_file.filename)
+        timestamp = int(datetime.utcnow().timestamp())
+        safe_filename = f"landing_{timestamp}_{filename}"
+        
+        upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
+        os.makedirs(upload_folder, exist_ok=True)
+        file_path = os.path.join(upload_folder, safe_filename)
+        media_file.save(file_path)
+        
+        post.media_path = safe_filename
+        
+        # Simple mime type checking
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+        if ext in ['mp4', 'webm', 'ogg']:
+            post.media_type = 'video'
+        else:
+            post.media_type = 'image'
+            
+    db.session.add(post)
+    db.session.commit()
+    flash('Landing post created successfully.', 'success')
+    return redirect(url_for('admin.manage_landing_posts'))
+
+@admin_bp.route('/landing-posts/<int:post_id>/toggle-pin', methods=['POST'])
+@chairperson_required
+def toggle_pin_landing_post(post_id):
+    post = LandingPost.query.get_or_404(post_id)
+    post.is_pinned = not post.is_pinned
+    db.session.commit()
+    flash(f'Post {"pinned" if post.is_pinned else "unpinned"}.', 'success')
+    return redirect(url_for('admin.manage_landing_posts'))
+
+@admin_bp.route('/landing-posts/<int:post_id>/toggle-hide', methods=['POST'])
+@chairperson_required
+def toggle_hide_landing_post(post_id):
+    post = LandingPost.query.get_or_404(post_id)
+    post.is_hidden = not post.is_hidden
+    db.session.commit()
+    flash(f'Post {"hidden" if post.is_hidden else "unhidden"}.', 'success')
+    return redirect(url_for('admin.manage_landing_posts'))
+
+@admin_bp.route('/landing-posts/<int:post_id>/delete', methods=['POST'])
+@chairperson_required
+def delete_landing_post(post_id):
+    post = LandingPost.query.get_or_404(post_id)
+    post.is_deleted = True
+    db.session.commit()
+    flash('Post deleted.', 'success')
+    return redirect(url_for('admin.manage_landing_posts'))
+
+# --------------------------------------------------------------------------- #
+#  MAINTENANCE PAGE (Soft Deletes)
+# --------------------------------------------------------------------------- #
+from flask import session
+
+@admin_bp.route('/maintenance', methods=['GET', 'POST'])
+@chairperson_required
+def maintenance():
+    """Secure maintenance page for restoring soft-deleted data."""
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == '44113290@sahil':
+            session['maintenance_unlocked'] = True
+            flash('Maintenance mode unlocked.', 'success')
+            return redirect(url_for('admin.maintenance'))
+        else:
+            flash('Invalid maintenance password.', 'danger')
+            return redirect(url_for('admin.maintenance'))
+            
+    if not session.get('maintenance_unlocked'):
+        return render_template('admin/maintenance_login.html')
+        
+    deleted_users = User.query.filter_by(is_deleted=True).all()
+    deleted_depts = Department.query.filter_by(is_deleted=True).all()
+    deleted_posts = LandingPost.query.filter_by(is_deleted=True).all()
+    
+    return render_template('admin/maintenance.html', 
+                           deleted_users=deleted_users,
+                           deleted_depts=deleted_depts,
+                           deleted_posts=deleted_posts)
+
+@admin_bp.route('/maintenance/restore/<string:model_type>/<int:item_id>', methods=['POST'])
+@chairperson_required
+def restore_item(model_type, item_id):
+    if not session.get('maintenance_unlocked'):
+        return abort(403)
+        
+    if model_type == 'user':
+        item = User.query.get_or_404(item_id)
+        item.is_active = True
+    elif model_type == 'department':
+        item = Department.query.get_or_404(item_id)
+    elif model_type == 'landing_post':
+        item = LandingPost.query.get_or_404(item_id)
+    else:
+        return abort(400)
+        
+    item.is_deleted = False
+    db.session.commit()
+    flash(f'{model_type.replace("_", " ").title()} restored successfully.', 'success')
+    return redirect(url_for('admin.maintenance'))

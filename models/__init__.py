@@ -7,6 +7,7 @@ from models.department import Department
 from models.principal_post import PrincipalPost
 from models.student_registration import StudentRegistration
 from models.activity_report import ActivityReport
+from models.landing_post import LandingPost
 
 __all__ = [
     'User',
@@ -14,5 +15,6 @@ __all__ = [
     'PrincipalPost',
     'StudentRegistration',
     'ActivityReport',
+    'LandingPost',
 ]
 

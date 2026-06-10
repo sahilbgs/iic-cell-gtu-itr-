@@ -438,7 +438,7 @@ def extract():
 @principal_required
 def create():
     """Create a new shared principal post."""
-    departments = Department.query.order_by(Department.name).all()
+    departments = Department.query.filter_by(is_deleted=False).order_by(Department.name).all()
     
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
@@ -523,7 +523,7 @@ def edit(post_id):
         flash('Completed activities cannot be edited.', 'danger')
         return redirect(url_for('posts.manage'))
         
-    departments = Department.query.order_by(Department.name).all()
+    departments = Department.query.filter_by(is_deleted=False).order_by(Department.name).all()
     
     if request.method == 'POST':
         post.title = request.form.get('title', '').strip()
@@ -677,7 +677,7 @@ def assign_faculty(post_id):
         
     # Verify the faculty belongs to coordinator's department
     from models.user import User
-    faculty = User.query.filter_by(id=faculty_id, role='FACULTY', department_id=current_user.department_id).first()
+    faculty = User.query.filter_by(id=faculty_id, role='FACULTY', department_id=current_user.department_id, is_deleted=False).first()
     if not faculty:
         flash('Selected faculty is not in your department.', 'danger')
         return redirect(url_for('dashboard.index'))
