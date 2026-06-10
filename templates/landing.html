@@ -86,13 +86,17 @@
     .hero-wrapper {
       position: relative;
       width: 100%;
-      height: 70vh;
-      min-height: 400px;
-      background: url("{{ url_for('static', filename='coverphoto.png') }}") no-repeat center center;
-      background-size: cover;
-      background-attachment: fixed; /* Parallax effect on desktop */
+      overflow: hidden;
       animation: fadeIn 1.2s ease-out;
       background-color: #000;
+    }
+
+    .hero-wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+      max-height: 80vh;
+      object-fit: contain;
     }
 
     @keyframes fadeIn {
@@ -317,12 +321,9 @@
 
     @media (max-width: 768px) {
       .landing-nav { padding: var(--space-3) var(--space-4); }
-      .hero-wrapper {
-        height: 35vh;
-        min-height: 220px;
-        background-attachment: scroll; /* fixed doesn't work on mobile browsers */
-        background-size: cover;
-        background-position: center center;
+      .hero-wrapper img {
+        max-height: 40vh;
+        object-fit: cover;
       }
       .hero { padding: 120px var(--space-4) 60px; }
       .hero__title { font-size: 2.5rem; }
@@ -358,6 +359,7 @@
 
   <!-- Hero Section -->
   <div class="hero-wrapper" style="margin-top: 80px;"> <!-- Push down to clear fixed navbar -->
+    <img src="{{ url_for('static', filename='coverphoto.png') }}" alt="Cover Photo">
   </div>
 
   <!-- Dynamic Posts Section (Chairperson Updates) -->
