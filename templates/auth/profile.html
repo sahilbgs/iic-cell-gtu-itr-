@@ -114,12 +114,22 @@
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="new_password">New Password</label>
-            <input type="password" id="new_password" name="new_password" class="form-control" placeholder="••••••••">
+            <div style="position: relative;">
+              <input type="password" id="new_password" name="new_password" class="form-control" placeholder="••••••••" style="padding-right: 40px;">
+              <button type="button" onclick="togglePassword(this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #a0aec0; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <i data-lucide="eye" style="width: 20px; height: 20px;"></i>
+              </button>
+            </div>
           </div>
 
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="confirm_new_password">Confirm New Password</label>
-            <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-control" placeholder="••••••••">
+            <div style="position: relative;">
+              <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-control" placeholder="••••••••" style="padding-right: 40px;">
+              <button type="button" onclick="togglePassword(this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #a0aec0; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <i data-lucide="eye" style="width: 20px; height: 20px;"></i>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -139,6 +149,19 @@
 
 {% block scripts %}
 <script>
+  function togglePassword(btn) {
+    const container = btn.parentElement;
+    const input = container.querySelector('input');
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.innerHTML = '<i data-lucide="eye-off" style="width: 20px; height: 20px;"></i>';
+    } else {
+      input.type = 'password';
+      btn.innerHTML = '<i data-lucide="eye" style="width: 20px; height: 20px;"></i>';
+    }
+    lucide.createIcons();
+  }
+
   // Simple validation to assist user
   const password = document.getElementById('new_password');
   const confirmPassword = document.getElementById('confirm_new_password');

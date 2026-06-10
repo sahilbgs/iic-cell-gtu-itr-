@@ -44,7 +44,12 @@
 
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
-          <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+          <div style="position: relative;">
+            <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required style="padding-right: 40px;">
+            <button type="button" onclick="togglePassword(this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #a0aec0; display: flex; align-items: center; justify-content: center; padding: 0;">
+              <i data-lucide="eye" style="width: 20px; height: 20px;"></i>
+            </button>
+          </div>
         </div>
 
         <div class="flex items-center justify-between mb-6">
@@ -68,6 +73,19 @@
 
   <script>
     lucide.createIcons();
+
+    function togglePassword(btn) {
+      const container = btn.parentElement;
+      const input = container.querySelector('input');
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<i data-lucide="eye-off" style="width: 20px; height: 20px;"></i>';
+      } else {
+        input.type = 'password';
+        btn.innerHTML = '<i data-lucide="eye" style="width: 20px; height: 20px;"></i>';
+      }
+      lucide.createIcons();
+    }
   </script>
 </body>
 </html>
