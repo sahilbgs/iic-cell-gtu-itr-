@@ -91,8 +91,13 @@
       background: url("{{ url_for('static', filename='coverphoto.png') }}") no-repeat center center;
       background-size: cover;
       background-attachment: fixed; /* Parallax effect on desktop */
-      animation: fadeInUp 1s ease-out;
+      animation: fadeIn 1.2s ease-out;
       background-color: #000;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     
     /* Removed overlay to make the cover photo fully clear */
