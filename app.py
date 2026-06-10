@@ -76,6 +76,8 @@ def create_app(config_name=None):
     # Import models (registers them with SQLAlchemy)
     with app.app_context():
         import models  # noqa: F401
+        # Auto-create any missing tables on startup
+        db.create_all()
 
     # User loader for Flask-Login
     from models.user import User
