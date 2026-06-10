@@ -82,13 +82,18 @@
       text-transform: uppercase;
     }
 
-    /* Hero Section */
+    /* Hero Section - Fixed parallax background */
     .hero-wrapper {
-      position: relative;
+      position: fixed;
+      top: 80px; /* Below navbar */
+      left: 0;
       width: 100%;
-      overflow: hidden;
-      animation: fadeIn 1.2s ease-out;
+      z-index: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background-color: #000;
+      animation: fadeIn 1.2s ease-out;
     }
 
     .hero-wrapper img {
@@ -97,6 +102,20 @@
       display: block;
       max-height: 80vh;
       object-fit: contain;
+    }
+
+    /* Spacer pushes content below the cover photo */
+    .hero-spacer {
+      height: 80vh;
+      min-height: 400px;
+      margin-top: 80px; /* Match navbar height */
+    }
+
+    /* Content scrolls over the fixed cover */
+    .scroll-content {
+      position: relative;
+      z-index: 1;
+      background: var(--bg-body);
     }
 
     @keyframes fadeIn {
@@ -321,9 +340,19 @@
 
     @media (max-width: 768px) {
       .landing-nav { padding: var(--space-3) var(--space-4); }
+      .hero-wrapper {
+        position: relative;
+        top: auto;
+      }
       .hero-wrapper img {
         max-height: 40vh;
         object-fit: cover;
+      }
+      .hero-spacer {
+        display: none; /* Not needed when cover is not fixed */
+      }
+      .scroll-content {
+        z-index: auto;
       }
       .hero { padding: 120px var(--space-4) 60px; }
       .hero__title { font-size: 2.5rem; }
@@ -357,10 +386,16 @@
     </div>
   </nav>
 
-  <!-- Hero Section -->
-  <div class="hero-wrapper" style="margin-top: 80px;"> <!-- Push down to clear fixed navbar -->
+  <!-- Hero Section (Fixed in background) -->
+  <div class="hero-wrapper">
     <img src="{{ url_for('static', filename='coverphoto.png') }}" alt="Cover Photo">
   </div>
+
+  <!-- Spacer to push content below cover -->
+  <div class="hero-spacer"></div>
+
+  <!-- All content below scrolls over the fixed cover -->
+  <div class="scroll-content">
 
   <!-- Dynamic Posts Section (Chairperson Updates) -->
   {% if landing_posts %}
@@ -437,9 +472,10 @@
 
     </div>
   </section>
+  </div> <!-- End scroll-content -->
 
   <!-- Footer -->
-  <footer class="landing-footer">
+  <footer class="landing-footer" style="position: relative; z-index: 1;">
     <p>&copy; {{ current_year|default('2024') }} GTU ITR Institute of Technology and Research - IIC - R&D Cell. All rights reserved.</p>
   </footer>
 
