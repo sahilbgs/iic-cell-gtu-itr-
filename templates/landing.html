@@ -86,13 +86,13 @@
     .hero-wrapper {
       position: relative;
       width: 100%;
-      height: 60vh;
+      height: 70vh;
       min-height: 400px;
       background: url("{{ url_for('static', filename='coverphoto.png') }}") no-repeat center center;
-      background-size: contain; /* Keep it fully visible */
-      background-attachment: fixed; /* Parallax effect - stays in background on scroll */
+      background-size: cover;
+      background-attachment: fixed; /* Parallax effect on desktop */
       animation: fadeInUp 1s ease-out;
-      background-color: #000; /* Dark background behind it */
+      background-color: #000;
     }
     
     /* Removed overlay to make the cover photo fully clear */
@@ -312,6 +312,13 @@
 
     @media (max-width: 768px) {
       .landing-nav { padding: var(--space-3) var(--space-4); }
+      .hero-wrapper {
+        height: 35vh;
+        min-height: 220px;
+        background-attachment: scroll; /* fixed doesn't work on mobile browsers */
+        background-size: cover;
+        background-position: center center;
+      }
       .hero { padding: 120px var(--space-4) 60px; }
       .hero__title { font-size: 2.5rem; }
       .hero__desc { font-size: var(--text-base); }
