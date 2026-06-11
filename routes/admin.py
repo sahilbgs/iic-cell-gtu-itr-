@@ -308,8 +308,11 @@ def create_landing_post():
     title = request.form.get('title', '').strip()
     description = request.form.get('description', '').strip()
     media_file = request.files.get('media_file')
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     if not title or not description:
+        if is_ajax:
+            return jsonify({'success': False, 'message': 'Title and description are required.'}), 400
         flash('Title and description are required.', 'danger')
         return redirect(url_for('admin.manage_landing_posts'))
     
@@ -340,6 +343,10 @@ def create_landing_post():
             
     db.session.add(post)
     db.session.commit()
+    
+    if is_ajax:
+        return jsonify({'success': True, 'message': 'Landing post created successfully.'}), 200
+    
     flash('Landing post created successfully.', 'success')
     return redirect(url_for('admin.manage_landing_posts'))
 

@@ -31,7 +31,7 @@ class Config:
 
     # File Uploads
     UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload
+    MAX_CONTENT_LENGTH = 500 * 1024 * 1024  # 500MB max upload
     ALLOWED_EXTENSIONS = {'pdf', 'docx', 'doc', 'txt', 'eml'}
 
     # Email
