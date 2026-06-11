@@ -340,16 +340,19 @@
 
     @media (max-width: 768px) {
       .landing-nav { padding: var(--space-3) var(--space-4); }
-      .hero-wrapper {
-        position: relative;
-        top: auto;
-      }
+      /* Allow .hero-wrapper to remain fixed (inherited from desktop) for parallax effect */
       .hero-wrapper img {
-        max-height: 40vh;
-        object-fit: cover;
+        width: 100%;
+        height: 50vh; /* Adjust height for mobile */
+        max-height: none;
+        object-fit: cover; /* Ensure it acts as a full cover */
+        display: block;
       }
       .hero-spacer {
-        display: none; /* Not needed when cover is not fixed */
+        display: block;
+        height: 50vh; /* Match the image height so content scrolls nicely over it */
+        min-height: 250px;
+        margin-top: 80px;
       }
       .scroll-content {
         z-index: auto;
@@ -388,7 +391,10 @@
 
   <!-- Hero Section (Fixed in background) -->
   <div class="hero-wrapper">
-    <img src="{{ url_for('static', filename='coverphoto.png') }}" alt="Cover Photo">
+    <picture style="width: 100%; display: flex; justify-content: center;">
+      <source media="(max-width: 768px)" srcset="{{ url_for('static', filename='mobile_cover.png') }}">
+      <img src="{{ url_for('static', filename='coverphoto.png') }}" alt="Cover Photo">
+    </picture>
   </div>
 
   <!-- Spacer to push content below cover -->
