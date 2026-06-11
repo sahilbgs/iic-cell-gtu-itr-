@@ -322,27 +322,36 @@ def create_landing_post():
         author_id=current_user.id
     )
     
-    if media_file and media_file.filename:
-        filename = secure_filename(media_file.filename)
-        timestamp = int(datetime.utcnow().timestamp())
-        safe_filename = f"landing_{timestamp}_{filename}"
-        
-        upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
-        os.makedirs(upload_folder, exist_ok=True)
-        file_path = os.path.join(upload_folder, safe_filename)
-        media_file.save(file_path)
-        
-        post.media_path = safe_filename
-        
-        # Simple mime type checking
-        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
-        if ext in ['mp4', 'webm', 'ogg']:
-            post.media_type = 'video'
-        else:
-            post.media_type = 'image'
+    try:
+        if media_file and media_file.filename:
+            filename = secure_filename(media_file.filename)
+            timestamp = int(datetime.utcnow().timestamp())
+            safe_filename = f"landing_{timestamp}_{filename}"
             
-    db.session.add(post)
-    db.session.commit()
+            upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
+            if not os.path.isabs(upload_folder):
+                upload_folder = os.path.join(current_app.root_path, upload_folder)
+            os.makedirs(upload_folder, exist_ok=True)
+            file_path = os.path.join(upload_folder, safe_filename)
+            media_file.save(file_path)
+            
+            post.media_path = safe_filename
+            
+            # Simple mime type checking
+            ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+            if ext in ['mp4', 'webm', 'ogg']:
+                post.media_type = 'video'
+            else:
+                post.media_type = 'image'
+                
+        db.session.add(post)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        if is_ajax:
+            return jsonify({'success': False, 'message': f'Server Error: {str(e)}'}), 500
+        flash(f'Error creating post: {str(e)}', 'danger')
+        return redirect(url_for('admin.manage_landing_posts'))
     
     if is_ajax:
         return jsonify({'success': True, 'message': 'Landing post created successfully.'}), 200

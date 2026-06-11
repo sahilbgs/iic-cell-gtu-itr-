@@ -314,7 +314,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Server error
         progressContainer.setAttribute('data-error', 'true');
         statusText.innerHTML = '<i data-lucide="alert-circle" style="width:16px;height:16px;color:#dc2626;"></i> Upload Failed';
-        sizeText.textContent = 'Server returned an error. Please try again.';
+        
+        let errorMsg = 'Server returned an error (' + xhr.status + '). Please try again.';
+        try {
+          const resp = JSON.parse(xhr.responseText);
+          if (resp.message) {
+            errorMsg = resp.message;
+          }
+        } catch(e) {}
+        
+        sizeText.textContent = errorMsg;
         lucide.createIcons();
         resetFormControls();
       }
@@ -341,6 +350,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     xhr.open('POST', form.action);
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    
+    // Add CSRF token explicitly to headers to prevent Flask-WTF rejection on large multipart bodies
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    if (csrfMeta) {
+      xhr.setRequestHeader('X-CSRFToken', csrfMeta.content);
+    }
+    
     xhr.send(formData);
 
     if (!hasFile) {
