@@ -60,30 +60,34 @@ def setup_database():
         it_id = it_dept.id if it_dept else None
 
         users_data = [
-            ('principal@gtu.ac.in', 'Principal User', 'PRINCIPAL', None, 'Principal'),
-            ('chairperson@gtu.ac.in', 'Dr. IIC Chairperson', 'CHAIRPERSON', ce_id, 'IIC Chairperson'),
-            ('rdcoord@gtu.ac.in', 'Dr. R&D Coordinator', 'RD_COORDINATOR', it_id, 'R&D Coordinator'),
-            ('hod.ce@gtu.ac.in', 'Dr. CE HOD', 'HOD', ce_id, 'HOD'),
-            ('faculty.ce@gtu.ac.in', 'Prof. Arun Mehta', 'FACULTY', ce_id, 'Assistant Professor'),
-            ('faculty.it@gtu.ac.in', 'Prof. Sneha Desai', 'FACULTY', it_id, 'Associate Professor'),
-            ('student@gtu.ac.in', 'Rahul Student', 'STUDENT_REP', ce_id, 'Student Rep'),
+            ('admin@gmail.com', 'Admin User', 'MASTER_ADMIN', None, 'System Administrator', '44113290'),
+            ('principal@gtu.ac.in', 'Principal User', 'PRINCIPAL', None, 'Principal', 'password123'),
+            ('chairperson@gtu.ac.in', 'Dr. IIC Chairperson', 'CHAIRPERSON', ce_id, 'IIC Chairperson', 'password123'),
+            ('rdcoord@gtu.ac.in', 'Dr. R&D Coordinator', 'RD_COORDINATOR', it_id, 'R&D Coordinator', 'password123'),
+            ('hod.ce@gtu.ac.in', 'Dr. CE HOD', 'HOD', ce_id, 'HOD', 'password123'),
+            ('faculty.ce@gtu.ac.in', 'Prof. Arun Mehta', 'FACULTY', ce_id, 'Assistant Professor', 'password123'),
+            ('faculty.it@gtu.ac.in', 'Prof. Sneha Desai', 'FACULTY', it_id, 'Associate Professor', 'password123'),
+            ('student@gtu.ac.in', 'Rahul Student', 'STUDENT_REP', ce_id, 'Student Rep', 'password123'),
         ]
         
         users_added = 0
-        for email, name, role, dept_id, desig in users_data:
+        for email, name, role, dept_id, desig, pwd in users_data:
             existing = User.query.filter_by(email=email).first()
             if not existing:
                 u = User(email=email, full_name=name, role=role, department_id=dept_id, designation=desig)
-                u.set_password('password123')
+                u.set_password(pwd)
                 db.session.add(u)
                 users_added += 1
+            else:
+                existing.set_password(pwd)
+                existing.role = role
 
         db.session.commit()
         
         if users_added > 0:
-            print(f"  [OK] {users_added} new users added. (Default password: password123)")
+            print(f"  [OK] {users_added} new users added/updated.")
         else:
-            print("  - Users already exist. Skipping.")
+            print("  - Users already exist. Updated credentials.")
 
         print('\n==================================================')
         print('[SUCCESS] Database is fully setup and ready to use!')

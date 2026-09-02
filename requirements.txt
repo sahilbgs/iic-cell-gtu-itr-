@@ -10,6 +10,7 @@ Flask-Migrate==4.1.0
 
 # Database
 SQLAlchemy==2.0.41
+psycopg2-binary==2.9.12
 pymysql==1.2.0
 cryptography==48.0.0
 

@@ -19,12 +19,16 @@ class Config:
     db_port = os.environ.get('DB_PORT', '3306')
     db_name = os.environ.get('DB_NAME', 'iic_cell_gtu')
 
-    if db_user and db_password:
+    db_url = os.environ.get('DATABASE_URL')
+    if db_url and db_url.startswith('postgres://'):
+        db_url = db_url.replace('postgres://', 'postgresql+psycopg2://', 1)
+
+    if db_user and db_password and not db_url:
         import urllib.parse
         encoded_password = urllib.parse.quote_plus(db_password)
         SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{db_user}:{encoded_password}@{db_host}:{db_port}/{db_name}"
     else:
-        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        SQLALCHEMY_DATABASE_URI = db_url or \
             'sqlite:///' + os.path.join(basedir, 'instance', 'gtu_portal.db')
             
     SQLALCHEMY_TRACK_MODIFICATIONS = False

@@ -27,6 +27,7 @@ venv.bak/
 .env.staging
 user_credentials.txt
 *.log
+*.sql
 
 # Local uploads and exports
 uploads/
