@@ -90,7 +90,7 @@
                     <a href="{{ url_for('posts.view_post', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size:11.5px; padding:6px 12px; border-radius:8px;">
                       <i data-lucide="eye" style="width:14px;height:14px;"></i> View
                     </a>
-                    {% if current_user.role == 'PRINCIPAL' %}
+                    {% if current_user.role in ['PRINCIPAL', 'MASTER_ADMIN'] %}
                       <form action="{{ url_for('posts.delete', post_id=post.id) }}" method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Are you sure you want to delete this expired post?');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn--danger btn--sm flex items-center gap-1" style="font-size:11.5px; padding:6px 12px; border-radius:8px;">

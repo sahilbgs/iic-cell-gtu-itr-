@@ -54,7 +54,7 @@
         <span>Dashboard</span>
       </a>
 
-      <a href="{% if current_user.role == 'PRINCIPAL' %}{{ url_for('posts.manage') }}{% else %}{{ url_for('posts.index') }}{% endif %}" class="sidebar__link {% if request.blueprint == 'posts' and request.endpoint != 'posts.calendar_view' %}active{% endif %}">
+      <a href="{% if current_user.role in ['PRINCIPAL', 'MASTER_ADMIN'] %}{{ url_for('posts.manage') }}{% else %}{{ url_for('posts.index') }}{% endif %}" class="sidebar__link {% if request.blueprint == 'posts' and request.endpoint != 'posts.calendar_view' %}active{% endif %}">
         <i data-lucide="megaphone"></i>
         <span>Shared Activities</span>
       </a>
@@ -64,7 +64,7 @@
         <span>Activity Calendar</span>
       </a>
 
-      {% if current_user.is_authenticated and current_user.role == 'CHAIRPERSON' %}
+      {% if current_user.is_authenticated and current_user.role in ['CHAIRPERSON', 'MASTER_ADMIN'] %}
       <div class="sidebar__section-title">Administration</div>
       <a href="{{ url_for('admin.index') }}" class="sidebar__link {% if request.blueprint == 'admin' and request.endpoint != 'admin.manage_landing_posts' %}active{% endif %}">
         <i data-lucide="shield-check"></i>

@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content %}
-{% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR'] %}
+{% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'MASTER_ADMIN'] %}
 <!-- ═══════ Global Activity & Progress Tracker (Higher Authorities Only) ═══════ -->
 <div class="card card--flat mb-8" style="background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(16, 185, 129, 0.01) 100%); border-left: 4px solid var(--success); box-shadow: var(--shadow-md); border-radius:14px;">
   <div class="card__header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-bottom: 1px solid var(--border-color); padding: 18px 24px;">
@@ -19,12 +19,12 @@
       <p class="text-muted text-xs mt-1" style="margin:0;">Real-time departmental execution, assigned faculty leads, and student registration audits for all approved activities.</p>
     </div>
     <div class="flex items-center gap-2" style="flex-wrap:wrap;">
-      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'HOD', 'FACULTY'] %}
+      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'HOD', 'FACULTY', 'MASTER_ADMIN'] %}
         <a href="{{ url_for('posts.completed_activities_list') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--success); color:#fff; border:none; font-weight:600; border-radius:8px; padding:6px 12px; font-size:11px; text-decoration:none;">
           <i data-lucide="archive" style="width:13px;height:13px;"></i> Completed
         </a>
       {% endif %}
-      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON'] %}
+      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'MASTER_ADMIN'] %}
         <a href="{{ url_for('posts.expired_activities_list') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--danger); color:#fff; border:none; font-weight:600; border-radius:8px; padding:6px 12px; font-size:11px; text-decoration:none;">
           <i data-lucide="alert-triangle" style="width:13px;height:13px;"></i> Expired
         </a>
@@ -150,17 +150,17 @@
       <p class="text-muted text-xs mt-1" style="margin:0;">Announcements, collaboration requests, and circulars posted by the Principal from companies, firms, and universities.</p>
     </div>
     <div class="flex items-center gap-2" style="flex-wrap:wrap;">
-      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'HOD', 'FACULTY'] %}
+      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'HOD', 'FACULTY', 'MASTER_ADMIN'] %}
         <a href="{{ url_for('posts.completed_activities_list') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--success); color:#fff; border:none; font-weight:600; border-radius:8px; padding:8px 16px; text-decoration:none;">
           <i data-lucide="archive" style="width:14px;height:14px;"></i> Completed Activities
         </a>
       {% endif %}
-      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON'] %}
+      {% if current_user.role in ['PRINCIPAL', 'CHAIRPERSON', 'MASTER_ADMIN'] %}
         <a href="{{ url_for('posts.expired_activities_list') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--danger); color:#fff; border:none; font-weight:600; border-radius:8px; padding:8px 16px; text-decoration:none;">
           <i data-lucide="alert-triangle" style="width:14px;height:14px;"></i> Expired Activities
         </a>
       {% endif %}
-      {% if current_user.role == 'PRINCIPAL' %}
+      {% if current_user.role in ['PRINCIPAL', 'MASTER_ADMIN'] %}
         <a href="{{ url_for('posts.approved_activities') }}" class="btn btn--sm flex items-center gap-1" style="background:var(--primary); color:#fff; border:none; font-weight:600; border-radius:8px; padding:8px 16px; text-decoration:none;">
           <i data-lucide="clipboard-check" style="width:14px;height:14px;"></i> Approved Activities
         </a>
@@ -192,7 +192,7 @@
                   Attachment
                 </span>
               {% endif %}
-              {% if current_user.role in ['CHAIRPERSON', 'PRINCIPAL'] %}
+              {% if current_user.role in ['CHAIRPERSON', 'PRINCIPAL', 'MASTER_ADMIN'] %}
                 <span class="badge" style="font-size: 9px; font-weight: 700; letter-spacing: 0.5px; border-radius: 6px; padding: 3px 8px; text-transform: uppercase; margin-left:auto;
                   {% if post.approval_status == 'APPROVED' %}background: rgba(16, 185, 129, 0.1); color: var(--success);
                   {% elif post.approval_status == 'REJECTED' %}background: rgba(239, 68, 68, 0.1); color: var(--danger);
@@ -268,7 +268,7 @@
                     <i data-lucide="download-cloud" style="width:14px;height:14px;"></i>
                   </a>
                 {% endif %}
-                {% if current_user.role == 'PRINCIPAL' and post.progress_status != 'COMPLETED' %}
+                {% if current_user.role in ['PRINCIPAL', 'MASTER_ADMIN'] and post.progress_status != 'COMPLETED' %}
                   <form action="{{ url_for('posts.delete', post_id=post.id) }}" method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Are you sure you want to delete this shared activity post?');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn--danger btn--sm flex items-center justify-center" style="padding:6px 8px; border-radius:var(--border-radius);" title="Delete Post">
@@ -296,9 +296,9 @@
             </div>
             {% endif %}
 
-            {% if current_user.role == 'CHAIRPERSON' %}
+            {% if current_user.role in ['CHAIRPERSON', 'MASTER_ADMIN'] %}
               {% if post.approval_status == 'PENDING' %}
-                <!-- Chairperson Approve / Reject Actions -->
+                <!-- Chairperson / Master Admin Approve / Reject Actions -->
                 <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
                   <form action="{{ url_for('posts.approve', post_id=post.id) }}" method="POST" style="display:flex; flex-direction:column; gap:8px;" onsubmit="
                     const checked = this.querySelectorAll('input[name=department_ids]:checked');
@@ -337,7 +337,7 @@
               {% endif %}
             {% endif %}
 
-            {% if current_user.role in ['CHAIRPERSON', 'PRINCIPAL'] %}
+            {% if current_user.role in ['CHAIRPERSON', 'PRINCIPAL', 'MASTER_ADMIN'] %}
               {% if post.approval_status == 'APPROVED' %}
                 <div style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 14px;">
                   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
@@ -351,14 +351,14 @@
                         {% endif %}
                       </strong>
                     </span>
-                    {% if current_user.role == 'CHAIRPERSON' %}
+                    {% if current_user.role in ['CHAIRPERSON', 'MASTER_ADMIN'] %}
                       <button type="button" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size:10px; padding:3px 8px; border-radius:6px; border-color:var(--border-color); color:var(--text-secondary); background:var(--bg-surface-hover);" onclick="toggleEditAllocation({{ post.id }})">
                         <i data-lucide="edit" style="width:12px;height:12px;color:var(--primary);"></i> Edit Allocation
                       </button>
                     {% endif %}
                   </div>
 
-                  {% if current_user.role == 'CHAIRPERSON' %}
+                  {% if current_user.role in ['CHAIRPERSON', 'MASTER_ADMIN'] %}
                     <div id="edit-allocation-form-{{ post.id }}" style="display:none; margin-top:12px; margin-left: 22px; background:var(--bg-surface-hover); border:1px solid var(--border-color); padding:16px; border-radius:10px; box-shadow: var(--shadow-sm);">
                       <form action="{{ url_for('posts.approve', post_id=post.id) }}" method="POST" style="display:flex; flex-direction:column; gap:10px;" onsubmit="
                         const checked = this.querySelectorAll('input[name=department_ids]:checked');
@@ -531,7 +531,7 @@
         <i data-lucide="megaphone" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px; display: inline-block; opacity: 0.5;"></i>
         <h5 class="text-muted font-semibold" style="margin:0;">No Shared Activities Yet</h5>
         <p class="text-xs text-muted mt-1" style="margin: 4px 0 0 0;">Announcements or notices shared by the Principal will appear here.</p>
-        {% if current_user.role == 'PRINCIPAL' %}
+        {% if current_user.role in ['PRINCIPAL', 'MASTER_ADMIN'] %}
           <a href="{{ url_for('posts.create') }}" class="btn btn--primary btn--sm mt-4">
             <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Share First Post
           </a>

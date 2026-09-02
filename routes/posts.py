@@ -387,7 +387,9 @@ def extract():
     if 'post_file' in request.files and request.files['post_file'].filename:
         file = request.files['post_file']
         if _allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+            import uuid
+            clean_name = secure_filename(file.filename)
+            filename = f"{uuid.uuid4().hex[:8]}_{clean_name}"
             upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts')
             os.makedirs(upload_dir, exist_ok=True)
             filepath = os.path.join(upload_dir, filename)
@@ -492,7 +494,9 @@ def create():
         if 'attachment' in request.files and request.files['attachment'].filename:
             file = request.files['attachment']
             if _allowed_file(file.filename):
-                filename = secure_filename(file.filename)
+                import uuid
+                clean_name = secure_filename(file.filename)
+                filename = f"{uuid.uuid4().hex[:8]}_{clean_name}"
                 upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts')
                 os.makedirs(upload_dir, exist_ok=True)
                 filepath = os.path.join(upload_dir, filename)
@@ -501,8 +505,10 @@ def create():
             else:
                 flash('Unsupported attachment file format.', 'warning')
         elif request.form.get('pre_attachment_path', '').strip():
-            # Use the file that was pre-saved during AI extraction
-            post.attachment_path = request.form.get('pre_attachment_path').strip()
+            # Use the file that was pre-saved during AI extraction (sanitized)
+            pre_path = request.form.get('pre_attachment_path').strip()
+            if pre_path.startswith('posts/') and '..' not in pre_path:
+                post.attachment_path = pre_path
 
         db.session.add(post)
         db.session.commit()
@@ -568,7 +574,9 @@ def edit(post_id):
         if 'attachment' in request.files and request.files['attachment'].filename:
             file = request.files['attachment']
             if _allowed_file(file.filename):
-                filename = secure_filename(file.filename)
+                import uuid
+                clean_name = secure_filename(file.filename)
+                filename = f"{uuid.uuid4().hex[:8]}_{clean_name}"
                 upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts')
                 os.makedirs(upload_dir, exist_ok=True)
                 filepath = os.path.join(upload_dir, filename)
@@ -577,8 +585,10 @@ def edit(post_id):
             else:
                 flash('Unsupported attachment file format.', 'warning')
         elif request.form.get('pre_attachment_path', '').strip():
-            # Use the file that was pre-saved during AI extraction
-            post.attachment_path = request.form.get('pre_attachment_path').strip()
+            # Use the file that was pre-saved during AI extraction (sanitized)
+            pre_path = request.form.get('pre_attachment_path').strip()
+            if pre_path.startswith('posts/') and '..' not in pre_path:
+                post.attachment_path = pre_path
 
         db.session.commit()
         flash('Shared Activity Post updated successfully!', 'success')
@@ -714,16 +724,17 @@ def update_progress(post_id):
 
 @posts_bp.route('/<int:post_id>/form-builder', methods=['GET', 'POST'])
 @login_required
-@role_required('HOD')
+@role_required('HOD', 'MASTER_ADMIN')
 def form_builder(post_id):
     """Coordinator accesses and configures the student registration form builder."""
     post = PrincipalPost.query.get_or_404(post_id)
     
     # Check if this post is allocated to coordinator's department
-    if current_user.department_id not in [d.id for d in post.departments]:
+    if current_user.role != 'MASTER_ADMIN' and current_user.department_id not in [d.id for d in post.departments]:
         abort(403)
         
     import json
+    from datetime import datetime
     
     # Default fields that are always included in student registration
     default_fields = [
@@ -738,14 +749,29 @@ def form_builder(post_id):
     if request.method == 'POST':
         # Read form configuration from JSON input or form fields
         config_data = request.form.get('config_json', '[]')
+        deadline_str = request.form.get('registration_deadline', '').strip()
+        
         try:
             custom_fields = json.loads(config_data)
             # Combine default fields and custom fields
             full_config = default_fields + custom_fields
             post.form_config = json.dumps(full_config)
             post.has_registration_form = True
+            
+            # Save custom registration deadline
+            if deadline_str:
+                try:
+                    post.registration_deadline = datetime.strptime(deadline_str, '%Y-%m-%dT%H:%M')
+                except ValueError:
+                    try:
+                        post.registration_deadline = datetime.strptime(deadline_str, '%Y-%m-%d')
+                    except ValueError:
+                        post.registration_deadline = None
+            else:
+                post.registration_deadline = None
+
             db.session.commit()
-            flash('Registration form configuration saved successfully!', 'success')
+            flash('Registration form configuration and deadline saved successfully!', 'success')
             return redirect(url_for('dashboard.index'))
         except Exception as e:
             flash(f'Failed to save form config: {e}', 'danger')
@@ -764,11 +790,11 @@ def form_builder(post_id):
 
 @posts_bp.route('/<int:post_id>/form-builder/auto', methods=['POST'])
 @login_required
-@role_required('HOD')
+@role_required('HOD', 'MASTER_ADMIN')
 def form_builder_auto(post_id):
     """AJAX endpoint to auto-suggest custom fields based on post details."""
     post = PrincipalPost.query.get_or_404(post_id)
-    if current_user.department_id not in [d.id for d in post.departments]:
+    if current_user.role != 'MASTER_ADMIN' and current_user.department_id not in [d.id for d in post.departments]:
         return jsonify({"error": "Unauthorized"}), 403
         
     from services.form_generator import FormGenerator
@@ -787,6 +813,19 @@ def register(post_id):
         
     import json
     
+    # Format closed deadline text for display
+    closed_deadline_formatted = None
+    if post.registration_deadline:
+        closed_deadline_formatted = post.registration_deadline.strftime('%B %d, %Y at %I:%M %p')
+    elif post.end_date:
+        closed_deadline_formatted = post.end_date.strftime('%B %d, %Y')
+
+    # Check if registration is closed (deadline passed or completed)
+    if post.is_registration_closed:
+        return render_template('posts/register.html', post=post, fields=[], 
+                               is_closed=True, 
+                               closed_deadline_formatted=closed_deadline_formatted or 'recently')
+
     # Parse form configuration
     fields = []
     if post.form_config:
@@ -822,8 +861,20 @@ def register(post_id):
                     return render_template('posts/register.html', post=post, fields=fields)
                 custom_answers[fid] = val
                 
-        # Save Student Registration
+        # Check for duplicate registration (same enrollment number or email for this post)
         from models.student_registration import StudentRegistration
+        existing_reg = StudentRegistration.query.filter(
+            StudentRegistration.post_id == post.id,
+            db.or_(
+                StudentRegistration.enrollment_no == enrollment_no,
+                StudentRegistration.email == email
+            )
+        ).first()
+        if existing_reg:
+            flash('You are already registered for this activity with this enrollment number or email.', 'warning')
+            return render_template('posts/register.html', post=post, fields=fields)
+
+        # Save Student Registration
         reg = StudentRegistration(
             post_id=post.id,
             student_name=student_name,
@@ -850,7 +901,7 @@ def registration_report(post_id):
     post = PrincipalPost.query.get_or_404(post_id)
     
     # Authorization checks
-    is_mgmt = current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR')
+    is_mgmt = current_user.is_management
     is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
     is_assigned = current_user.id == post.assigned_faculty_id
     
@@ -908,7 +959,7 @@ def report_form(post_id):
     post = PrincipalPost.query.get_or_404(post_id)
     
     # Check if user is authorized
-    is_mgmt = current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR')
+    is_mgmt = current_user.is_management
     is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
     is_assigned = current_user.id == post.assigned_faculty_id
     
@@ -1094,7 +1145,7 @@ def report_download(post_id):
     post = PrincipalPost.query.get_or_404(post_id)
     report = ActivityReport.query.filter_by(post_id=post.id).first_or_404()
     
-    is_mgmt = current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR')
+    is_mgmt = current_user.is_management
     is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
     is_assigned = current_user.id == post.assigned_faculty_id
     
@@ -1125,7 +1176,7 @@ def report_download(post_id):
 @role_required('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR', 'HOD', 'FACULTY')
 def completed_activities_list():
     """Page listing all completed activities with submitted reports (scoped by role)."""
-    if current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR'):
+    if current_user.is_management:
         completed_posts = PrincipalPost.query.join(
             ActivityReport, PrincipalPost.id == ActivityReport.post_id
         ).filter(

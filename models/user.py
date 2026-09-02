@@ -9,6 +9,7 @@ from extensions import db
 
 # Valid user roles
 ROLES = [
+    'MASTER_ADMIN',
     'PRINCIPAL',
     'CHAIRPERSON',
     'RD_COORDINATOR',
@@ -18,6 +19,7 @@ ROLES = [
 ]
 
 ROLE_LABELS = {
+    'MASTER_ADMIN': 'Master Admin',
     'PRINCIPAL': 'Principal',
     'CHAIRPERSON': 'Chairperson',
     'RD_COORDINATOR': 'R&D Coordinator',
@@ -57,7 +59,7 @@ class User(UserMixin, db.Model):
 
     @property
     def is_management(self):
-        return self.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR')
+        return self.role in ('MASTER_ADMIN', 'PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR')
 
     def can_access_dept(self, dept_id):
         if self.is_management:

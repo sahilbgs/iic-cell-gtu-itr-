@@ -264,6 +264,25 @@
             Please check your email periodically for event scheduling updates.
           </div>
         </div>
+      {% elif is_closed %}
+        <!-- Registration Closed Panel -->
+        <div class="success-box" style="animation: scaleUp 0.4s ease;">
+          <div class="success-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);">
+            <i data-lucide="calendar-x" style="width:36px;height:36px;"></i>
+          </div>
+          <h2 class="success-title" style="color: var(--danger);">Registration Closed</h2>
+          <p class="success-text" style="margin-bottom: 16px;">
+            Registration for <strong>{{ post.title }}</strong> closed on <br>
+            <span style="display:inline-block; font-weight:700; color:var(--text-main); margin-top:6px; padding:6px 14px; background:var(--bg-body); border-radius:8px; border:1px solid var(--border-color); font-size:13px;">
+              <i data-lucide="clock" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;color:var(--danger);"></i>
+              {{ closed_deadline_formatted }}
+            </span>
+          </p>
+          <div style="background: var(--bg-body); border: 1px dashed var(--border-color); padding: 14px; border-radius: 8px; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i data-lucide="alert-circle" style="width:16px;height:16px;color:var(--danger);"></i>
+            New student registrations are no longer accepted for this activity.
+          </div>
+        </div>
       {% else %}
         
         <!-- Registration Form Panel -->
@@ -271,9 +290,21 @@
           <div class="badge-row">
             <span class="badge">{{ post.source_label }}</span>
             <span class="badge badge--source">APPROVED ACTIVITY</span>
+            {% if post.registration_deadline %}
+              <span class="badge" style="background:rgba(245,158,11,0.15); color:#b45309; font-weight:700;">
+                <i data-lucide="clock" style="width:10px;height:10px;vertical-align:middle;margin-right:2px;"></i>
+                DEADLINE SET
+              </span>
+            {% endif %}
           </div>
           <h2 class="activity-title">{{ post.title }}</h2>
           <div class="activity-dates">
+            {% if post.registration_deadline %}
+              <div class="date-item" style="color:#d97706; font-weight:700; background:rgba(245,158,11,0.1); padding:4px 10px; border-radius:6px; border:1px solid rgba(245,158,11,0.25);">
+                <i data-lucide="calendar-clock" style="width:14px;height:14px;color:#d97706;"></i>
+                Registration Deadline: {{ post.registration_deadline.strftime('%B %d, %Y at %I:%M %p') }}
+              </div>
+            {% endif %}
             {% if post.start_date %}
               <div class="date-item">
                 <i data-lucide="calendar" style="width:13px;height:13px;color:var(--primary);"></i>

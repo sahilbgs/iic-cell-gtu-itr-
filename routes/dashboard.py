@@ -40,7 +40,7 @@ def index():
 
     # ---- Principal posts ---------------------------------------------------
     # Principal & Chairperson see all posts; others see only APPROVED posts for their dept
-    if current_user.role in ('PRINCIPAL', 'CHAIRPERSON'):
+    if current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'MASTER_ADMIN'):
         principal_posts = PrincipalPost.query.join(
             ActivityReport, PrincipalPost.id == ActivityReport.post_id, isouter=True
         ).filter(
@@ -69,7 +69,7 @@ def index():
 
     # Departments list for Chairperson allocation dropdown
     departments = []
-    if current_user.role == 'CHAIRPERSON':
+    if current_user.role in ('CHAIRPERSON', 'MASTER_ADMIN'):
         departments = Department.query.filter_by(is_deleted=False).order_by(Department.name).all()
 
     # Fetch faculty members of HOD's department

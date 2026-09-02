@@ -127,22 +127,28 @@
       </h5>
       <div style="display: flex; flex-direction: column; gap: 12px;">
         {% if post.has_registration_form %}
-          <a href="{{ url_for('posts.register', post_id=post.id) }}" class="btn btn--success flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%; box-shadow: var(--shadow-sm);" target="_blank">
-            <i data-lucide="external-link" style="width:16px;height:16px;"></i> Student Registration
-          </a>
+          {% if post.is_registration_closed %}
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--border-radius-full); padding: 8px 14px; text-align: center; color: var(--danger); font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i data-lucide="lock" style="width: 14px; height: 14px;"></i> Registration Closed
+            </div>
+          {% else %}
+            <a href="{{ url_for('posts.register', post_id=post.id) }}" class="btn btn--success flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%; box-shadow: var(--shadow-sm);" target="_blank">
+              <i data-lucide="external-link" style="width:16px;height:16px;"></i> Student Registration
+            </a>
+          {% endif %}
           <a href="{{ url_for('posts.registration_report', post_id=post.id) }}" class="btn btn--secondary flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%;">
             <i data-lucide="bar-chart-2" style="width:16px;height:16px;color:var(--success);"></i> Registration Reports
           </a>
         {% endif %}
 
         {% if post.approval_status == 'APPROVED' %}
-          {% set is_mgmt = current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR') %}
+          {% set is_mgmt = current_user.is_management %}
           {% set is_coord = current_user.role == 'HOD' and current_user.department_id in post.departments | map(attribute='id') | list %}
           {% set is_assigned = current_user.id == post.assigned_faculty_id %}
           
           {% if is_mgmt or is_coord or is_assigned %}
             {% if not post.activity_report or post.activity_report.status == 'DRAFT' %}
-              {% if is_coord or is_assigned or current_user.role == 'RD_COORDINATOR' %}
+              {% if is_coord or is_assigned or current_user.role in ['RD_COORDINATOR', 'MASTER_ADMIN'] %}
                 <a href="{{ url_for('posts.report_form', post_id=post.id) }}" class="btn btn--primary flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%; background:var(--primary); border:none; color:#fff;">
                   <i data-lucide="file-edit" style="width:16px;height:16px;"></i>
                   {% if post.activity_report %}Edit Report Draft{% else %}Generate Activity Report{% endif %}
@@ -159,7 +165,7 @@
           {% endif %}
         {% endif %}
 
-        {% if (current_user.role == 'PRINCIPAL' or current_user.id == post.created_by) and post.progress_status != 'COMPLETED' %}
+        {% if (current_user.role in ['PRINCIPAL', 'MASTER_ADMIN'] or current_user.id == post.created_by) and post.progress_status != 'COMPLETED' %}
           <a href="{{ url_for('posts.edit', post_id=post.id) }}" class="btn btn--secondary flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%;">
             <i data-lucide="edit" style="width:16px;height:16px;color:var(--primary);"></i> Edit Activity Post
           </a>
@@ -247,18 +253,37 @@
             <i data-lucide="calendar-days" style="width:18px;height:18px;"></i>
           </div>
           <div>
-            <span style="display:block; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">End Date / Deadline</span>
+            <span style="display:block; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Activity End Date</span>
             <span style="font-size:13.5px; font-weight:700; color:var(--danger);">
               {{ post.end_date.strftime('%B %d, %Y') if post.end_date else 'No Limit' }}
             </span>
           </div>
         </div>
 
+        {% if post.registration_deadline %}
+        <div style="display:flex; gap:12px; border-top:1px solid var(--border-color); padding-top:14px;">
+          <div style="background: rgba(245, 158, 11, 0.1); color: #d97706; width: 36px; height: 36px; border-radius: 8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i data-lucide="alarm-clock" style="width:18px;height:18px;"></i>
+          </div>
+          <div>
+            <span style="display:block; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Registration Deadline</span>
+            <span style="font-size:13.5px; font-weight:700; color:{% if post.is_registration_closed %}var(--danger){% else %}#d97706{% endif %};">
+              {{ post.registration_deadline.strftime('%B %d, %Y at %I:%M %p') }}
+              {% if post.is_registration_closed %}
+                <span class="badge badge--danger" style="font-size:9px; margin-left:4px; font-weight:700;">CLOSED</span>
+              {% else %}
+                <span class="badge badge--success" style="font-size:9px; margin-left:4px; font-weight:700;">OPEN</span>
+              {% endif %}
+            </span>
+          </div>
+        </div>
+        {% endif %}
+
       </div>
     </div>
 
     <!-- Administrative details if chairperson/principal -->
-    {% if current_user.role in ['CHAIRPERSON', 'PRINCIPAL'] %}
+    {% if current_user.role in ['CHAIRPERSON', 'PRINCIPAL', 'MASTER_ADMIN'] %}
       <div class="card glass-card" style="padding: 24px; border-radius: var(--border-radius-lg); border-left: 4px solid var(--primary);">
         <h5 style="font-family:'Outfit', sans-serif; font-weight:700; color:var(--primary); margin-bottom:20px; font-size:1rem; border-bottom:1px solid var(--border-color); padding-bottom:10px; display:flex; align-items:center; gap:8px;">
           <i data-lucide="git-branch" style="width:18px; height:18px; color:var(--primary);"></i>

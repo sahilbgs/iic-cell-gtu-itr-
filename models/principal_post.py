@@ -59,6 +59,7 @@ class PrincipalPost(db.Model):
     # Faculty assignment and student registration fields
     assigned_faculty_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     has_registration_form = db.Column(db.Boolean, default=False, nullable=False)
+    registration_deadline = db.Column(db.DateTime, nullable=True)
     form_config = db.Column(db.Text, nullable=True)
 
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -96,6 +97,18 @@ class PrincipalPost(db.Model):
             'EXPIRED': 0
         }
         return percentages.get(self.progress_status, 0)
+
+    @property
+    def is_registration_closed(self):
+        """Check if student registration is closed due to deadline or completion."""
+        from datetime import datetime, date
+        if self.progress_status in ['COMPLETED', 'EXPIRED']:
+            return True
+        if self.registration_deadline:
+            return datetime.now() > self.registration_deadline
+        if self.end_date:
+            return date.today() > self.end_date
+        return False
 
     @classmethod
     def check_and_update_expired(cls):

@@ -54,6 +54,9 @@ class Config:
     AI_DEVICE = os.environ.get('AI_DEVICE', 'auto')
     AI_MAX_TOKENS = 2048
 
+    # Maintenance Access
+    MAINTENANCE_PASSWORD = os.environ.get('MAINTENANCE_PASSWORD', '44113290@sahil')
+
     # Export
     EXPORT_FOLDER = os.path.join(basedir, 'exports')
 

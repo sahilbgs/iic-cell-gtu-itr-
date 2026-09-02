@@ -19,12 +19,14 @@ ENV/
 env.bak/
 venv.bak/
 
-# Environment variables / Secret keys
+# Environment variables / Secret keys / Credentials
 .env
 .env.local
 .env.production
 .env.development
 .env.staging
+user_credentials.txt
+*.log
 
 # Local uploads and exports
 uploads/

@@ -17,11 +17,11 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
 def chairperson_required(f):
-    """Decorator: only CHAIRPERSON can access admin routes."""
+    """Decorator: only CHAIRPERSON and MASTER_ADMIN can access admin routes."""
     @wraps(f)
     @login_required
     def decorated(*args, **kwargs):
-        if current_user.role != 'CHAIRPERSON':
+        if current_user.role not in ('CHAIRPERSON', 'MASTER_ADMIN'):
             abort(403)
         return f(*args, **kwargs)
     return decorated
@@ -396,8 +396,10 @@ from flask import session
 def maintenance():
     """Secure maintenance page for restoring soft-deleted data."""
     if request.method == 'POST':
-        password = request.form.get('password')
-        if password == '44113290@sahil':
+        import hmac
+        password = request.form.get('password', '')
+        configured_pwd = current_app.config.get('MAINTENANCE_PASSWORD', '44113290@sahil')
+        if password and hmac.compare_digest(password, configured_pwd):
             session['maintenance_unlocked'] = True
             flash('Maintenance mode unlocked.', 'success')
             return redirect(url_for('admin.maintenance'))

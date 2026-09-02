@@ -21,7 +21,7 @@ def role_required(*roles):
             if not current_user.is_authenticated:
                 flash('Please log in to access this page.', 'warning')
                 return redirect(url_for('auth.login'))
-            if current_user.role not in roles:
+            if current_user.role != 'MASTER_ADMIN' and current_user.role not in roles:
                 abort(403)
             return f(*args, **kwargs)
         return decorated_function
@@ -29,22 +29,22 @@ def role_required(*roles):
 
 
 def principal_required(f):
-    """Restrict to Principal only."""
+    """Restrict to Principal (and Master Admin)."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role != 'PRINCIPAL':
+        if not current_user.is_authenticated or current_user.role not in ('PRINCIPAL', 'MASTER_ADMIN'):
             abort(403)
         return f(*args, **kwargs)
     return decorated_function
 
 
 def management_required(f):
-    """Restrict to Principal, Chairperson, and R&D Coordinator."""
+    """Restrict to Principal, Chairperson, R&D Coordinator, and Master Admin."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
-        if current_user.role not in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR'):
+        if current_user.role not in ('MASTER_ADMIN', 'PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR'):
             abort(403)
         return f(*args, **kwargs)
     return decorated_function
@@ -65,10 +65,10 @@ def dept_or_above_required(f):
 def can_access_department(department_id):
     """
     Check if the current user can access data from a specific department.
-    - PRINCIPAL, CHAIRPERSON, RD_COORDINATOR: access all departments
+    - MASTER_ADMIN, PRINCIPAL, CHAIRPERSON, RD_COORDINATOR: access all departments
     - HOD, FACULTY: only their own department
     - STUDENT_REP: only their own department (view only)
     """
-    if current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR'):
+    if current_user.role in ('MASTER_ADMIN', 'PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR'):
         return True
     return current_user.department_id == department_id

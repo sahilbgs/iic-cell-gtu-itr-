@@ -43,6 +43,28 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" id="config_json" name="config_json" value="[]">
 
+      <!-- Registration Deadline Section -->
+      <div style="background:linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(59,130,246,0.03) 100%); border:1px solid rgba(245,158,11,0.25); border-radius:10px; padding:16px; margin-bottom:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <h5 style="font-size:11px; font-weight:700; color:var(--text-primary); letter-spacing:0.5px; text-transform:uppercase; margin:0; display:flex; align-items:center; gap:6px;">
+            <i data-lucide="calendar-clock" style="width:15px;height:15px;color:#d97706;"></i>
+            Registration Deadline (Auto-Close)
+          </h5>
+          <span class="badge" style="font-size:9px; background:rgba(245,158,11,0.15); color:#b45309; font-weight:700;">OPTIONAL</span>
+        </div>
+        <p class="text-muted" style="font-size:11px; margin:0 0 10px 0; line-height:1.4;">
+          Specify the exact date and time when student registrations will automatically lock and close. If left empty, registrations remain open until the activity ends.
+        </p>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="datetime-local" id="registration_deadline" name="registration_deadline" 
+                 value="{{ post.registration_deadline.strftime('%Y-%m-%dT%H:%M') if post.registration_deadline else '' }}"
+                 style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-primary); font-size:12px; font-family:'Inter',sans-serif; cursor:pointer;">
+          <button type="button" class="btn btn--secondary btn--sm" style="font-size:11px; padding:8px 12px; border-radius:8px;" onclick="document.getElementById('registration_deadline').value = ''">
+            Clear
+          </button>
+        </div>
+      </div>
+
       <!-- Default Fields Section -->
       <div style="margin-bottom:24px;">
         <h5 style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:10px;">Default System Fields (Required)</h5>

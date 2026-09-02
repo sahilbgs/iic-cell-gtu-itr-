@@ -433,7 +433,7 @@
       <h4 style="font-family:'Outfit', sans-serif; font-weight:800; color:var(--primary);">Collaborations & Notices Board</h4>
       <p class="text-muted text-sm">Official circulars, academic conferences, and industry drive notices posted directly by the Principal.</p>
     </div>
-    {% if current_user.role == 'PRINCIPAL' %}
+    {% if current_user.role in ['PRINCIPAL', 'MASTER_ADMIN'] %}
       <a href="{{ url_for('posts.manage') }}" class="btn btn--primary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px 20px; box-shadow: var(--shadow-sm);">
         <i data-lucide="settings" style="width:16px;height:16px;"></i> Management Panel
       </a>
@@ -555,7 +555,7 @@
               </a>
             {% endif %}
             
-            {% if current_user.role == 'PRINCIPAL' and post.progress_status != 'COMPLETED' %}
+            {% if current_user.role in ['PRINCIPAL', 'MASTER_ADMIN'] and post.progress_status != 'COMPLETED' %}
               <form action="{{ url_for('posts.delete', post_id=post.id) }}" method="POST" style="display:inline; margin:0;" onsubmit="return confirm('Are you sure you want to delete this shared activity post?');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn--danger btn--sm flex items-center gap-1" style="border-radius: var(--border-radius-full); font-size: 11px; padding: 6px 12px; font-weight:600;">
