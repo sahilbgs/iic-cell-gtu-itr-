@@ -113,19 +113,92 @@ def approved_activities():
                            not_started_count=not_started_count)
 
 
+_rapid_ocr_instance = None
+
+
+def _get_rapid_ocr_engine():
+    """Lazily initialize and cache the RapidOCR engine."""
+    global _rapid_ocr_instance
+    if _rapid_ocr_instance is None:
+        try:
+            import os
+            os.environ.setdefault('ORT_LOG_LEVEL', '3')
+            from rapidocr_onnxruntime import RapidOCR
+            with _suppress_c_stderr():
+                _rapid_ocr_instance = RapidOCR()
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("Could not initialize RapidOCR: %s", e)
+            _rapid_ocr_instance = False
+    return _rapid_ocr_instance if _rapid_ocr_instance is not False else None
+
+
+def _suppress_c_stderr():
+    """Context manager to silence low-level C/C++ runtime stderr (e.g. ONNX thread warnings)."""
+    import contextlib
+    @contextlib.contextmanager
+    def _suppressor():
+        import os, sys
+        try:
+            stderr_fd = sys.stderr.fileno()
+            saved_stderr = os.dup(stderr_fd)
+            devnull = os.open(os.devnull, os.O_WRONLY)
+            os.dup2(devnull, stderr_fd)
+            os.close(devnull)
+            try:
+                yield
+            finally:
+                os.dup2(saved_stderr, stderr_fd)
+                os.close(saved_stderr)
+        except Exception:
+            yield
+    return _suppressor()
+
+
 def _ocr_image(image):
-    """Run Tesseract OCR on a PIL Image and return extracted text."""
-    import pytesseract
-    return pytesseract.image_to_string(image, lang='eng')
+    """Run OCR on a PIL Image and return extracted text.
+    Uses RapidOCR (pure ONNX engine, high accuracy) as primary,
+    with fallback to pytesseract if installed.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # 1. Primary: RapidOCR
+    try:
+        engine = _get_rapid_ocr_engine()
+        if engine is not None:
+            import numpy as np
+            rgb_image = image.convert('RGB')
+            img_np = np.array(rgb_image)
+            with _suppress_c_stderr():
+                result, _ = engine(img_np)
+            if result:
+                lines = [line[1] for line in result if line and len(line) > 1 and line[1]]
+                extracted = '\n'.join(lines).strip()
+                if extracted:
+                    return extracted
+    except Exception as e:
+        logger.warning("RapidOCR extraction failed: %s", e)
+
+    # 2. Fallback: pytesseract
+    try:
+        import pytesseract
+        text = pytesseract.image_to_string(image, lang='eng').strip()
+        if text:
+            return text
+    except Exception as e:
+        logger.debug("pytesseract unavailable or failed: %s", e)
+
+    return ''
 
 
 def _extract_text_from_file(filepath):
     """Extract text from uploaded file.
 
     Supports:
-    - **Images** (JPG/PNG/BMP/TIFF): OCR with Tesseract
-    - **PDF**: Text extraction with pdfplumber; if the result is too
-      short (scanned/image PDF), falls back to OCR via pypdfium2
+    - **Images** (JPG/PNG/BMP/TIFF/WEBP): RapidOCR & Tesseract fallback
+    - **PDF**: Text extraction with pdfplumber; if scanned or minimal text,
+      falls back to OCR on rendered pages via pypdfium2
     - **DOCX/DOC**: Extracts paragraphs + table cells + headers/footers
     - **TXT**: Plain read
     """
@@ -135,18 +208,16 @@ def _extract_text_from_file(filepath):
     ext = filepath.rsplit('.', 1)[1].lower()
     text = ''
 
-    # ── Images: OCR with Tesseract ──────────────────────────────────
+    # ── Images: OCR ─────────────────────────────────────────────────
     if ext in ('png', 'jpg', 'jpeg', 'bmp', 'tiff', 'webp'):
         try:
             from PIL import Image
             img = Image.open(filepath)
             text = _ocr_image(img)
             logger.info("OCR extracted %d chars from image.", len(text))
-        except ImportError:
-            text = '[OCR unavailable – install pytesseract and Pillow]'
         except Exception as e:
             logger.warning("OCR failed for image: %s", e)
-            text = f'[OCR failed: {e}]'
+            text = ''
 
     # ── PDF: text first, OCR fallback for scanned pages ─────────────
     elif ext == 'pdf':
@@ -167,38 +238,34 @@ def _extract_text_from_file(filepath):
                                 text += ' | '.join(cells) + '\n'
 
             logger.info("pdfplumber extracted %d chars from %d pages.", len(text.strip()), page_count)
-
-            # If text extraction got very little content, the PDF is likely
-            # scanned/image-based — fall back to OCR on each page
-            if len(text.strip()) < 50 and page_count > 0:
-                logger.info("PDF text too short (%d chars), trying OCR fallback...", len(text.strip()))
-                try:
-                    import pypdfium2 as pdfium
-                    from PIL import Image as PILImage
-
-                    ocr_text = ''
-                    pdf_doc = pdfium.PdfDocument(filepath)
-                    for i in range(min(len(pdf_doc), 5)):  # OCR max 5 pages
-                        page = pdf_doc[i]
-                        # Render page as image at 300 DPI for good OCR quality
-                        bitmap = page.render(scale=300/72)
-                        pil_image = bitmap.to_pil()
-                        page_ocr = _ocr_image(pil_image)
-                        if page_ocr:
-                            ocr_text += page_ocr + '\n'
-                    pdf_doc.close()
-
-                    if len(ocr_text.strip()) > len(text.strip()):
-                        text = ocr_text
-                        logger.info("PDF OCR fallback extracted %d chars.", len(text.strip()))
-                except ImportError:
-                    logger.warning("pypdfium2 not available for PDF OCR fallback.")
-                except Exception as ocr_e:
-                    logger.warning("PDF OCR fallback failed: %s", ocr_e)
-
         except Exception as e:
-            logger.warning("PDF extraction failed: %s", e)
-            text = '[PDF text extraction failed]'
+            logger.warning("pdfplumber extraction failed: %s", e)
+            page_count = 0
+
+        # If text extraction got very little content (or was scanned PDF),
+        # fall back to OCR on rendered page images
+        if len(text.strip()) < 50:
+            logger.info("PDF text too short (%d chars), trying OCR fallback on rendered pages...", len(text.strip()))
+            try:
+                import pypdfium2 as pdfium
+
+                ocr_text = ''
+                pdf_doc = pdfium.PdfDocument(filepath)
+                num_pages = len(pdf_doc)
+                for i in range(min(num_pages, 10)):  # OCR up to 10 pages
+                    page = pdf_doc[i]
+                    bitmap = page.render(scale=300 / 72)
+                    pil_image = bitmap.to_pil()
+                    page_ocr = _ocr_image(pil_image)
+                    if page_ocr:
+                        ocr_text += page_ocr + '\n'
+                pdf_doc.close()
+
+                if len(ocr_text.strip()) > len(text.strip()):
+                    text = ocr_text
+                    logger.info("PDF OCR fallback extracted %d chars.", len(text.strip()))
+            except Exception as ocr_e:
+                logger.warning("PDF OCR fallback failed: %s", ocr_e)
 
     # ── Word documents: paragraphs + tables + headers ────────────────
     elif ext in ('docx', 'doc'):
