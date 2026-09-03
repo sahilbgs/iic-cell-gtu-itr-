@@ -28,8 +28,9 @@ class Config:
         encoded_password = urllib.parse.quote_plus(db_password)
         SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{db_user}:{encoded_password}@{db_host}:{db_port}/{db_name}"
     else:
+        # Default to PostgreSQL for GTU-ITR server
         SQLALCHEMY_DATABASE_URI = db_url or \
-            'sqlite:///' + os.path.join(basedir, 'instance', 'gtu_portal.db')
+            'postgresql+psycopg2://gtu_admin:44113290@localhost:5432/iic_cell_gtu'
             
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

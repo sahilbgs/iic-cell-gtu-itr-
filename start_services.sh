@@ -27,6 +27,9 @@ if [ -d "$PG_DATA" ]; then
     fi
 fi
 
+# Permanently enforce PostgreSQL database URL for all portal processes
+export DATABASE_URL="postgresql+psycopg2://gtu_admin:44113290@localhost:5432/iic_cell_gtu"
+
 echo "Starting GTU-ITR Portal (Gunicorn on 5000)..."
 "$PROJECT_DIR/venv/bin/gunicorn" \
     --bind 0.0.0.0:5000 \

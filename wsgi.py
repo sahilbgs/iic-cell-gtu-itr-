@@ -1,6 +1,13 @@
 import os
-from app import create_app
 from werkzeug.middleware.proxy_fix import ProxyFix
+
+# Ensure PostgreSQL database is locked and permanent on this server
+PG_DB_URL = "postgresql+psycopg2://gtu_admin:44113290@localhost:5432/iic_cell_gtu"
+current_db = os.environ.get('DATABASE_URL', '')
+if not current_db or 'sqlite' in current_db:
+    os.environ['DATABASE_URL'] = PG_DB_URL
+
+from app import create_app
 
 # Default to production configuration in WSGI environment
 config_name = os.environ.get('FLASK_ENV', 'production')

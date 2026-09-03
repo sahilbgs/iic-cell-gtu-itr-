@@ -20,11 +20,7 @@ env.bak/
 venv.bak/
 
 # Environment variables / Secret keys / Credentials
-.env
-.env.local
-.env.production
-.env.development
-.env.staging
+.env*
 user_credentials.txt
 *.log
 *.sql
