@@ -116,7 +116,7 @@ sudo bash -c "cat <<SVC_EOF > ${SERVICE_PATH}
 [Unit]
 Description=GTU-ITR R&D & IIC Portal Flask App
 After=network.target postgresql.service
-Requires=postgresql.service
+Wants=postgresql.service
 
 [Service]
 Type=simple
