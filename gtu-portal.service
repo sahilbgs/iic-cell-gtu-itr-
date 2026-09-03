@@ -7,7 +7,9 @@ Type=simple
 User=gtu-itr
 WorkingDirectory=/home/gtu-itr/iic-cell-gtu-itr-
 Environment="PATH=/home/gtu-itr/iic-cell-gtu-itr-/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin"
-ExecStart=/home/gtu-itr/iic-cell-gtu-itr-/venv/bin/gunicorn --bind 0.0.0.0:5000 --workers 3 --timeout 120 wsgi:app
+ExecStart=/home/gtu-itr/iic-cell-gtu-itr-/venv/bin/gunicorn --bind 0.0.0.0:5000 --workers 3 --timeout 120 --access-logfile /home/gtu-itr/iic-cell-gtu-itr-/logs/portal_access.log --error-logfile /home/gtu-itr/iic-cell-gtu-itr-/logs/portal_error.log --capture-output wsgi:app
+StandardOutput=journal
+StandardError=journal
 Restart=always
 RestartSec=5
 

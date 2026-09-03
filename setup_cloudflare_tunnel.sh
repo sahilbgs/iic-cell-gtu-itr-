@@ -16,4 +16,5 @@ echo "    Starting Cloudflare Tunnel for https://iic-gtu-itr.aceglory.in"
 echo "    Tunnel ID: $TUNNEL_ID"
 echo "======================================================================"
 
-exec "$CLOUDFLARED" --config "$CONFIG_FILE" tunnel run "$TUNNEL_ID"
+mkdir -p "$PROJECT_DIR/logs"
+exec "$CLOUDFLARED" --config "$CONFIG_FILE" --logfile "$PROJECT_DIR/logs/tunnel.log" --loglevel info tunnel run "$TUNNEL_ID"

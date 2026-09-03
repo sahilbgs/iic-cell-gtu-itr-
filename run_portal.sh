@@ -14,4 +14,13 @@ echo "======================================================================"
 echo " Starting GTU-ITR Portal (Gunicorn on 0.0.0.0:5000)..."
 echo "======================================================================"
 
-exec ./venv/bin/gunicorn --bind 0.0.0.0:5000 --workers 3 --timeout 120 wsgi:app
+mkdir -p "$PROJECT_DIR/logs"
+
+exec ./venv/bin/gunicorn --bind 0.0.0.0:5000 \
+    --workers 3 \
+    --timeout 120 \
+    --access-logfile "$PROJECT_DIR/logs/portal_access.log" \
+    --error-logfile "$PROJECT_DIR/logs/portal_error.log" \
+    --capture-output \
+    wsgi:app
+
