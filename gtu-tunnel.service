@@ -1,0 +1,15 @@
+[Unit]
+Description=Cloudflare Tunnel for GTU-ITR Portal (iic-gtu-itr.aceglory.in)
+After=network.target gtu-portal.service
+Wants=gtu-portal.service
+
+[Service]
+Type=simple
+User=gtu-itr
+WorkingDirectory=/home/gtu-itr/iic-cell-gtu-itr-
+ExecStart=/home/gtu-itr/iic-cell-gtu-itr-/venv/bin/cloudflared --config /home/gtu-itr/iic-cell-gtu-itr-/.cloudflared/config.yml tunnel run 0db9da8f-002e-4e4c-8f89-c5d548652de7
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

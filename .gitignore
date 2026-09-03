@@ -46,3 +46,7 @@ exports/
 # OS-specific
 .DS_Store
 Thumbs.db
+
+# Cloudflare Tunnel credentials and binary
+.cloudflared/
+cloudflared
