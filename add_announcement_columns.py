@@ -37,6 +37,14 @@ if os.path.exists(sqlite_path):
         except Exception as e:
             print(f"[NOTE] SQLite external_registration_url: {e}")
 
+    for col, col_type in [('form_title', 'VARCHAR(300)'), ('form_subtitle', 'VARCHAR(500)'), ('form_badge', 'VARCHAR(100)')]:
+        if col not in existing:
+            try:
+                cur.execute(f"ALTER TABLE principal_posts ADD COLUMN {col} {col_type} NULL;")
+                print(f"[OK] Added {col} to SQLite")
+            except Exception as e:
+                print(f"[NOTE] SQLite {col}: {e}")
+
     con.commit()
     con.close()
     print("[SUCCESS] SQLite migration complete.")
@@ -80,6 +88,16 @@ try:
                 except Exception as e:
                     db.session.rollback()
                     print(f"[NOTE] external_registration_url: {e}")
+
+            for col, col_type in [('form_title', 'VARCHAR(300)'), ('form_subtitle', 'VARCHAR(500)'), ('form_badge', 'VARCHAR(100)')]:
+                if col not in existing_columns:
+                    try:
+                        db.session.execute(text(f"ALTER TABLE principal_posts ADD COLUMN {col} {col_type} NULL;"))
+                        db.session.commit()
+                        print(f"[OK] Added {col} via SQLAlchemy")
+                    except Exception as e:
+                        db.session.rollback()
+                        print(f"[NOTE] {col}: {e}")
         except Exception as e:
             print(f"SQLAlchemy check note: {e}")
 except Exception as e:
