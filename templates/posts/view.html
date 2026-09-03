@@ -14,6 +14,35 @@
 {% endblock %}
 
 {% block content %}
+<style>
+  .post-view-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    align-items: start;
+  }
+  @media (max-width: 992px) {
+    .post-view-layout {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    .post-view-banner {
+      padding: 20px 16px !important;
+    }
+    .post-view-banner h2 {
+      font-size: 1.4rem !important;
+    }
+    .post-view-iframe {
+      height: 460px !important;
+    }
+  }
+  @media (max-width: 480px) {
+    .post-view-iframe {
+      height: 360px !important;
+    }
+  }
+</style>
+
 <div class="mb-6">
   <!-- Back Button at the Top -->
   <button onclick="goBack()" class="btn btn--secondary flex items-center gap-2" style="border-radius: var(--border-radius-full); padding: 8px 20px; box-shadow: var(--shadow-sm); transition: all 0.2s;">
@@ -21,13 +50,13 @@
   </button>
 </div>
 
-<div class="grid grid-3" style="align-items: start; gap: 30px; grid-template-columns: 2fr 1fr;">
+<div class="post-view-layout">
   
   <!-- LEFT COLUMN: Main Announcement Details & PDF Viewer -->
   <div style="display: flex; flex-direction: column; gap: 24px;">
     
     <!-- Title & Summary Glassmorphic Banner -->
-    <div class="card glass-card" style="padding: 30px; position: relative; overflow: hidden; border-left: 5px solid var(--primary);">
+    <div class="card glass-card post-view-banner" style="padding: 30px; position: relative; overflow: hidden; border-left: 5px solid var(--primary);">
       <div class="flex items-center gap-2 mb-4" style="flex-wrap: wrap;">
         <span class="badge badge--{{ 'info' if post.source == 'COMPANY' else 'warning' if post.source == 'FIRM' else 'neutral' }}" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 10px; border-radius: 8px;">
           {{ post.source_label }}
@@ -88,7 +117,7 @@
         <div class="card__body" style="padding: 24px; background: var(--bg-body);">
           {% if ext == 'pdf' %}
             <!-- Large PDF Document Viewer -->
-            <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; height: 750px; background: #fff; box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);">
+            <div class="post-view-iframe" style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; height: 750px; background: #fff; box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);">
               <iframe src="{{ url_for('posts.download_file', filename=post.attachment_path) }}#toolbar=1" width="100%" height="100%" style="border: none;"></iframe>
             </div>
           {% elif ext in ['png', 'jpg', 'jpeg', 'webp', 'gif'] %}

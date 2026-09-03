@@ -358,10 +358,29 @@
         z-index: auto;
       }
       .hero { padding: 120px var(--space-4) 60px; }
-      .hero__title { font-size: 2.5rem; }
+      .hero__title { font-size: 2.2rem; }
       .hero__desc { font-size: var(--text-base); }
       .features { padding: 0 var(--space-4) 80px; }
       .posts-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .landing-nav {
+        padding: 10px 12px;
+      }
+      .landing-nav__subtitle {
+        display: none;
+      }
+      .landing-nav__title {
+        font-size: 0.95rem;
+      }
+      .landing-nav-actions {
+        gap: 6px !important;
+      }
+      .landing-nav-actions .btn {
+        padding: 7px 12px !important;
+        font-size: 11.5px !important;
+      }
     }
   </style>
 </head>
@@ -376,19 +395,19 @@
     <a href="#" class="landing-nav__brand">
       <img src="{{ url_for('static', filename='logo.png') }}" alt="GTU Logo" class="landing-nav__logo">
       <div>
-      <div class="landing-nav__title">IIC - R&D Cell</div>
-      <span class="landing-nav__subtitle">GTU ITR Institute of Technology and Research</span>
-    </div>
+        <div class="landing-nav__title">IIC - R&amp;D Cell</div>
+        <span class="landing-nav__subtitle">GTU ITR Institute of Technology and Research</span>
+      </div>
     </a>
     
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <a href="{{ url_for('dashboard.announcements') }}" class="btn btn--secondary" style="padding: 9px 20px; border-radius: var(--border-radius-full); font-weight: 700; background: rgba(255,255,255,0.9); border: 1px solid var(--border-color); color: var(--primary);">
-        <i data-lucide="megaphone" style="width:16px; height:16px;"></i>
-        Announcements &amp; Registrations
+    <div class="landing-nav-actions" style="display: flex; align-items: center; gap: 10px;">
+      <a href="{{ url_for('dashboard.announcements') }}" class="btn btn--secondary" style="padding: 9px 18px; border-radius: var(--border-radius-full); font-weight: 700; background: rgba(255,255,255,0.9); border: 1px solid var(--border-color); color: var(--primary);">
+        <i data-lucide="megaphone" style="width:15px; height:15px;"></i>
+        <span>Announcements</span>
       </a>
-      <a href="{{ url_for('auth.login') }}" class="btn btn--primary btn-glow" style="padding: 10px 24px; border-radius: var(--border-radius-full);">
-        <i data-lucide="log-in" style="width:18px; height:18px;"></i>
-        Portal Login
+      <a href="{{ url_for('auth.login') }}" class="btn btn--primary btn-glow" style="padding: 9px 20px; border-radius: var(--border-radius-full);">
+        <i data-lucide="log-in" style="width:15px; height:15px;"></i>
+        <span>Login</span>
       </a>
     </div>
   </nav>

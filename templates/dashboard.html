@@ -255,8 +255,8 @@
               {% endif %}
             </div>
 
-            <div class="flex items-center justify-between gap-2 mt-1">
-              <div class="flex items-center gap-2">
+            <div class="flex items-center justify-between gap-2 mt-1" style="flex-wrap: wrap;">
+              <div class="flex items-center gap-2" style="flex-wrap: wrap;">
                 <a href="{{ url_for('posts.view_post', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size: 11px; padding: 6px 12px; font-weight:600;">
                   <i data-lucide="eye" style="width:14px;height:14px;"></i> Full Detail
                 </a>
@@ -453,7 +453,7 @@
 
                   <!-- 2. Public Announcement Showcase Control (HOD or Allocated Faculty) -->
                   <div style="background:linear-gradient(135deg, rgba(var(--primary-rgb),0.03) 0%, rgba(16,185,129,0.04) 100%); border:1px solid var(--border-color); border-radius:10px; padding:10px 14px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
                       <div>
                         <span style="font-size:11px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:5px; text-transform:uppercase; letter-spacing:0.04em;">
                           <i data-lucide="megaphone" style="width:13px;height:13px;color:var(--primary);"></i>
@@ -486,7 +486,7 @@
                   </div>
 
                   <!-- 3. Update Progress Dropdown (Coordinator or Lead Faculty) -->
-                  <form action="{{ url_for('posts.update_progress', post_id=post.id) }}" method="POST" style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                  <form action="{{ url_for('posts.update_progress', post_id=post.id) }}" method="POST" style="display:flex; align-items:center; gap:8px; justify-content:space-between; flex-wrap:wrap;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <span style="font-size:11px; font-weight:700; color:var(--text-secondary); display:flex; align-items:center; gap:4px;">
                       <i data-lucide="activity" style="width:13px;height:13px;color:var(--success);"></i>
@@ -506,14 +506,14 @@
                   <div style="display:flex; flex-direction:column; gap:6px; border-top:1px solid var(--border-color); padding-top:10px; margin-top:2px;">
                     {% if post.has_registration_form %}
                       <!-- Shareable copy link input -->
-                      <div style="display:flex; gap:6px; align-items:center;">
-                        <input type="text" readonly value="{{ request.url_root | trim }}posts/{{ post.id }}/register" style="flex:1; padding:5px 8px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:var(--bg-surface-hover); color:var(--text-muted); font-family:monospace;" id="reg-link-{{ post.id }}">
+                      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                        <input type="text" readonly value="{{ request.url_root | trim }}posts/{{ post.id }}/register" style="flex:1; min-width:180px; padding:5px 8px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:var(--bg-surface-hover); color:var(--text-muted); font-family:monospace;" id="reg-link-{{ post.id }}">
                         <button onclick="navigator.clipboard.writeText(document.getElementById('reg-link-{{ post.id }}').value); alert('Registration link copied to clipboard!');" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size:11px; padding:5px 10px; border-radius:6px; font-weight:600; white-space:nowrap;">
                           <i data-lucide="copy" style="width:12px;height:12px;"></i> Copy Link
                         </button>
                       </div>
 
-                      <div style="display:flex; gap:6px; width:100%; margin-top:2px;">
+                      <div style="display:flex; gap:6px; width:100%; margin-top:2px; flex-wrap:wrap;">
                         {% if user_is_coord or user_is_assigned or user_can_manage %}
                           <a href="{{ url_for('posts.form_builder', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center justify-center gap-1" style="font-size:11px; padding:6px 12px; border-radius:8px; font-weight:700; flex:1; text-decoration:none;">
                             <i data-lucide="sliders" style="width:13px;height:13px;"></i> Edit Form Builder

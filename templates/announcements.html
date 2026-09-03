@@ -277,7 +277,7 @@
       margin: 0 auto;
       padding: 0 24px 80px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
       gap: 24px;
       align-items: start;
     }
@@ -587,12 +587,21 @@
     }
 
     @media (max-width: 768px) {
-      .ann-nav { padding: 12px 16px; }
+      .ann-nav { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+      .ann-nav__subtitle { display: none; }
       .ann-hero { padding: 36px 16px 24px; }
-      .ann-grid { grid-template-columns: 1fr; padding: 0 16px 60px; }
-      .ann-controls { padding: 0 16px; }
+      .ann-hero__title { font-size: 1.8rem; }
+      .ann-hero__desc { font-size: 13.5px; }
+      .ann-grid { grid-template-columns: 1fr; padding: 0 14px 60px; gap: 16px; }
+      .ann-controls { padding: 0 14px; }
       .ann-controls__card { flex-direction: column; align-items: stretch; }
-      .ann-search-form { max-width: 100%; }
+      .ann-search-form { max-width: 100%; flex-direction: column; }
+      .ann-card__body { padding: 18px 16px; }
+      .ann-card__title { font-size: 1.15rem; }
+      .ann-card__countdown { padding: 10px; }
+      .ann-cd-box { padding: 4px 6px; }
+      .ann-cd-num { font-size: 1.1rem; }
+      .ann-cd-lbl { font-size: 8px; }
     }
   </style>
 </head>

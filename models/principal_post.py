@@ -61,6 +61,9 @@ class PrincipalPost(db.Model):
     has_registration_form = db.Column(db.Boolean, default=False, nullable=False)
     registration_deadline = db.Column(db.DateTime, nullable=True)
     form_config = db.Column(db.Text, nullable=True)
+    form_title = db.Column(db.String(300), nullable=True)
+    form_subtitle = db.Column(db.String(500), nullable=True)
+    form_badge = db.Column(db.String(100), nullable=True)
 
     # Public Announcements & Home Page showcase controls
     is_public = db.Column(db.Boolean, default=False, nullable=False)

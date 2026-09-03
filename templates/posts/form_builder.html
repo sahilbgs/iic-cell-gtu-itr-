@@ -269,11 +269,54 @@
 
   @media (max-width: 1024px) {
     .fb-layout {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr !important;
+      gap: 20px;
     }
     .fb-preview-card {
       position: static;
       max-height: none;
+      margin-top: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .fb-card {
+      padding: 16px 12px;
+      border-radius: 12px;
+    }
+    .fb-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+    .fb-palette {
+      padding: 10px;
+      gap: 6px;
+    }
+    .fb-palette-btn {
+      padding: 6px 10px;
+      font-size: 10.5px;
+      flex: 1 1 calc(50% - 6px);
+      justify-content: center;
+    }
+    .fb-preset-chip {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+    .field-card {
+      padding: 14px 12px;
+    }
+    .field-card__header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .field-card__actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+    .field-card__row {
+      grid-template-columns: 1fr;
     }
   }
 </style>
@@ -394,6 +437,55 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" id="config_json" name="config_json" value="[]">
 
+      <!-- Form Heading & Header Customization Section -->
+      <div style="background:linear-gradient(135deg, rgba(var(--fb-primary-rgb), 0.05) 0%, rgba(16,185,129,0.04) 100%); border:1px solid rgba(var(--fb-primary-rgb), 0.2); border-radius:12px; padding:16px; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <h5 style="font-size:11px; font-weight:700; color:var(--text-primary); letter-spacing:0.5px; text-transform:uppercase; margin:0; display:flex; align-items:center; gap:6px;">
+            <i data-lucide="type" style="width:15px;height:15px;color:var(--primary);"></i>
+            Form Heading &amp; Header Customization
+          </h5>
+          <span class="badge" style="font-size:9px; background:rgba(var(--fb-primary-rgb), 0.1); color:var(--primary); font-weight:700;">CUSTOMIZABLE</span>
+        </div>
+        <p class="text-muted" style="font-size:11px; margin:0 0 12px 0; line-height:1.4;">
+          Control the heading, subtitle tagline, and badge students see at the very top of their registration form.
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <!-- Form Main Title / Heading -->
+          <div>
+            <label for="form_title" style="display:block; font-size:11px; font-weight:700; color:var(--text-primary); margin-bottom:4px; text-transform:uppercase;">
+              Form Main Heading
+            </label>
+            <input type="text" id="form_title" name="form_title" 
+                   value="{{ post.form_title if post.form_title else post.title }}" 
+                   placeholder="e.g. Student Activity Registration / Symposium Application Form"
+                   class="fb-input" style="font-size:12.5px; font-weight:600;" oninput="updateLiveHeaderPreview()">
+          </div>
+
+          <!-- Form Subheading / Subtitle -->
+          <div>
+            <label for="form_subtitle" style="display:block; font-size:11px; font-weight:700; color:var(--text-primary); margin-bottom:4px; text-transform:uppercase;">
+              Form Subtitle / Tagline (Optional)
+            </label>
+            <input type="text" id="form_subtitle" name="form_subtitle" 
+                   value="{{ post.form_subtitle or '' }}" 
+                   placeholder="e.g. Please fill all required fields carefully before the deadline"
+                   class="fb-input" style="font-size:12px;" oninput="updateLiveHeaderPreview()">
+          </div>
+
+          <!-- Top Badge / Category Pill -->
+          <div>
+            <label for="form_badge" style="display:block; font-size:11px; font-weight:700; color:var(--text-primary); margin-bottom:4px; text-transform:uppercase;">
+              Top Badge / Pill Tag (Optional)
+            </label>
+            <input type="text" id="form_badge" name="form_badge" 
+                   value="{{ post.form_badge or '' }}" 
+                   placeholder="e.g. GTU ITR • IIC Activity or Spring 2026"
+                   class="fb-input" style="font-size:12px;" oninput="updateLiveHeaderPreview()">
+          </div>
+        </div>
+      </div>
+
       <!-- Registration Deadline Section -->
       <div style="background:linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(59,130,246,0.03) 100%); border:1px solid rgba(245,158,11,0.25); border-radius:12px; padding:16px; margin-bottom:20px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -481,8 +573,15 @@
 
     <div style="background:var(--bg-surface-hover); border:1px solid var(--border-color); border-radius:14px; padding:20px;">
       <div style="border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px;">
-        <span class="badge badge--success" style="font-size:9px; font-weight:700; padding:3px 8px; border-radius:4px; margin-bottom:6px; display:inline-block;">REGISTRATION FORM</span>
-        <h4 style="font-family:'Outfit',sans-serif; font-weight:700; margin:0; font-size:1.15rem; color:var(--text-primary); line-height:1.3;">{{ post.title }}</h4>
+        <span id="preview-header-badge" class="badge badge--success" style="font-size:9px; font-weight:700; padding:3px 8px; border-radius:4px; margin-bottom:6px; display:inline-block;">
+          {{ post.form_badge if post.form_badge else 'REGISTRATION FORM' }}
+        </span>
+        <h4 id="preview-header-title" style="font-family:'Outfit',sans-serif; font-weight:700; margin:0; font-size:1.15rem; color:var(--text-primary); line-height:1.3;">
+          {{ post.form_title if post.form_title else post.title }}
+        </h4>
+        <p id="preview-header-subtitle" class="text-muted" style="font-size:11.5px; margin:4px 0 0 0; line-height:1.4; {% if not post.form_subtitle %}display:none;{% endif %}">
+          {{ post.form_subtitle or '' }}
+        </p>
         <small class="text-muted" style="font-size:11px; display:block; margin-top:4px;">
           {{ post.departments|map(attribute='code')|join(', ') if post.departments else 'All Departments' }}
         </small>
@@ -530,7 +629,32 @@
 
     renderFields();
     updateHistoryButtons();
+    updateLiveHeaderPreview();
   });
+
+  // Real-time Form Header Mockup Live Update
+  function updateLiveHeaderPreview() {
+    const titleInput = document.getElementById('form_title');
+    const subtitleInput = document.getElementById('form_subtitle');
+    const badgeInput = document.getElementById('form_badge');
+
+    const previewTitle = document.getElementById('preview-header-title');
+    const previewSubtitle = document.getElementById('preview-header-subtitle');
+    const previewBadge = document.getElementById('preview-header-badge');
+
+    if (previewTitle && titleInput) {
+      previewTitle.textContent = titleInput.value.trim() || {{ post.title | tojson }};
+    }
+    if (previewSubtitle && subtitleInput) {
+      const val = subtitleInput.value.trim();
+      previewSubtitle.textContent = val;
+      previewSubtitle.style.display = val ? 'block' : 'none';
+    }
+    if (previewBadge && badgeInput) {
+      const val = badgeInput.value.trim();
+      previewBadge.textContent = val || 'REGISTRATION FORM';
+    }
+  }
 
   // History & Undo / Redo
   function recordHistory() {
