@@ -1,50 +1,401 @@
 {% extends "base.html" %}
 
-{% block title %}Student Registration Form Builder{% endblock %}
+{% block title %}Custom Registration Form Builder — {{ post.title }}{% endblock %}
 {% block page_title %}Registration Form Builder{% endblock %}
 
 {% block breadcrumb %}
   <div class="topbar__breadcrumb">
     <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
     <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <a href="{{ url_for('posts.view_post', post_id=post.id) }}">Activity</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
     <span>Form Builder</span>
   </div>
 {% endblock %}
 
 {% block content %}
-<div class="grid grid-2" style="gap:24px; align-items:start;">
-  
-  <!-- Left Side: Builder Workspace -->
-  <div class="card card--flat" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:14px; padding:24px;">
-    <div style="border-bottom:1px solid var(--border-color); padding-bottom:16px; margin-bottom:20px;">
-      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;">
-        <i data-lucide="sliders" style="color:var(--primary);"></i>
-        Form Workspace
-      </h3>
-      <p class="text-muted text-xs mt-1" style="margin:0;">Configure which custom details you want to collect from students during registration.</p>
+<style>
+  :root {
+    --fb-primary: #0f52ba;
+    --fb-primary-rgb: 15, 82, 186;
+    --fb-success: #10b981;
+    --fb-border: #e2e8f0;
+  }
+
+  .fb-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(360px, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+
+  .fb-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+    padding: 24px;
+  }
+
+  .fb-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+  }
+
+  .fb-history-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-history {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-history:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .btn-history:not(:disabled):hover {
+    background: var(--border-color);
+    transform: translateY(-1px);
+  }
+
+  /* Field Type Palette */
+  .fb-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, rgba(var(--fb-primary-rgb), 0.03) 0%, rgba(99,102,241,0.04) 100%);
+    border: 1px dashed rgba(var(--fb-primary-rgb), 0.25);
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .fb-palette-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+
+  .fb-palette-btn:hover {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(var(--fb-primary-rgb), 0.2);
+  }
+
+  .fb-palette-btn i {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Preset Field Chips */
+  .fb-presets {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    font-size: 11px;
+  }
+
+  .fb-preset-chip {
+    padding: 4px 10px;
+    border-radius: 9999px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: #047857;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+  }
+
+  .fb-preset-chip:hover {
+    background: #10b981;
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  /* Field Item Card */
+  .fb-field-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .fb-field-card:hover {
+    border-color: rgba(var(--fb-primary-rgb), 0.4);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+  }
+
+  .fb-field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+
+  .fb-field-badge {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(var(--fb-primary-rgb), 0.08);
+    color: var(--primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .fb-field-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .fb-icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 5px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .fb-icon-btn:hover {
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+  }
+
+  .fb-icon-btn--delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+  }
+
+  .fb-field-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+  }
+
+  .fb-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-family: inherit;
+    font-weight: 500;
+  }
+
+  .fb-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(var(--fb-primary-rgb), 0.1);
+  }
+
+  /* Live Preview Column */
+  .fb-preview-card {
+    position: sticky;
+    top: 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    padding: 24px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+  }
+
+  .preview-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11.5px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 1024px) {
+    .fb-layout {
+      grid-template-columns: 1fr;
+    }
+    .fb-preview-card {
+      position: static;
+      max-height: none;
+    }
+  }
+</style>
+
+<div class="fb-layout">
+
+  <!-- LEFT COLUMN: Form Builder Workspace -->
+  <div class="fb-card">
+    
+    <!-- Top Workspace Toolbar with Undo/Redo & AI Suggester -->
+    <div class="fb-toolbar">
+      <div>
+        <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;">
+          <i data-lucide="sliders" style="color:var(--primary);"></i>
+          Registration Form Workspace
+        </h3>
+        <p class="text-muted text-xs mt-1" style="margin:0;">Create, edit, reorder, or customize any registration questions for participants.</p>
+      </div>
+
+      <div class="fb-history-btns">
+        <button type="button" id="btn-undo" class="btn-history" onclick="undo()" title="Undo last action (Ctrl+Z)" disabled>
+          <i data-lucide="undo-2" style="width:13px;height:13px;"></i> Undo
+        </button>
+        <button type="button" id="btn-redo" class="btn-history" onclick="redo()" title="Redo action (Ctrl+Y)" disabled>
+          <i data-lucide="redo-2" style="width:13px;height:13px;"></i> Redo
+        </button>
+      </div>
     </div>
 
-    <!-- AI Suggest Action -->
-    <div style="background:linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(59,130,246,0.03) 100%); border:1px dashed rgba(16,185,129,0.3); border-radius:10px; padding:16px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+    <!-- AI Field Suggestion Banner -->
+    <div style="background:linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(59,130,246,0.04) 100%); border:1px dashed rgba(16,185,129,0.3); border-radius:12px; padding:14px 18px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
       <div>
-        <h5 style="font-weight:700; margin:0; font-size:12px; color:var(--text-primary); display:flex; align-items:center; gap:4px;">
+        <h5 style="font-weight:700; margin:0; font-size:12px; color:var(--text-primary); display:flex; align-items:center; gap:5px;">
           <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--success);"></i>
-          Heuristic AI Fields Suggester
+          Smart AI Field Suggester
         </h5>
-        <p class="text-muted" style="font-size:10px; margin:2px 0 0 0; line-height:1.4;">Auto-detect keywords in this activity's details and generate ideal registration fields instantly.</p>
+        <p class="text-muted" style="font-size:10.5px; margin:2px 0 0 0;">Auto-detect suitable fields based on this activity's requirements &amp; tech stack.</p>
       </div>
-      <button type="button" id="btn-auto-suggest" class="btn btn--sm" style="background:var(--success); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:transform 0.2s;" onclick="runAutoSuggest()">
+      <button type="button" id="btn-auto-suggest" class="btn btn--sm" style="background:var(--success); color:#fff; border:none; padding:7px 14px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer; display:flex; align-items:center; gap:5px;" onclick="runAutoSuggest()">
         <i data-lucide="wand-2" style="width:13px;height:13px;"></i>
         Smart Generate
       </button>
     </div>
 
-    <form id="form-config-saver" action="{{ url_for('posts.form_builder', post_id=post.id) }}" method="POST" onsubmit="serializeFields()">
+    <!-- Quick Add Palette -->
+    <div>
+      <div style="font-size:10.5px; font-weight:800; color:var(--text-muted); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:8px;">
+        Add Field Type
+      </div>
+      <div class="fb-palette">
+        <button type="button" class="fb-palette-btn" onclick="addField('text')">
+          <i data-lucide="type"></i> Text
+        </button>
+        <button type="button" class="fb-palette-btn" onclick="addField('textarea')">
+          <i data-lucide="align-left"></i> Paragraph
+        </button>
+        <button type="button" class="fb-palette-btn" onclick="addField('email')">
+          <i data-lucide="mail"></i> Email
+        </button>
+        <button type="button" class="fb-palette-btn" onclick="addField('tel')">
+          <i data-lucide="phone"></i> Phone
+        </button>
+        <button type="button" class="fb-palette-btn" onclick="addField('file')" style="border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.06); color:#047857;">
+          <i data-lucide="upload-cloud"></i> Upload File
+        </button>
+        <button type="button" class="fb-palette-btn" onclick="addField('url')" style="border-color:rgba(99,102,241,0.3); background:rgba(99,102,241,0.06); color:#4338ca;">
+          <i data-lucide="link"></i> Upload Link
+        </button>
+        <button type="button" class="fb-palette-btn" onclick="addField('select')">
+          <i data-lucide="chevron-down-square"></i> Dropdown
+        </button>
+        <button type="button" class="fb-palette-btn" onclick="addField('radio')">
+          <i data-lucide="disc"></i> Radio Choice
+        </button>
+        <button type="button" class="fb-palette-btn" onclick="addField('checkbox')">
+          <i data-lucide="check-square"></i> Checkbox
+        </button>
+        <button type="button" class="fb-palette-btn" onclick="addField('number')">
+          <i data-lucide="hash"></i> Number
+        </button>
+        <button type="button" class="fb-palette-btn" onclick="addField('date')">
+          <i data-lucide="calendar"></i> Date
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Preset Chips -->
+    <div>
+      <div style="font-size:10.5px; font-weight:800; color:var(--text-muted); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:6px;">
+        Quick Common Presets
+      </div>
+      <div class="fb-presets">
+        <span class="fb-preset-chip" onclick="addPreset('Full Name', 'text', true, 'Enter full name', 'student_name')">
+          + Full Name
+        </span>
+        <span class="fb-preset-chip" onclick="addPreset('Enrollment Number', 'text', true, 'e.g. 231040107082', 'enrollment_no')">
+          + Enrollment No
+        </span>
+        <span class="fb-preset-chip" onclick="addPreset('Email Address', 'email', true, 'e.g. student@gtu.ac.in', 'email')">
+          + Email
+        </span>
+        <span class="fb-preset-chip" onclick="addPreset('Department', 'select', true, '', 'department', ['Computer Engineering', 'Information Technology', 'Mechanical Engineering', 'Civil Engineering', 'Electrical Engineering', 'Electronics & Communication'])">
+          + Department
+        </span>
+        <span class="fb-preset-chip" onclick="addPreset('Current Semester', 'select', false, '', 'semester', ['1','2','3','4','5','6','7','8'])">
+          + Semester
+        </span>
+        <span class="fb-preset-chip" onclick="addPreset('Resume / ID Card / Abstract', 'file', false, 'Upload PDF, DOCX, or Image', 'submission_file')">
+          + File Upload
+        </span>
+        <span class="fb-preset-chip" onclick="addPreset('GitHub / Project Link', 'url', false, 'https://github.com/... or Drive link', 'project_url')">
+          + Project Link
+        </span>
+      </div>
+    </div>
+
+    <form id="form-config-saver" action="{{ url_for('posts.form_builder', post_id=post.id) }}" method="POST" onsubmit="return serializeBeforeSubmit()">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" id="config_json" name="config_json" value="[]">
 
       <!-- Registration Deadline Section -->
-      <div style="background:linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(59,130,246,0.03) 100%); border:1px solid rgba(245,158,11,0.25); border-radius:10px; padding:16px; margin-bottom:24px;">
+      <div style="background:linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(59,130,246,0.03) 100%); border:1px solid rgba(245,158,11,0.25); border-radius:12px; padding:16px; margin-bottom:20px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <h5 style="font-size:11px; font-weight:700; color:var(--text-primary); letter-spacing:0.5px; text-transform:uppercase; margin:0; display:flex; align-items:center; gap:6px;">
             <i data-lucide="calendar-clock" style="width:15px;height:15px;color:#d97706;"></i>
@@ -53,7 +404,7 @@
           <span class="badge" style="font-size:9px; background:rgba(245,158,11,0.15); color:#b45309; font-weight:700;">OPTIONAL</span>
         </div>
         <p class="text-muted" style="font-size:11px; margin:0 0 10px 0; line-height:1.4;">
-          Specify the exact date and time when student registrations will automatically lock and close. If left empty, registrations remain open until the activity ends.
+          Specify the exact date and time when student registrations will automatically close. Leave empty to keep registration open until activity ends.
         </p>
         <div style="display:flex; gap:10px; align-items:center;">
           <input type="datetime-local" id="registration_deadline" name="registration_deadline" 
@@ -65,346 +416,523 @@
         </div>
       </div>
 
-      <!-- Default Fields Section -->
-      <div style="margin-bottom:24px;">
-        <h5 style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:10px;">Default System Fields (Required)</h5>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          {% for field in default_fields %}
-            <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-surface-hover); border:1px solid var(--border-color); padding:10px 16px; border-radius:8px; opacity:0.8;">
-              <span style="font-size:12px; font-weight:600; color:var(--text-primary);">{{ field.label }}</span>
-              <span style="font-size:9px; font-weight:700; background:rgba(0,51,102,0.06); color:var(--primary); padding:2px 6px; border-radius:4px; text-transform:uppercase;">
-                {{ field.type.upper() }} {% if field.required %}*{% endif %}
-              </span>
-            </div>
-          {% endfor %}
+      <!-- Public Showcase & External Registration Link Settings -->
+      <div style="background:var(--bg-surface-hover); border:1px solid var(--border-color); border-radius:12px; padding:16px; margin-bottom:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
+          <div>
+            <h5 style="font-size:11px; font-weight:700; color:var(--text-primary); letter-spacing:0.5px; text-transform:uppercase; margin:0; display:flex; align-items:center; gap:6px;">
+              <i data-lucide="megaphone" style="width:14px;height:14px;color:var(--primary);"></i>
+              Public Showcase &amp; Announcements
+            </h5>
+            <p class="text-muted" style="font-size:11px; margin:2px 0 0 0; line-height:1.4;">Show this activity and registration form on the public Home Page and Announcements board.</p>
+          </div>
+          <label class="switch" style="position:relative; display:inline-block; width:40px; height:22px; flex-shrink:0;">
+            <input type="checkbox" name="is_public" value="1" {% if post.is_public %}checked{% endif %} style="opacity:0; width:0; height:0;">
+            <span class="slider round" style="position:absolute; cursor:pointer; inset:0; background-color:#cbd5e1; transition:.3s; border-radius:22px;"></span>
+          </label>
+        </div>
+
+        <div>
+          <label for="external_registration_url" style="display:block; font-size:11px; font-weight:700; color:var(--text-primary); margin-bottom:4px; text-transform:uppercase;">
+            Optional External Registration Link (e.g. Google Form / Unstop)
+          </label>
+          <input type="url" id="external_registration_url" name="external_registration_url" 
+                 value="{{ post.external_registration_url or '' }}" 
+                 placeholder="https://forms.gle/... (optional additional or fallback link)"
+                 class="fb-input" style="font-size:12px;">
         </div>
       </div>
 
-      <!-- Custom Fields Section -->
+      <!-- Drag / Reorderable Form Fields List -->
       <div style="margin-bottom:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h5 style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:0.5px; text-transform:uppercase; margin:0;">Custom Additional Fields</h5>
-          <button type="button" class="btn btn--sm" style="font-size:10px; padding:4px 8px; border-radius:6px; font-weight:700; border-color:var(--border-color);" onclick="addCustomField()">
-            + Add Field
-          </button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h5 style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:0.5px; text-transform:uppercase; margin:0;">
+            Configured Fields (<span id="fields-count">0</span>)
+          </h5>
+          <span style="font-size:11px; color:var(--text-muted);">Click arrows to reorder, edit any question freely</span>
         </div>
 
-        <div id="custom-fields-container" style="display:flex; flex-direction:column; gap:12px;">
-          <!-- Custom fields will be rendered here dynamically -->
+        <div id="fields-container">
+          <!-- Dynamic field cards will be rendered here -->
         </div>
       </div>
 
       <!-- Action Footer -->
-      <div style="border-top:1px solid var(--border-color); padding-top:18px; display:flex; justify-content:space-between; align-items:center;">
-        <a href="{{ url_for('dashboard.index') }}" class="btn btn--secondary btn--sm">Cancel</a>
-        <button type="submit" class="btn btn--sm" style="background:var(--primary); color:#fff; border:none; padding:8px 20px; font-weight:700; border-radius:8px;">
-          Save &amp; Publish Form
+      <div style="border-top:1px solid var(--border-color); padding-top:20px; display:flex; justify-content:space-between; align-items:center;">
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn--secondary">Cancel</a>
+        <button type="submit" class="btn btn--primary" style="padding:10px 24px; font-weight:700; border-radius:10px;">
+          <i data-lucide="save" style="width:16px;height:16px;"></i>
+          Save &amp; Activate Form
         </button>
       </div>
+
     </form>
   </div>
 
-  <!-- Right Side: Live Interactive Preview -->
-  <div class="card card--flat" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:14px; padding:24px; position:sticky; top:24px;">
-    <div style="border-bottom:1px solid var(--border-color); padding-bottom:16px; margin-bottom:20px;">
-      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--text-secondary); margin:0; display:flex; align-items:center; gap:8px;">
-        <i data-lucide="eye" style="color:var(--text-muted);"></i>
-        Live Dynamic Preview
+  <!-- RIGHT COLUMN: Real-Time Dynamic Mockup Preview -->
+  <div class="fb-preview-card">
+    <div style="border-bottom:1px solid var(--border-color); padding-bottom:14px; margin-bottom:18px;">
+      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--text-primary); margin:0; display:flex; align-items:center; gap:8px; font-size:1.1rem;">
+        <i data-lucide="eye" style="color:var(--primary);"></i>
+        Live Registration Preview
       </h3>
-      <p class="text-muted text-xs mt-1" style="margin:0;">A real-time mockup of what students will see when registering for this activity.</p>
+      <p class="text-muted text-xs mt-1" style="margin:0;">Exact preview of what students will experience when registering.</p>
     </div>
 
-    <!-- Live Form Container -->
-    <div style="border:1px solid var(--border-color); border-radius:12px; background:var(--bg-surface-hover); padding:20px; box-shadow:inset 0 2px 6px rgba(0,0,0,0.015);">
+    <div style="background:var(--bg-surface-hover); border:1px solid var(--border-color); border-radius:14px; padding:20px;">
       <div style="border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px;">
-        <span class="badge badge--success" style="font-size:8px; font-weight:700; letter-spacing:0.5px; padding:2px 6px; border-radius:4px; margin-bottom:4px; display:inline-block;">STUDENT REGISTRATION</span>
-        <h4 style="font-family:'Outfit',sans-serif; font-weight:700; margin:0; font-size:1.15rem; color:var(--text-primary);">{{ post.title }}</h4>
-        <small class="text-muted" style="font-size:10px; display:block; margin-top:3px;">Organized by Computer Engineering Dept.</small>
+        <span class="badge badge--success" style="font-size:9px; font-weight:700; padding:3px 8px; border-radius:4px; margin-bottom:6px; display:inline-block;">REGISTRATION FORM</span>
+        <h4 style="font-family:'Outfit',sans-serif; font-weight:700; margin:0; font-size:1.15rem; color:var(--text-primary); line-height:1.3;">{{ post.title }}</h4>
+        <small class="text-muted" style="font-size:11px; display:block; margin-top:4px;">
+          {{ post.departments|map(attribute='code')|join(', ') if post.departments else 'All Departments' }}
+        </small>
       </div>
 
-      <div id="preview-form-fields" style="display:flex; flex-direction:column; gap:12px;">
-        <!-- Previews will render here dynamically -->
+      <div id="preview-fields-container" style="display:flex; flex-direction:column; gap:14px;">
+        <!-- Previews rendered dynamically -->
       </div>
 
-      <button type="button" disabled style="width:100%; padding:10px; margin-top:20px; border-radius:8px; border:none; background:var(--primary); color:#fff; font-weight:700; font-size:12px; opacity:0.6; cursor:not-allowed;">
-        Submit Mock Registration
+      <button type="button" disabled style="width:100%; padding:12px; margin-top:20px; border-radius:10px; border:none; background:var(--primary); color:#fff; font-weight:700; font-size:13px; opacity:0.6; cursor:not-allowed; display:flex; align-items:center; justify-content:center; gap:6px;">
+        <i data-lucide="send" style="width:15px;height:15px;"></i>
+        Submit Registration (Mock)
       </button>
     </div>
   </div>
 
 </div>
 
-<!-- Template for dynamic custom field editing -->
+<!-- JavaScript Engine: Undo/Redo, Reorder, Custom Types & Live Preview -->
 <script>
+  // State
+  let fields = [];
+  let undoStack = [];
+  let redoStack = [];
   let fieldCounter = 0;
-  
-  // Existing fields from the database config
-  const initialCustomFields = {{ custom_fields | tojson | safe }};
+
+  const initialFields = {{ existing_fields | tojson | safe }};
 
   document.addEventListener('DOMContentLoaded', () => {
-    if (initialCustomFields && initialCustomFields.length > 0) {
-      initialCustomFields.forEach(f => addCustomField(f));
+    if (initialFields && initialFields.length > 0) {
+      fields = JSON.parse(JSON.stringify(initialFields));
+      fieldCounter = fields.length + 10;
     } else {
-      // Add one blank row by default for premium usability
-      addCustomField();
+      // Default starter fields
+      fields = [
+        { id: "student_name", label: "Full Name", type: "text", required: true, placeholder: "Enter your full legal name" },
+        { id: "enrollment_no", label: "Enrollment Number", type: "text", required: true, placeholder: "e.g. 231040107082" },
+        { id: "email", label: "Email Address", type: "email", required: true, placeholder: "e.g. student@gtu.ac.in" },
+        { id: "phone", label: "Phone / WhatsApp Number", type: "tel", required: false, placeholder: "e.g. +91 98765 43210" },
+        { id: "department", label: "Department", type: "select", options: ["Computer Engineering", "Information Technology", "Mechanical Engineering", "Civil Engineering", "Electrical Engineering", "Electronics & Communication"], required: true },
+        { id: "semester", label: "Current Semester", type: "select", options: ["1","2","3","4","5","6","7","8"], required: false }
+      ];
+      fieldCounter = 10;
     }
-    updatePreview();
+
+    renderFields();
+    updateHistoryButtons();
   });
 
-  function addCustomField(fieldData = null) {
+  // History & Undo / Redo
+  function recordHistory() {
+    undoStack.push(JSON.stringify(fields));
+    redoStack = []; // clear redo on new action
+    if (undoStack.length > 50) undoStack.shift();
+    updateHistoryButtons();
+  }
+
+  function undo() {
+    if (undoStack.length === 0) return;
+    redoStack.push(JSON.stringify(fields));
+    const previous = undoStack.pop();
+    fields = JSON.parse(previous);
+    renderFields(false); // don't record history during undo
+    updateHistoryButtons();
+  }
+
+  function redo() {
+    if (redoStack.length === 0) return;
+    undoStack.push(JSON.stringify(fields));
+    const next = redoStack.pop();
+    fields = JSON.parse(next);
+    renderFields(false); // don't record history during redo
+    updateHistoryButtons();
+  }
+
+  function updateHistoryButtons() {
+    const undoBtn = document.getElementById('btn-undo');
+    const redoBtn = document.getElementById('btn-redo');
+    if (undoBtn) undoBtn.disabled = undoStack.length === 0;
+    if (redoBtn) redoBtn.disabled = redoStack.length === 0;
+  }
+
+  // Keyboard Shortcuts
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      undo();
+    } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+      e.preventDefault();
+      redo();
+    }
+  });
+
+  // Add Field
+  function addField(type) {
+    recordHistory();
     fieldCounter++;
-    const container = document.getElementById('custom-fields-container');
-    const fieldId = `field_${fieldCounter}`;
-    
-    const div = document.createElement('div');
-    div.id = fieldId;
-    div.className = 'custom-field-row';
-    div.style.cssText = 'background: var(--bg-surface-hover); border: 1px solid var(--border-color); padding: 14px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; position: relative; animation: fadeIn 0.3s ease;';
+    const defaultLabels = {
+      text: 'Short Answer Question',
+      textarea: 'Detailed Paragraph Answer',
+      email: 'Email Address',
+      tel: 'Contact / WhatsApp Number',
+      file: 'Upload File / Document',
+      url: 'Project / GitHub Link',
+      select: 'Select Option',
+      radio: 'Choose One Option',
+      checkbox: 'Select Multiple Choices',
+      number: 'Numeric Value',
+      date: 'Date'
+    };
 
-    // Trash delete button
-    const deleteBtn = `
-      <button type="button" onclick="removeCustomField('${fieldId}')" style="position: absolute; top: 12px; right: 12px; border: none; background: none; cursor: pointer; color: var(--danger); opacity:0.75;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.75;" title="Remove field">
-        <i data-lucide="trash-2" style="width:15px;height:15px;"></i>
-      </button>
-    `;
-    
-    // Label input
-    const labelVal = fieldData ? fieldData.label : '';
-    const typeVal = fieldData ? fieldData.type : 'text';
-    const reqVal = fieldData ? fieldData.required : false;
-    const optVal = (fieldData && fieldData.options) ? fieldData.options.join(', ') : '';
+    const newField = {
+      id: `field_${Date.now()}_${fieldCounter}`,
+      label: defaultLabels[type] || 'New Question',
+      type: type,
+      required: false,
+      placeholder: type === 'url' ? 'https://...' : (type === 'file' ? 'Upload PDF, DOCX, ZIP, or Image' : ''),
+      options: (type === 'select' || type === 'radio' || type === 'checkbox') ? ['Option 1', 'Option 2', 'Option 3'] : []
+    };
 
-    div.innerHTML = `
-      ${deleteBtn}
-      <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; padding-right:20px;">
-        <div style="flex:2; min-width:180px; display:flex; flex-direction:column; gap:4px;">
-          <small style="font-size:10px; font-weight:700; color:var(--text-muted)">FIELD LABEL</small>
-          <input type="text" class="field-label-input" value="${labelVal}" placeholder="e.g. Prior coding experience?" oninput="updatePreview()" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:var(--bg-surface); color:var(--text-primary); font-weight:600; width:100%;">
+    fields.push(newField);
+    renderFields(false);
+  }
+
+  // Add Preset Field
+  function addPreset(label, type, required, placeholder, id = null, options = []) {
+    recordHistory();
+    fieldCounter++;
+    fields.push({
+      id: id || `field_${Date.now()}_${fieldCounter}`,
+      label: label,
+      type: type,
+      required: required,
+      placeholder: placeholder,
+      options: options
+    });
+    renderFields(false);
+  }
+
+  // Remove Field
+  function removeField(index) {
+    recordHistory();
+    fields.splice(index, 1);
+    renderFields(false);
+  }
+
+  // Move Field Up/Down
+  function moveField(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= fields.length) return;
+    recordHistory();
+    const temp = fields[index];
+    fields[index] = fields[target];
+    fields[target] = temp;
+    renderFields(false);
+  }
+
+  // Duplicate Field
+  function duplicateField(index) {
+    recordHistory();
+    fieldCounter++;
+    const copy = JSON.parse(JSON.stringify(fields[index]));
+    copy.id = `field_${Date.now()}_${fieldCounter}`;
+    copy.label = `${copy.label} (Copy)`;
+    fields.splice(index + 1, 0, copy);
+    renderFields(false);
+  }
+
+  // Field change updates
+  function updateFieldProp(index, prop, value) {
+    recordHistory();
+    fields[index][prop] = value;
+    updatePreview();
+  }
+
+  function updateOptions(index, textValue) {
+    recordHistory();
+    fields[index].options = textValue.split(',').map(s => s.trim()).filter(Boolean);
+    updatePreview();
+  }
+
+  // Render Editor Workspace
+  function renderFields(shouldRecord = false) {
+    if (shouldRecord) recordHistory();
+
+    const container = document.getElementById('fields-container');
+    const countEl = document.getElementById('fields-count');
+    if (countEl) countEl.textContent = fields.length;
+
+    if (fields.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:40px 20px; border:2px dashed var(--border-color); border-radius:12px; color:var(--text-muted);">
+          <i data-lucide="file-question" style="width:36px;height:36px;margin-bottom:8px;opacity:0.6;"></i>
+          <p style="font-size:13px; font-weight:600; margin:0 0 4px 0;">No fields in this form yet.</p>
+          <small>Click one of the field types or preset chips above to add questions.</small>
         </div>
-        
-        <div style="flex:1; min-width:100px; display:flex; flex-direction:column; gap:4px;">
-          <small style="font-size:10px; font-weight:700; color:var(--text-muted)">TYPE</small>
-          <select class="field-type-select" onchange="toggleOptionsRow('${fieldId}'); updatePreview();" style="padding:6px 8px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:var(--bg-surface); color:var(--text-primary); font-weight:600; width:100%;">
-            <option value="text" ${typeVal === 'text' ? 'selected' : ''}>Text</option>
-            <option value="number" ${typeVal === 'number' ? 'selected' : ''}>Number</option>
-            <option value="select" ${typeVal === 'select' ? 'selected' : ''}>Dropdown Menu</option>
-            <option value="textarea" ${typeVal === 'textarea' ? 'selected' : ''}>Long Text Area</option>
-          </select>
+      `;
+      lucide.createIcons();
+      updatePreview();
+      return;
+    }
+
+    container.innerHTML = fields.map((f, i) => {
+      const isFirst = i === 0;
+      const isLast = i === fields.length - 1;
+      const hasOptions = ['select', 'radio', 'checkbox'].includes(f.type);
+      const optionsString = (f.options || []).join(', ');
+
+      const iconMap = {
+        text: 'type', textarea: 'align-left', email: 'mail', tel: 'phone',
+        file: 'upload-cloud', url: 'link', select: 'chevron-down-square',
+        radio: 'disc', checkbox: 'check-square', number: 'hash', date: 'calendar'
+      };
+      const iconName = iconMap[f.type] || 'help-circle';
+
+      return `
+        <div class="fb-field-card" id="card-${f.id}">
+          <div class="fb-field-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="fb-field-badge">
+                <i data-lucide="${iconName}" style="width:12px;height:12px;"></i>
+                ${f.type.toUpperCase()}
+              </span>
+              <span style="font-size:12px; font-weight:700; color:var(--text-primary); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                ${escapeHtml(f.label || 'Untitled Field')}
+              </span>
+            </div>
+
+            <div class="fb-field-actions">
+              <button type="button" class="fb-icon-btn" onclick="moveField(${i}, -1)" ${isFirst ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''} title="Move Up">
+                <i data-lucide="arrow-up" style="width:14px;height:14px;"></i>
+              </button>
+              <button type="button" class="fb-icon-btn" onclick="moveField(${i}, 1)" ${isLast ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''} title="Move Down">
+                <i data-lucide="arrow-down" style="width:14px;height:14px;"></i>
+              </button>
+              <button type="button" class="fb-icon-btn" onclick="duplicateField(${i})" title="Duplicate">
+                <i data-lucide="copy" style="width:14px;height:14px;"></i>
+              </button>
+              <button type="button" class="fb-icon-btn fb-icon-btn--delete" onclick="removeField(${i})" title="Delete field">
+                <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="fb-field-grid">
+            <div>
+              <label style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; display:block;">Question / Field Label</label>
+              <input type="text" value="${escapeHtml(f.label || '')}" class="fb-input" 
+                     oninput="fields[${i}].label = this.value; updatePreview();"
+                     onchange="recordHistory();"
+                     placeholder="e.g. Enter your GitHub profile">
+            </div>
+
+            <div style="display:flex; flex-direction:column; justify-content:space-between;">
+              <label style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; display:block;">Validation</label>
+              <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; cursor:pointer; padding-top:4px;">
+                <input type="checkbox" ${f.required ? 'checked' : ''} 
+                       onchange="updateFieldProp(${i}, 'required', this.checked)" style="accent-color:var(--primary); width:15px; height:15px;">
+                <span style="color:${f.required ? 'var(--danger)' : 'var(--text-primary)'};">Required *</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Placeholder / Help Text -->
+          <div style="margin-top:10px;">
+            <label style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; display:block;">Placeholder / Instructions</label>
+            <input type="text" value="${escapeHtml(f.placeholder || '')}" class="fb-input" 
+                   oninput="fields[${i}].placeholder = this.value; updatePreview();"
+                   onchange="recordHistory();"
+                   placeholder="Hint or guidance text for the student...">
+          </div>
+
+          ${hasOptions ? `
+            <div style="margin-top:10px; background:var(--bg-surface-hover); border:1px solid var(--border-color); border-radius:8px; padding:10px;">
+              <label style="font-size:10px; font-weight:700; color:var(--text-primary); text-transform:uppercase; margin-bottom:4px; display:flex; align-items:center; gap:4px;">
+                <i data-lucide="list" style="width:12px;height:12px;"></i> Choices (Comma-separated)
+              </label>
+              <input type="text" value="${escapeHtml(optionsString)}" class="fb-input" 
+                     oninput="updateOptions(${i}, this.value)"
+                     onchange="recordHistory();"
+                     placeholder="Option 1, Option 2, Option 3">
+              <small class="text-muted" style="font-size:10px; display:block; margin-top:4px;">Separate each choice with a comma (,)</small>
+            </div>
+          ` : ''}
+
+          ${f.type === 'file' ? `
+            <div style="margin-top:10px; font-size:10.5px; color:#047857; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+              <i data-lucide="check-circle" style="width:13px;height:13px;"></i>
+              Accepts: PDF, Word (DOC/DOCX), Images (PNG/JPG), Presentation (PPTX), and ZIP archives (Max 50MB).
+            </div>
+          ` : ''}
+
         </div>
+      `;
+    }).join('');
 
-        <div style="display:flex; align-items:center; gap:6px; margin-top:16px;">
-          <input type="checkbox" class="field-required-checkbox" ${reqVal ? 'checked' : ''} onchange="updatePreview()" style="cursor:pointer; accent-color:var(--primary);">
-          <small style="font-size:11px; font-weight:700; color:var(--text-primary)">Required</small>
-        </div>
-      </div>
-
-      <!-- Dropdown options row (hidden unless type is select) -->
-      <div class="options-container" style="display: ${typeVal === 'select' ? 'flex' : 'none'}; flex-direction:column; gap:4px; border-top: 1px dashed var(--border-color); padding-top:8px;">
-        <small style="font-size:10px; font-weight:700; color:var(--text-muted)">DROPDOWN OPTIONS (Comma separated)</small>
-        <input type="text" class="field-options-input" value="${optVal}" placeholder="e.g. Beginner, Intermediate, Expert" oninput="updatePreview()" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:var(--bg-surface); color:var(--text-primary); font-family:sans-serif; width:100%;">
-      </div>
-    `;
-
-    container.appendChild(div);
     lucide.createIcons();
     updatePreview();
   }
 
-  function removeCustomField(fieldId) {
-    const row = document.getElementById(fieldId);
-    if (row) {
-      row.style.animation = 'fadeOut 0.25s ease';
-      setTimeout(() => {
-        row.remove();
-        updatePreview();
-      }, 250);
-    }
-  }
-
-  function toggleOptionsRow(fieldId) {
-    const row = document.getElementById(fieldId);
-    const select = row.querySelector('.field-type-select');
-    const optionsDiv = row.querySelector('.options-container');
-    if (select.value === 'select') {
-      optionsDiv.style.display = 'flex';
-    } else {
-      optionsDiv.style.display = 'none';
-    }
-  }
-
+  // Update Live Preview Column
   function updatePreview() {
-    const previewContainer = document.getElementById('preview-form-fields');
-    previewContainer.innerHTML = ''; // Clear mockup
+    const previewContainer = document.getElementById('preview-fields-container');
+    if (!previewContainer) return;
 
-    // 1. Render system fields
-    const systemFields = [
-      { label: "Full Name", type: "text", req: true },
-      { label: "Enrollment Number", type: "text", req: true },
-      { label: "Email Address", type: "email", req: true },
-      { label: "Phone Number", type: "tel", req: false },
-      { label: "Current Semester", type: "text", req: false },
-      { label: "Department", type: "select", req: true, options: ["Computer Engineering", "Information Technology", "Mechanical Engineering", "Civil Engineering", "Electrical Engineering", "Electronics & Communication"] }
-    ];
+    if (fields.length === 0) {
+      previewContainer.innerHTML = `<div style="text-align:center; padding:30px 10px; color:var(--text-muted); font-size:12px;">No fields to preview</div>`;
+      return;
+    }
 
-    systemFields.forEach(f => {
-      if (f.type === 'select') {
-        previewContainer.appendChild(createMockSelect(f.label, f.options || [], f.req));
+    previewContainer.innerHTML = fields.map(f => {
+      const reqMarker = f.required ? '<span style="color:#ef4444;"> *</span>' : '';
+      const labelHtml = `<label style="display:block; font-size:12px; font-weight:700; color:var(--text-primary); margin-bottom:5px;">${escapeHtml(f.label || 'Question')}${reqMarker}</label>`;
+
+      if (f.type === 'textarea') {
+        return `
+          <div>
+            ${labelHtml}
+            <textarea disabled placeholder="${escapeHtml(f.placeholder || 'Type paragraph answer...')}" class="fb-input" style="height:60px; resize:none;"></textarea>
+          </div>
+        `;
+      } else if (f.type === 'select') {
+        const opts = (f.options || []).map(o => `<option>${escapeHtml(o)}</option>`).join('');
+        return `
+          <div>
+            ${labelHtml}
+            <select disabled class="fb-input">
+              <option value="">Select option...</option>
+              ${opts}
+            </select>
+          </div>
+        `;
+      } else if (f.type === 'file') {
+        return `
+          <div>
+            ${labelHtml}
+            <div class="preview-dropzone">
+              <i data-lucide="upload-cloud" style="width:20px;height:20px;margin:0 auto 4px;display:block;color:var(--primary);"></i>
+              <span style="font-weight:600;display:block;">${escapeHtml(f.placeholder || 'Click to browse or drop file')}</span>
+              <small style="font-size:10px;color:#94a3b8;">PDF, DOCX, ZIP, PNG, JPG (Max 50MB)</small>
+            </div>
+          </div>
+        `;
+      } else if (f.type === 'url') {
+        return `
+          <div>
+            ${labelHtml}
+            <div style="position:relative;">
+              <i data-lucide="link" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text-muted);"></i>
+              <input type="url" disabled placeholder="${escapeHtml(f.placeholder || 'https://...')}" class="fb-input" style="padding-left:32px;">
+            </div>
+          </div>
+        `;
+      } else if (f.type === 'radio') {
+        const opts = (f.options || []).map(o => `
+          <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-primary);cursor:pointer;">
+            <input type="radio" disabled style="accent-color:var(--primary);"> ${escapeHtml(o)}
+          </label>
+        `).join('');
+        return `
+          <div>
+            ${labelHtml}
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">${opts}</div>
+          </div>
+        `;
+      } else if (f.type === 'checkbox') {
+        const opts = (f.options || []).map(o => `
+          <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-primary);cursor:pointer;">
+            <input type="checkbox" disabled style="accent-color:var(--primary);"> ${escapeHtml(o)}
+          </label>
+        `).join('');
+        return `
+          <div>
+            ${labelHtml}
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">${opts}</div>
+          </div>
+        `;
       } else {
-        previewContainer.appendChild(createMockInput(f.label, f.type, f.req));
+        return `
+          <div>
+            ${labelHtml}
+            <input type="${f.type === 'email' ? 'email' : (f.type === 'number' ? 'number' : (f.type === 'date' ? 'date' : 'text'))}" 
+                   disabled placeholder="${escapeHtml(f.placeholder || '')}" class="fb-input">
+          </div>
+        `;
       }
-    });
+    }).join('');
 
-    // 2. Render custom fields dynamically
-    const rows = document.querySelectorAll('.custom-field-row');
-    rows.forEach(row => {
-      const labelVal = row.querySelector('.field-label-input').value.trim() || 'Custom Field';
-      const typeVal = row.querySelector('.field-type-select').value;
-      const reqVal = row.querySelector('.field-required-checkbox').checked;
-      const optVal = row.querySelector('.field-options-input').value;
-
-      if (typeVal === 'select') {
-        const optionsList = optVal.split(',').map(s => s.trim()).filter(s => s);
-        previewContainer.appendChild(createMockSelect(labelVal, optionsList, reqVal));
-      } else if (typeVal === 'textarea') {
-        previewContainer.appendChild(createMockTextarea(labelVal, reqVal));
-      } else {
-        previewContainer.appendChild(createMockInput(labelVal, typeVal, reqVal));
-      }
-    });
+    lucide.createIcons();
   }
 
-  function createMockInput(label, type, req) {
-    const div = document.createElement('div');
-    div.style.cssText = 'display:flex; flex-direction:column; gap:4px; font-family:"Inter",sans-serif;';
-    div.innerHTML = `
-      <label style="font-size:11px; font-weight:700; color:var(--text-secondary)">
-        ${label} ${req ? '<span style="color:var(--danger)">*</span>' : ''}
-      </label>
-      <input type="${type}" disabled style="padding:7px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:#fff; cursor:not-allowed; width:100%; opacity:0.85;">
-    `;
-    return div;
+  // Serialize before form submit
+  function serializeBeforeSubmit() {
+    if (fields.length === 0) {
+      alert("Please add at least one registration field.");
+      return false;
+    }
+    document.getElementById('config_json').value = JSON.stringify(fields);
+    return true;
   }
 
-  function createMockSelect(label, options, req) {
-    const div = document.createElement('div');
-    div.style.cssText = 'display:flex; flex-direction:column; gap:4px; font-family:"Inter",sans-serif;';
-    
-    let optionsHtml = '<option value="">Select option…</option>';
-    options.forEach(opt => {
-      optionsHtml += `<option>${opt}</option>`;
-    });
-
-    div.innerHTML = `
-      <label style="font-size:11px; font-weight:700; color:var(--text-secondary)">
-        ${label} ${req ? '<span style="color:var(--danger)">*</span>' : ''}
-      </label>
-      <select disabled style="padding:7px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:#fff; cursor:not-allowed; width:100%; opacity:0.85;">
-        ${optionsHtml}
-      </select>
-    `;
-    return div;
-  }
-
-  function createMockTextarea(label, req) {
-    const div = document.createElement('div');
-    div.style.cssText = 'display:flex; flex-direction:column; gap:4px; font-family:"Inter",sans-serif;';
-    div.innerHTML = `
-      <label style="font-size:11px; font-weight:700; color:var(--text-secondary)">
-        ${label} ${req ? '<span style="color:var(--danger)">*</span>' : ''}
-      </label>
-      <textarea rows="2" disabled style="padding:7px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:#fff; cursor:not-allowed; resize:none; width:100%; opacity:0.85;"></textarea>
-    `;
-    return div;
-  }
-
+  // Auto Suggestion AI
   function runAutoSuggest() {
     const btn = document.getElementById('btn-auto-suggest');
-    const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader" class="spin" style="width:13px;height:13px;"></i> Suggesting…`;
-    lucide.createIcons();
+    btn.innerHTML = '<span class="spinner spinner--sm"></span> Generating...';
 
     fetch("{{ url_for('posts.form_builder_auto', post_id=post.id) }}", {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "X-CSRFToken": "{{ csrf_token() }}",
-        "Content-Type": "application/json"
+        'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
       }
     })
-    .then(res => res.json())
+    .then(r => r.json())
     .then(data => {
-      if (data.success && data.fields) {
-        // Clear all current custom fields
-        document.getElementById('custom-fields-container').innerHTML = '';
-        fieldCounter = 0;
-        
-        // Add new suggested fields
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="wand-2" style="width:13px;height:13px;"></i> Smart Generate';
+      if (data.success && data.fields && data.fields.length > 0) {
+        recordHistory();
         data.fields.forEach(f => {
-          addCustomField(f);
+          fieldCounter++;
+          fields.push({
+            id: `field_auto_${Date.now()}_${fieldCounter}`,
+            label: f.label,
+            type: f.type || 'text',
+            required: f.required || false,
+            placeholder: f.placeholder || '',
+            options: f.options || []
+          });
         });
-        
-        updatePreview();
-      } else {
-        alert("Failed to auto-generate fields: " + (data.error || "Unknown error"));
+        renderFields(false);
+        window.showToast ? window.showToast('success', 'Fields Generated', `Added ${data.fields.length} smart registration fields!`) : alert(`Added ${data.fields.length} suggested fields!`);
       }
+      lucide.createIcons();
     })
     .catch(err => {
-      console.error(err);
-      alert("Error contacting the form suggester service.");
-    })
-    .finally(() => {
       btn.disabled = false;
-      btn.innerHTML = originalText;
+      btn.innerHTML = '<i data-lucide="wand-2" style="width:13px;height:13px;"></i> Smart Generate';
+      alert('Error fetching AI suggestions');
       lucide.createIcons();
     });
   }
 
-  function serializeFields() {
-    const fields = [];
-    const rows = document.querySelectorAll('.custom-field-row');
-    
-    rows.forEach((row, idx) => {
-      const labelVal = row.querySelector('.field-label-input').value.trim();
-      if (!labelVal) return; // Skip empty rows
-
-      const typeVal = row.querySelector('.field-type-select').value;
-      const reqVal = row.querySelector('.field-required-checkbox').checked;
-      const optVal = row.querySelector('.field-options-input').value;
-
-      const fieldObj = {
-        id: `custom_${idx + 1}`,
-        label: labelVal,
-        type: typeVal,
-        required: reqVal,
-        is_default: false
-      };
-
-      if (typeVal === 'select') {
-        fieldObj.options = optVal.split(',').map(s => s.trim()).filter(s => s);
-      }
-
-      fields.push(fieldObj);
-    });
-
-    document.getElementById('config_json').value = JSON.stringify(fields);
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&#039;');
   }
 </script>
-
-<style>
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeOut {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(6px); }
-  }
-  .spin {
-    animation: rotate 1s linear infinite;
-  }
-  @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-</style>
 {% endblock %}

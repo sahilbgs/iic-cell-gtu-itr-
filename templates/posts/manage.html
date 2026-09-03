@@ -39,6 +39,7 @@
             <th style="padding: 16px 20px; font-weight:700;">Department</th>
             <th style="padding: 16px 20px; font-weight:700;">Timeline</th>
             <th style="padding: 16px 20px; font-weight:700;">Status</th>
+            <th style="padding: 16px 20px; font-weight:700;">Public Showcase</th>
             <th style="padding: 16px 20px; font-weight:700;">Attachment</th>
             <th class="text-right" style="padding: 16px 20px; font-weight:700; width:120px;">Actions</th>
           </tr>
@@ -85,6 +86,15 @@
                     </span>
                     <span class="text-xs text-muted font-semibold">({{ post.progress_percentage }}%)</span>
                   </div>
+                </td>
+                <td style="padding: 16px 20px; vertical-align: middle;">
+                  <form action="{{ url_for('posts.toggle_public', post_id=post.id) }}" method="POST" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn--sm flex items-center gap-1" style="font-size:11px; padding:4px 10px; border-radius:9999px; {% if post.is_public %}background:rgba(16,185,129,0.12); color:#047857; border:1px solid rgba(16,185,129,0.3);{% else %}background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1;{% endif %}" data-tooltip="Click to toggle showcase on Public Announcements & Home Page">
+                      <i data-lucide="{% if post.is_public %}globe{% else %}lock{% endif %}" style="width:12px; height:12px;"></i>
+                      <span>{% if post.is_public %}Public{% else %}Internal{% endif %}</span>
+                    </button>
+                  </form>
                 </td>
                 <td style="padding: 16px 20px; vertical-align: middle;">
                   {% if post.attachment_path %}

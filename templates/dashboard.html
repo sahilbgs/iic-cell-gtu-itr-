@@ -277,14 +277,22 @@
                   </form>
                 {% endif %}
               </div>
-              {% if post.approval_status != 'REJECTED' %}
-              <span class="text-xs font-semibold px-2 py-1 rounded" style="
-                color: {% if post.progress_status == 'COMPLETED' %}var(--success){% elif post.progress_status == 'IN_PROGRESS' %}#d97706{% elif post.progress_status == 'ON_HOLD' %}var(--danger){% else %}var(--text-muted){% endif %};
-                background: {% if post.progress_status == 'COMPLETED' %}rgba(16, 185, 129, 0.1){% elif post.progress_status == 'IN_PROGRESS' %}rgba(245, 158, 11, 0.1){% elif post.progress_status == 'ON_HOLD' %}rgba(239, 68, 68, 0.1){% else %}var(--bg-surface-hover){% endif %};
-              ">
-                {{ post.status_label }}
-              </span>
-              {% endif %}
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                {% if post.is_public %}
+                  <span class="badge" style="background:rgba(16,185,129,0.12); color:#047857; font-size:10px; font-weight:800; border:1px solid rgba(16,185,129,0.25); display:inline-flex; align-items:center; gap:3px;">
+                    <i data-lucide="megaphone" style="width:10px;height:10px;"></i> ANNOUNCEMENT LIVE
+                  </span>
+                {% endif %}
+
+                {% if post.approval_status != 'REJECTED' %}
+                <span class="text-xs font-semibold px-2 py-1 rounded" style="
+                  color: {% if post.progress_status == 'COMPLETED' %}var(--success){% elif post.progress_status == 'IN_PROGRESS' %}#d97706{% elif post.progress_status == 'ON_HOLD' %}var(--danger){% else %}var(--text-muted){% endif %};
+                  background: {% if post.progress_status == 'COMPLETED' %}rgba(16, 185, 129, 0.1){% elif post.progress_status == 'IN_PROGRESS' %}rgba(245, 158, 11, 0.1){% elif post.progress_status == 'ON_HOLD' %}rgba(239, 68, 68, 0.1){% else %}var(--bg-surface-hover){% endif %};
+                ">
+                  {{ post.status_label }}
+                </span>
+                {% endif %}
+              </div>
             </div>
 
             {% if post.approval_status != 'REJECTED' %}
@@ -328,35 +336,20 @@
                   </form>
                   <form action="{{ url_for('posts.reject', post_id=post.id) }}" method="POST" style="margin-top:10px;" onsubmit="return confirm('Are you sure you want to reject this activity?');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <textarea name="rejection_reason" placeholder="Reason for rejection (optional)…" rows="2" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-color); font-size:12px; background:var(--bg-surface); color:var(--text-primary); font-family:'Inter',sans-serif; resize:vertical; margin-bottom:8px;"></textarea>
-                    <button type="submit" class="btn btn--danger btn--sm flex items-center gap-1" style="font-size:11px; padding:7px 14px; border-radius:8px; font-weight:700; width:100%;">
-                      <i data-lucide="x-circle" style="width:13px;height:13px;"></i> Reject
+                    <button type="submit" class="btn btn--danger btn--sm flex items-center justify-center gap-1" style="font-size:11px; padding:6px 12px; border-radius:8px; width: 100%;">
+                      <i data-lucide="x-circle" style="width:13px;height:13px;"></i> Reject Activity
                     </button>
                   </form>
                 </div>
-              {% endif %}
-            {% endif %}
-
-            {% if current_user.role in ['CHAIRPERSON', 'PRINCIPAL', 'MASTER_ADMIN'] %}
-              {% if post.approval_status == 'APPROVED' %}
+              {% else %}
                 <div style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 14px;">
-                  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-                    <span class="text-xs flex items-center gap-1" style="color:var(--success); font-weight:600;">
-                      <i data-lucide="check-circle" style="width:13px;height:13px;"></i>
-                      Approved &amp; allocated to <strong style="margin-left:3px;">
-                        {% if post.departments %}
-                          {{ post.departments | map(attribute='code') | join(', ') }}
-                        {% else %}
-                          N/A
-                        {% endif %}
-                      </strong>
-                    </span>
-                    {% if current_user.role in ['CHAIRPERSON', 'MASTER_ADMIN'] %}
-                      <button type="button" class="btn btn--secondary btn--sm flex items-center gap-1" style="font-size:10px; padding:3px 8px; border-radius:6px; border-color:var(--border-color); color:var(--text-secondary); background:var(--bg-surface-hover);" onclick="toggleEditAllocation({{ post.id }})">
-                        <i data-lucide="edit" style="width:12px;height:12px;color:var(--primary);"></i> Edit Allocation
-                      </button>
-                    {% endif %}
-                  </div>
+                  <span class="text-xs flex items-center gap-1" style="color:var(--success); font-weight:700;">
+                    <i data-lucide="check-circle" style="width:14px;height:14px;"></i>
+                    Allocated to {{ post.departments|map(attribute='name')|join(', ') if post.departments else 'Department' }}
+                    <button type="button" class="btn btn--secondary btn--sm" style="font-size:10px; padding:2px 8px; margin-left:8px; border-radius:6px;" onclick="toggleEditAllocation({{ post.id }})">
+                      <i data-lucide="edit-2" style="width:10px;height:10px;"></i> Re-allocate
+                    </button>
+                  </span>
 
                   {% if current_user.role in ['CHAIRPERSON', 'MASTER_ADMIN'] %}
                     <div id="edit-allocation-form-{{ post.id }}" style="display:none; margin-top:12px; margin-left: 22px; background:var(--bg-surface-hover); border:1px solid var(--border-color); padding:16px; border-radius:10px; box-shadow: var(--shadow-sm);">
@@ -414,24 +407,15 @@
                     </div>
                   {% endif %}
                 </div>
-              {% elif post.approval_status == 'REJECTED' %}
-                <div style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 14px; background: rgba(239, 68, 68, 0.04); margin-left:-20px; margin-right:-20px; padding-left:20px; padding-right:20px; padding-bottom:10px; border-radius: 0 0 12px 12px;">
-                  <span class="text-xs flex items-center gap-1" style="color:var(--danger); font-weight:700;">
-                    <i data-lucide="x-circle" style="width:14px;height:14px;"></i>
-                    REJECTED by Chairperson
-                  </span>
-                  {% if post.rejection_reason %}
-                    <p class="text-xs" style="color:var(--danger); margin:6px 0 0 22px; opacity:0.85; font-style:italic;">"{{ post.rejection_reason }}"</p>
-                  {% endif %}
-                </div>
               {% endif %}
             {% endif %}
 
             {% if post.approval_status == 'APPROVED' %}
-              {% set user_is_coord = (current_user.role == 'HOD' and current_user.department_id in post.departments | map(attribute='id') | list) %}
+              {% set user_is_coord = (current_user.role == 'HOD' and (current_user.department_id in post.departments | map(attribute='id') | list or current_user.department_id == post.department_id)) %}
               {% set user_is_assigned = (current_user.id == post.assigned_faculty_id) %}
+              {% set user_can_manage = post.can_be_managed_by(current_user) %}
 
-              {% if user_is_coord or user_is_assigned %}
+              {% if user_is_coord or user_is_assigned or user_can_manage %}
                 <!-- HOD & Faculty Lead Operations -->
                 <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px; display:flex; flex-direction:column; gap:10px;">
                   
@@ -459,20 +443,54 @@
                         </button>
                       </div>
                     </form>
-                  {% else %}
+                  {% elif user_is_assigned %}
                     <!-- Show Assigned Faculty for the Lead themselves -->
-                    <div style="font-size:12px; font-weight:600; color:var(--text-secondary); display:flex; align-items:center; gap:6px;">
+                    <div style="font-size:12px; font-weight:600; color:var(--text-secondary); display:flex; align-items:center; gap:6px; background:rgba(16,185,129,0.06); padding:8px 12px; border-radius:8px; border:1px solid rgba(16,185,129,0.2);">
                       <i data-lucide="user-check" style="width:14px;height:14px;color:var(--success);"></i>
-                      You are the assigned **Faculty Lead** for this activity.
+                      <span>You are the assigned <strong>Faculty Lead</strong> for this activity.</span>
                     </div>
                   {% endif %}
 
-                  <!-- 2. Update Progress Dropdown (Coordinator or Lead Faculty) -->
+                  <!-- 2. Public Announcement Showcase Control (HOD or Allocated Faculty) -->
+                  <div style="background:linear-gradient(135deg, rgba(var(--primary-rgb),0.03) 0%, rgba(16,185,129,0.04) 100%); border:1px solid var(--border-color); border-radius:10px; padding:10px 14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                      <div>
+                        <span style="font-size:11px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:5px; text-transform:uppercase; letter-spacing:0.04em;">
+                          <i data-lucide="megaphone" style="width:13px;height:13px;color:var(--primary);"></i>
+                          Public Announcement Board:
+                        </span>
+                        <span style="font-size:10.5px; color:var(--text-muted); display:block; margin-top:2px;">
+                          {% if post.is_public %}
+                            <strong style="color:var(--success); display:inline-flex; align-items:center; gap:3px;">
+                              <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--success);"></span>
+                              Live on Public Announcements &amp; Home Page
+                            </strong>
+                          {% else %}
+                            <span style="color:var(--text-muted);">Internal Portal Only (Hidden from public)</span>
+                          {% endif %}
+                        </span>
+                      </div>
+                      <form action="{{ url_for('posts.toggle_public', post_id=post.id) }}" method="POST" style="margin:0;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% if post.is_public %}
+                          <button type="submit" class="btn btn--secondary btn--sm" style="font-size:11px; padding:5px 12px; border-radius:6px; font-weight:700;" title="Remove from public announcement board">
+                            <i data-lucide="eye-off" style="width:12px;height:12px;"></i> Hide from Public
+                          </button>
+                        {% else %}
+                          <button type="submit" class="btn btn--sm" style="font-size:11px; padding:5px 14px; border-radius:6px; font-weight:800; background:var(--primary); color:#fff; border:none; display:flex; align-items:center; gap:5px; box-shadow:0 2px 8px rgba(var(--primary-rgb),0.25);" title="Publish this activity to the public announcements board & home page">
+                            <i data-lucide="globe" style="width:12px;height:12px;"></i> Publish to Announcements
+                          </button>
+                        {% endif %}
+                      </form>
+                    </div>
+                  </div>
+
+                  <!-- 3. Update Progress Dropdown (Coordinator or Lead Faculty) -->
                   <form action="{{ url_for('posts.update_progress', post_id=post.id) }}" method="POST" style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <span style="font-size:11px; font-weight:700; color:var(--text-secondary); display:flex; align-items:center; gap:4px;">
                       <i data-lucide="activity" style="width:13px;height:13px;color:var(--success);"></i>
-                      Update Progress Status:
+                      Progress Status:
                     </span>
                     <div style="display:flex; gap:6px; align-items:center;">
                       <select name="progress_status" onchange="this.form.submit()" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:11px; background:var(--bg-surface); color:var(--text-primary); font-weight:600;">
@@ -484,7 +502,7 @@
                     </div>
                   </form>
 
-                  <!-- 3. Form Config & Reports Actions -->
+                  <!-- 4. Form Config & Reports Actions -->
                   <div style="display:flex; flex-direction:column; gap:6px; border-top:1px solid var(--border-color); padding-top:10px; margin-top:2px;">
                     {% if post.has_registration_form %}
                       <!-- Shareable copy link input -->
@@ -496,7 +514,7 @@
                       </div>
 
                       <div style="display:flex; gap:6px; width:100%; margin-top:2px;">
-                        {% if user_is_coord %}
+                        {% if user_is_coord or user_is_assigned or user_can_manage %}
                           <a href="{{ url_for('posts.form_builder', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center justify-center gap-1" style="font-size:11px; padding:6px 12px; border-radius:8px; font-weight:700; flex:1; text-decoration:none;">
                             <i data-lucide="sliders" style="width:13px;height:13px;"></i> Edit Form Builder
                           </a>
@@ -506,14 +524,14 @@
                         </a>
                       </div>
                     {% else %}
-                      {% if user_is_coord %}
+                      {% if user_is_coord or user_is_assigned or user_can_manage %}
                         <a href="{{ url_for('posts.form_builder', post_id=post.id) }}" class="btn btn--sm flex items-center justify-center gap-1" style="font-size:11px; padding:8px 16px; border-radius:8px; font-weight:700; background:var(--primary); color:#fff; border:none; text-decoration:none; text-align:center;">
                           <i data-lucide="file-plus" style="width:14px;height:14px;"></i> Create Student Registration Form
                         </a>
                       {% else %}
                         <span style="font-size:11px; font-style:italic; color:var(--text-muted); display:flex; align-items:center; gap:4px;">
                           <i data-lucide="alert-circle" style="width:13px;height:13px;"></i>
-                          No registration form created yet by HOD.
+                          No registration form created yet.
                         </span>
                       {% endif %}
                     {% endif %}

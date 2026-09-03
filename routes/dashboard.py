@@ -2,7 +2,7 @@
 GTU-ITR R&D & IIC Portal - Scoped Dashboard Routes
 Blueprint: dashboard  |  Prefix: (none – root)
 """
-from flask import Blueprint, render_template, redirect, url_for, send_from_directory, current_app
+from flask import Blueprint, render_template, redirect, url_for, send_from_directory, current_app, request
 from flask_login import login_required, current_user
 from models.landing_post import LandingPost
 from extensions import db
@@ -19,12 +19,80 @@ def landing():
     """Public landing page."""
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
-    
-    # Fetch posts that are not hidden, order by pinned then by newest
+
+    PrincipalPost.check_and_update_expired()
+
+    # Fetch landing updates from Chairperson (pinned first, then newest)
     landing_posts = LandingPost.query.filter_by(is_hidden=False, is_deleted=False)\
         .order_by(LandingPost.is_pinned.desc(), LandingPost.created_at.desc()).all()
-        
-    return render_template('landing.html', landing_posts=landing_posts)
+
+    # Fetch public activities that are approved and not expired
+    public_activities = PrincipalPost.query.filter_by(
+        approval_status='APPROVED',
+        is_public=True
+    ).filter(
+        PrincipalPost.progress_status != 'EXPIRED'
+    ).order_by(PrincipalPost.created_at.desc()).all()
+
+    return render_template('landing.html', landing_posts=landing_posts, public_activities=public_activities)
+
+
+@dashboard_bp.route('/announcements')
+def announcements():
+    """Public announcements page showcasing active registrations and running activities."""
+    PrincipalPost.check_and_update_expired()
+
+    # Base query: approved, public, not expired
+    query = PrincipalPost.query.filter_by(
+        approval_status='APPROVED',
+        is_public=True
+    ).filter(
+        PrincipalPost.progress_status != 'EXPIRED'
+    )
+
+    filter_tab = request.args.get('filter', 'all')
+    dept_id = request.args.get('department_id', type=int)
+    search_query = request.args.get('q', '').strip()
+
+    if filter_tab == 'registrations':
+        # Activities with open registration (either internal form or external link)
+        query = query.filter(
+            db.or_(
+                PrincipalPost.has_registration_form == True,
+                PrincipalPost.external_registration_url != None
+            )
+        )
+    elif filter_tab == 'running':
+        # Activities currently in progress
+        query = query.filter(PrincipalPost.progress_status == 'IN_PROGRESS')
+
+    if dept_id:
+        query = query.filter(
+            db.or_(
+                PrincipalPost.department_id == dept_id,
+                PrincipalPost.departments.any(id=dept_id)
+            )
+        )
+
+    if search_query:
+        query = query.filter(
+            db.or_(
+                PrincipalPost.title.ilike(f'%{search_query}%'),
+                PrincipalPost.summary.ilike(f'%{search_query}%'),
+                PrincipalPost.full_content.ilike(f'%{search_query}%')
+            )
+        )
+
+    activities = query.order_by(PrincipalPost.created_at.desc()).all()
+    departments = Department.query.filter_by(is_deleted=False).order_by(Department.name).all()
+
+    return render_template('announcements.html',
+                           activities=activities,
+                           departments=departments,
+                           current_filter=filter_tab,
+                           current_dept=dept_id,
+                           search_query=search_query)
+
 
 @dashboard_bp.route('/media/<filename>')
 def serve_media(filename):

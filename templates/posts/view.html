@@ -141,6 +141,52 @@
           </a>
         {% endif %}
 
+        {% if post.external_registration_url %}
+          {% if post.is_registration_closed %}
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--border-radius-full); padding: 8px 14px; text-align: center; color: var(--danger); font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i data-lucide="lock" style="width: 14px; height: 14px;"></i> External Registration Closed
+            </div>
+          {% else %}
+            <a href="{{ post.external_registration_url }}" class="btn btn--primary flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%; background: linear-gradient(135deg, #6366f1, #4f46e5); color:#fff; border:none;" target="_blank" rel="noopener noreferrer">
+              <i data-lucide="external-link" style="width:16px;height:16px;"></i> External Registration Link
+            </a>
+          {% endif %}
+        {% endif %}
+
+        {% if current_user.is_authenticated and post.can_be_managed_by(current_user) %}
+          <!-- Form Builder Access for HOD and Allocated Faculty -->
+          <a href="{{ url_for('posts.form_builder', post_id=post.id) }}" class="btn btn--secondary flex items-center justify-center gap-2" style="border-radius: var(--border-radius-full); padding: 10px; width: 100%; font-weight:700;">
+            <i data-lucide="sliders" style="width:16px;height:16px;color:var(--primary);"></i>
+            {% if post.has_registration_form %}Configure Form Builder{% else %}Create Student Registration Form{% endif %}
+          </a>
+
+          <!-- Public Announcement & Home Showcase Card -->
+          <div style="padding: 14px 16px; background: linear-gradient(135deg, rgba(var(--primary-rgb),0.04) 0%, rgba(16,185,129,0.05) 100%); border: 1px solid var(--border-color); border-radius: 14px; display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:11.5px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:5px; text-transform:uppercase; letter-spacing:0.04em;">
+                <i data-lucide="megaphone" style="width:14px; height:14px; color:var(--primary);"></i> Public Announcements:
+              </span>
+              <span class="badge badge--{{ 'success' if post.is_public else 'neutral' }}" style="font-size:10px; font-weight:700;">
+                {{ 'Live on Board' if post.is_public else 'Internal Only' }}
+              </span>
+            </div>
+            <p style="font-size:11px; color:var(--text-muted); margin:0; line-height:1.4;">
+              {% if post.is_public %}
+                This activity and its registration form are live for everyone on the Home Page and Announcements Board.
+              {% else %}
+                Currently internal only. Click below to allow students and the public to view and register.
+              {% endif %}
+            </p>
+            <form action="{{ url_for('posts.toggle_public', post_id=post.id) }}" method="POST" style="margin:0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn--{{ 'secondary' if post.is_public else 'primary' }} btn--sm" style="width:100%; justify-content:center; font-size:12px; border-radius:8px; font-weight:800; padding:8px 12px; {% if not post.is_public %}background:var(--primary); color:#fff; border:none; box-shadow:0 2px 8px rgba(var(--primary-rgb),0.25);{% endif %}">
+                <i data-lucide="{{ 'eye-off' if post.is_public else 'globe' }}" style="width:14px; height:14px;"></i>
+                {{ 'Hide from Public' if post.is_public else 'Publish to Public Announcements' }}
+              </button>
+            </form>
+          </div>
+        {% endif %}
+
         {% if post.approval_status == 'APPROVED' %}
           {% set is_mgmt = current_user.is_management %}
           {% set is_coord = current_user.role == 'HOD' and current_user.department_id in post.departments | map(attribute='id') | list %}

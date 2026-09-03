@@ -47,10 +47,12 @@ def index():
 
 
 @posts_bp.route('/<int:post_id>/view')
-@login_required
 def view_post(post_id):
     """View full details and attachment of a post on a dedicated page."""
     post = PrincipalPost.query.get_or_404(post_id)
+    if not current_user.is_authenticated:
+        if not (post.is_public and post.approval_status == 'APPROVED'):
+            return redirect(url_for('auth.login', next=request.url))
     return render_template('posts/view.html', post=post)
 
 
@@ -478,6 +480,9 @@ def create():
             return render_template('posts/form.html', post=None, departments=departments,
                                    sources=POST_SOURCES, statuses=POST_STATUSES)
 
+        is_public = request.form.get('is_public') == '1'
+        external_registration_url = request.form.get('external_registration_url', '').strip() or None
+
         post = PrincipalPost(
             title=title,
             source=source,
@@ -487,8 +492,22 @@ def create():
             department_id=department_id or None,
             created_by=current_user.id,
             start_date=start_date,
-            end_date=end_date
+            end_date=end_date,
+            is_public=is_public,
+            external_registration_url=external_registration_url
         )
+
+        # Auto-approve if created by PRINCIPAL, CHAIRPERSON, or MASTER_ADMIN
+        if current_user.role in ('PRINCIPAL', 'CHAIRPERSON', 'MASTER_ADMIN'):
+            post.approval_status = 'APPROVED'
+            post.approved_by = current_user.id
+            post.approval_date = datetime.utcnow()
+
+        # Link departments relationship
+        if department_id:
+            dept = Department.query.get(department_id)
+            if dept:
+                post.departments = [dept]
 
         # Handle file attachment
         if 'attachment' in request.files and request.files['attachment'].filename:
@@ -569,6 +588,8 @@ def edit(post_id):
 
         post.start_date = start_date
         post.end_date = end_date
+        post.is_public = request.form.get('is_public') == '1'
+        post.external_registration_url = request.form.get('external_registration_url', '').strip() or None
 
         # Handle file attachment replacement
         if 'attachment' in request.files and request.files['attachment'].filename:
@@ -660,12 +681,52 @@ def reject(post_id):
     return redirect(url_for('dashboard.index'))
 
 
-@posts_bp.route('/uploads/<path:filename>')
+@posts_bp.route('/<int:post_id>/toggle-public', methods=['POST'])
 @login_required
+def toggle_public(post_id):
+    """Toggle public visibility for an activity on Announcements and Home Page."""
+    post = PrincipalPost.query.get_or_404(post_id)
+    
+    if not post.can_be_managed_by(current_user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+            return jsonify({'success': False, 'error': 'You do not have permission to modify this activity’s public status.'}), 403
+        flash('You do not have permission to publish or unpublish this activity.', 'danger')
+        return redirect(request.referrer or url_for('posts.manage'))
+
+    post.is_public = not post.is_public
+    db.session.commit()
+
+    status_str = "published to Public Announcements & Home Page" if post.is_public else "hidden from public view (internal only)"
+    flash_msg = f'Activity "{post.title[:35]}..." {status_str}.'
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({
+            'success': True,
+            'is_public': post.is_public,
+            'message': flash_msg
+        })
+
+    flash(flash_msg, 'success')
+    return redirect(request.referrer or url_for('posts.manage'))
+
+
+@posts_bp.route('/uploads/<path:filename>')
 def download_file(filename):
     """Serve files from the uploads directory securely."""
     from flask import send_from_directory
     as_attachment = request.args.get('download') == '1'
+
+    # If unauthenticated, check if the file belongs to an approved, public post
+    if not current_user.is_authenticated:
+        base_fname = filename.split('/')[-1]
+        public_post = PrincipalPost.query.filter(
+            PrincipalPost.attachment_path.like(f'%{base_fname}%'),
+            PrincipalPost.is_public == True,
+            PrincipalPost.approval_status == 'APPROVED'
+        ).first()
+        if not public_post:
+            return redirect(url_for('auth.login', next=request.url))
+
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename, as_attachment=as_attachment)
 
 
@@ -724,37 +785,37 @@ def update_progress(post_id):
 
 @posts_bp.route('/<int:post_id>/form-builder', methods=['GET', 'POST'])
 @login_required
-@role_required('HOD', 'MASTER_ADMIN')
 def form_builder(post_id):
-    """Coordinator accesses and configures the student registration form builder."""
+    """Coordinator or assigned Faculty Lead accesses and configures the student registration form builder."""
     post = PrincipalPost.query.get_or_404(post_id)
     
-    # Check if this post is allocated to coordinator's department
-    if current_user.role != 'MASTER_ADMIN' and current_user.department_id not in [d.id for d in post.departments]:
+    # Check permissions using can_be_managed_by
+    if not post.can_be_managed_by(current_user):
         abort(403)
         
     import json
     from datetime import datetime
     
-    # Default fields that are always included in student registration
-    default_fields = [
-        {"id": "student_name", "label": "Full Name", "type": "text", "required": True, "is_default": True},
-        {"id": "enrollment_no", "label": "Enrollment Number", "type": "text", "required": True, "is_default": True},
-        {"id": "email", "label": "Email Address", "type": "email", "required": True, "is_default": True},
-        {"id": "phone", "label": "Phone Number", "type": "tel", "required": False, "is_default": True},
-        {"id": "semester", "label": "Current Semester", "type": "text", "required": False, "is_default": True},
-        {"id": "department", "label": "Department", "type": "select", "options": ["Computer Engineering", "Information Technology", "Mechanical Engineering", "Civil Engineering", "Electrical Engineering", "Electronics & Communication"], "required": True, "is_default": True}
+    # Starter suggested fields that are 100% editable, reorderable, or removable
+    starter_fields = [
+        {"id": "student_name", "label": "Full Name", "type": "text", "required": True, "placeholder": "Enter your full legal name"},
+        {"id": "enrollment_no", "label": "Enrollment Number", "type": "text", "required": True, "placeholder": "e.g. 231040107082"},
+        {"id": "email", "label": "Email Address", "type": "email", "required": True, "placeholder": "e.g. student@gtu.ac.in"},
+        {"id": "phone", "label": "Phone / WhatsApp Number", "type": "tel", "required": False, "placeholder": "e.g. +91 98765 43210"},
+        {"id": "department", "label": "Department", "type": "select", "options": ["Computer Engineering", "Information Technology", "Mechanical Engineering", "Civil Engineering", "Electrical Engineering", "Electronics & Communication"], "required": True},
+        {"id": "semester", "label": "Current Semester", "type": "select", "options": ["1", "2", "3", "4", "5", "6", "7", "8"], "required": False}
     ]
     
     if request.method == 'POST':
-        # Read form configuration from JSON input or form fields
+        # Read form configuration from JSON input
         config_data = request.form.get('config_json', '[]')
         deadline_str = request.form.get('registration_deadline', '').strip()
         
         try:
-            custom_fields = json.loads(config_data)
-            # Combine default fields and custom fields
-            full_config = default_fields + custom_fields
+            full_config = json.loads(config_data)
+            if not isinstance(full_config, list) or len(full_config) == 0:
+                full_config = starter_fields
+
             post.form_config = json.dumps(full_config)
             post.has_registration_form = True
             
@@ -770,31 +831,37 @@ def form_builder(post_id):
             else:
                 post.registration_deadline = None
 
+            if 'external_registration_url' in request.form:
+                post.external_registration_url = request.form.get('external_registration_url', '').strip() or None
+            if 'is_public' in request.form:
+                post.is_public = request.form.get('is_public') == '1'
+
             db.session.commit()
-            flash('Registration form configuration and deadline saved successfully!', 'success')
+            flash('Registration form configuration and settings saved successfully!', 'success')
             return redirect(url_for('dashboard.index'))
         except Exception as e:
             flash(f'Failed to save form config: {e}', 'danger')
             
-    # Load existing custom fields (filtering out default ones)
-    existing_custom = []
+    # Load existing fields (or use starter editable fields if none set yet)
+    existing_fields = []
     if post.form_config:
         try:
-            all_fields = json.loads(post.form_config)
-            existing_custom = [f for f in all_fields if not f.get('is_default')]
+            existing_fields = json.loads(post.form_config)
         except Exception:
-            existing_custom = []
+            existing_fields = []
             
-    return render_template('posts/form_builder.html', post=post, custom_fields=existing_custom, default_fields=default_fields)
+    if not existing_fields:
+        existing_fields = starter_fields
+            
+    return render_template('posts/form_builder.html', post=post, existing_fields=existing_fields)
 
 
 @posts_bp.route('/<int:post_id>/form-builder/auto', methods=['POST'])
 @login_required
-@role_required('HOD', 'MASTER_ADMIN')
 def form_builder_auto(post_id):
     """AJAX endpoint to auto-suggest custom fields based on post details."""
     post = PrincipalPost.query.get_or_404(post_id)
-    if current_user.role != 'MASTER_ADMIN' and current_user.department_id not in [d.id for d in post.departments]:
+    if not post.can_be_managed_by(current_user):
         return jsonify({"error": "Unauthorized"}), 403
         
     from services.form_generator import FormGenerator
@@ -837,60 +904,143 @@ def register(post_id):
     if not fields:
         abort(500, "Registration form configuration is corrupt.")
         
+    ALLOWED_REG_FILE_EXT = {'pdf', 'docx', 'doc', 'txt', 'png', 'jpg', 'jpeg', 'zip', 'rar', 'pptx', 'ppt', 'csv', 'xlsx'}
+
     if request.method == 'POST':
-        student_name = request.form.get('student_name', '').strip()
-        enrollment_no = request.form.get('enrollment_no', '').strip()
-        email = request.form.get('email', '').strip()
-        phone = request.form.get('phone', '').strip()
-        semester = request.form.get('semester', '').strip()
-        department = request.form.get('department', '').strip()
-        
-        # Basic validation
-        if not student_name or not enrollment_no or not email or not department:
-            flash('Full Name, Enrollment Number, Email, and Department are required.', 'danger')
-            return render_template('posts/register.html', post=post, fields=fields)
-            
-        # Parse custom data answers
-        custom_answers = {}
-        for f in fields:
-            if not f.get('is_default'):
-                fid = f.get('id')
-                val = request.form.get(f'custom_{fid}', '').strip()
-                if f.get('required') and not val:
-                    flash(f"The field '{f.get('label')}' is required.", 'danger')
-                    return render_template('posts/register.html', post=post, fields=fields)
-                custom_answers[fid] = val
-                
-        # Check for duplicate registration (same enrollment number or email for this post)
+        import uuid
+        import time
+        from werkzeug.utils import secure_filename
         from models.student_registration import StudentRegistration
-        existing_reg = StudentRegistration.query.filter(
-            StudentRegistration.post_id == post.id,
-            db.or_(
-                StudentRegistration.enrollment_no == enrollment_no,
-                StudentRegistration.email == email
-            )
-        ).first()
-        if existing_reg:
-            flash('You are already registered for this activity with this enrollment number or email.', 'warning')
-            return render_template('posts/register.html', post=post, fields=fields)
+
+        answers = {}
+
+        # Loop through all configured form fields
+        for f in fields:
+            fid = f.get('id')
+            ftype = f.get('type', 'text')
+            flabel = f.get('label', 'Field')
+            is_req = f.get('required', False)
+
+            val = ""
+            if ftype == 'file':
+                # File upload handling
+                file_obj = request.files.get(f'field_{fid}') or request.files.get(fid)
+                if file_obj and file_obj.filename:
+                    fname = secure_filename(file_obj.filename)
+                    ext = fname.rsplit('.', 1)[1].lower() if '.' in fname else ''
+                    if ext not in ALLOWED_REG_FILE_EXT:
+                        flash(f"File for '{flabel}' must be one of: {', '.join(sorted(ALLOWED_REG_FILE_EXT))}", 'danger')
+                        return render_template('posts/register.html', post=post, fields=fields)
+
+                    upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'registrations', str(post.id))
+                    os.makedirs(upload_dir, exist_ok=True)
+                    stored_fname = f"{uuid.uuid4().hex[:8]}_{fname}"
+                    file_obj.save(os.path.join(upload_dir, stored_fname))
+                    val = f"registrations/{post.id}/{stored_fname}"
+                elif is_req:
+                    flash(f"Please upload a file for '{flabel}'.", 'danger')
+                    return render_template('posts/register.html', post=post, fields=fields)
+            elif ftype == 'checkbox':
+                vals = request.form.getlist(f'field_{fid}') or request.form.getlist(fid)
+                val = ", ".join(vals)
+                if is_req and not val:
+                    flash(f"The field '{flabel}' is required.", 'danger')
+                    return render_template('posts/register.html', post=post, fields=fields)
+            else:
+                val = request.form.get(f'field_{fid}', '').strip()
+                if not val:
+                    val = request.form.get(fid, '').strip()
+                if is_req and not val:
+                    flash(f"The field '{flabel}' is required.", 'danger')
+                    return render_template('posts/register.html', post=post, fields=fields)
+
+            answers[fid] = val
+
+        # Extract core columns for StudentRegistration database record
+        student_name = answers.get('student_name') or ""
+        if not student_name:
+            for fid, v in answers.items():
+                fl = next((f.get('label', '').lower() for f in fields if f.get('id') == fid), '')
+                if 'name' in fl or 'student' in fl:
+                    student_name = v
+                    break
+        if not student_name:
+            student_name = "Registered Participant"
+
+        enrollment_no = answers.get('enrollment_no') or ""
+        if not enrollment_no:
+            for fid, v in answers.items():
+                fl = next((f.get('label', '').lower() for f in fields if f.get('id') == fid), '')
+                if 'enroll' in fl or 'roll' in fl or 'id' in fl:
+                    enrollment_no = v
+                    break
+        if not enrollment_no:
+            enrollment_no = f"REG-{int(time.time())}"
+
+        email = answers.get('email') or ""
+        if not email:
+            for f in fields:
+                if f.get('type') == 'email' and answers.get(f.get('id')):
+                    email = answers[f['id']]
+                    break
+
+        phone = answers.get('phone') or ""
+        if not phone:
+            for f in fields:
+                if f.get('type') == 'tel' and answers.get(f.get('id')):
+                    phone = answers[f['id']]
+                    break
+
+        semester = answers.get('semester') or ""
+        if not semester:
+            for fid, v in answers.items():
+                fl = next((f.get('label', '').lower() for f in fields if f.get('id') == fid), '')
+                if 'sem' in fl:
+                    semester = v
+                    break
+
+        department = answers.get('department') or ""
+        if not department:
+            for fid, v in answers.items():
+                fl = next((f.get('label', '').lower() for f in fields if f.get('id') == fid), '')
+                if 'dept' in fl or 'branch' in fl or 'department' in fl:
+                    department = v
+                    break
+
+        # Duplicate check if valid enrollment or email exists
+        if email or (enrollment_no and not enrollment_no.startswith('REG-')):
+            dup_filters = []
+            if enrollment_no and not enrollment_no.startswith('REG-'):
+                dup_filters.append(StudentRegistration.enrollment_no == enrollment_no)
+            if email and email != 'not-provided@gtu.ac.in':
+                dup_filters.append(StudentRegistration.email == email)
+
+            if dup_filters:
+                existing_reg = StudentRegistration.query.filter(
+                    StudentRegistration.post_id == post.id,
+                    db.or_(*dup_filters)
+                ).first()
+                if existing_reg:
+                    flash('You are already registered for this activity with this enrollment number or email.', 'warning')
+                    return render_template('posts/register.html', post=post, fields=fields)
 
         # Save Student Registration
         reg = StudentRegistration(
             post_id=post.id,
             student_name=student_name,
             enrollment_no=enrollment_no,
-            email=email,
+            email=email or 'not-provided@gtu.ac.in',
             phone=phone or None,
             semester=semester or None,
             department=department or None,
-            custom_data=json.dumps(custom_answers) if custom_answers else None
+            custom_data=json.dumps(answers)
         )
         db.session.add(reg)
         db.session.commit()
-        
+
         # Dynamic success message
         return render_template('posts/register.html', post=post, fields=fields, success_registered=True, student_name=student_name)
-        
+
     return render_template('posts/register.html', post=post, fields=fields)
 
 
@@ -899,31 +1049,31 @@ def register(post_id):
 def registration_report(post_id):
     """Detailed registrations and statistical reports, visible to Lead Faculty, Coordinator, and Higher Authorities."""
     post = PrincipalPost.query.get_or_404(post_id)
-    
+
     # Authorization checks
     is_mgmt = current_user.is_management
     is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
     is_assigned = current_user.id == post.assigned_faculty_id
-    
+
     if not (is_mgmt or is_coord or is_assigned):
         abort(403)
-        
+
     import json
-    
+
     # Parse form config to get field headers
     fields = []
     custom_field_map = {}
     if post.form_config:
         try:
             fields = json.loads(post.form_config)
-            custom_field_map = {f['id']: f['label'] for f in fields if not f.get('is_default')}
+            custom_field_map = {f['id']: f['label'] for f in fields}
         except Exception:
             pass
-            
+
     # Fetch registrations
     from models.student_registration import StudentRegistration
     registrations = StudentRegistration.query.filter_by(post_id=post.id).order_by(StudentRegistration.registered_at.desc()).all()
-    
+
     # Helper to parse custom responses in template
     def get_custom_val(reg_obj, field_id):
         if not reg_obj.custom_data:
@@ -933,14 +1083,23 @@ def registration_report(post_id):
             return answers.get(field_id, "")
         except Exception:
             return ""
-            
+
+    # Helper to get full answers dict
+    def get_all_answers(reg_obj):
+        if not reg_obj.custom_data:
+            return {}
+        try:
+            return json.loads(reg_obj.custom_data)
+        except Exception:
+            return {}
+
     # Calculations / Stats
     total_regs = len(registrations)
     semester_stats = {}
     for reg in registrations:
         sem = reg.semester or "Not Specified"
         semester_stats[sem] = semester_stats.get(sem, 0) + 1
-        
+
     return render_template('posts/registration_report.html',
                            post=post,
                            registrations=registrations,
@@ -948,7 +1107,237 @@ def registration_report(post_id):
                            custom_field_map=custom_field_map,
                            total_regs=total_regs,
                            semester_stats=semester_stats,
-                           get_custom_val=get_custom_val)
+                           get_custom_val=get_custom_val,
+                           get_all_answers=get_all_answers)
+
+
+@posts_bp.route('/<int:post_id>/registrations/export-csv')
+@login_required
+def export_registrations_csv(post_id):
+    """Export all student registrations as a downloadable UTF-8 CSV/Excel spreadsheet."""
+    post = PrincipalPost.query.get_or_404(post_id)
+
+    is_mgmt = current_user.is_management
+    is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
+    is_assigned = current_user.id == post.assigned_faculty_id
+    if not (is_mgmt or is_coord or is_assigned):
+        abort(403)
+
+    import io
+    import csv
+    import json
+    from flask import Response
+    from models.student_registration import StudentRegistration
+
+    fields = []
+    if post.form_config:
+        try:
+            fields = json.loads(post.form_config)
+        except Exception:
+            pass
+
+    registrations = StudentRegistration.query.filter_by(post_id=post.id).order_by(StudentRegistration.registered_at.asc()).all()
+
+    output = io.StringIO()
+    output.write('\ufeff')  # UTF-8 BOM for Excel
+    writer = csv.writer(output)
+
+    # Prepare Headers
+    headers = ['#', 'Student Name', 'Enrollment Number', 'Department', 'Semester', 'Email', 'Phone']
+    standard_ids = {'student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'}
+    for f in fields:
+        if f.get('id') not in standard_ids:
+            headers.append(f.get('label', f.get('id')))
+    headers.append('Registered At')
+    writer.writerow(headers)
+
+    # Prepare Data Rows
+    for idx, reg in enumerate(registrations, start=1):
+        answers = {}
+        if reg.custom_data:
+            try:
+                answers = json.loads(reg.custom_data)
+            except Exception:
+                pass
+
+        row = [
+            idx,
+            reg.student_name,
+            reg.enrollment_no,
+            reg.department or '',
+            reg.semester or '',
+            reg.email or '',
+            reg.phone or ''
+        ]
+        for f in fields:
+            fid = f.get('id')
+            if fid not in standard_ids:
+                row.append(answers.get(fid, ''))
+        row.append(reg.registered_at.strftime('%Y-%m-%d %H:%M:%S'))
+        writer.writerow(row)
+
+    safe_title = "".join(c for c in post.title[:35] if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
+    filename = f"registrations_{safe_title}_{post.id}.csv"
+
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv; charset=utf-8',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+    )
+
+
+@posts_bp.route('/<int:post_id>/registrations/export-excel')
+@login_required
+def export_registrations_excel(post_id):
+    """Export all student registrations as a professionally styled Microsoft Excel (.xlsx) workbook."""
+    post = PrincipalPost.query.get_or_404(post_id)
+
+    is_mgmt = current_user.is_management
+    is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
+    is_assigned = current_user.id == post.assigned_faculty_id
+    if not (is_mgmt or is_coord or is_assigned):
+        abort(403)
+
+    import io
+    import json
+    from datetime import datetime
+    from flask import Response
+    from models.student_registration import StudentRegistration
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    fields = []
+    if post.form_config:
+        try:
+            fields = json.loads(post.form_config)
+        except Exception:
+            pass
+
+    registrations = StudentRegistration.query.filter_by(post_id=post.id).order_by(StudentRegistration.registered_at.asc()).all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Registrations"
+
+    # Set grid lines visible
+    ws.views.sheetView[0].showGridLines = True
+
+    # Styling Palettes
+    navy_fill = PatternFill(start_color="0F52BA", end_color="0F52BA", fill_type="solid")
+    header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+    title_font = Font(name="Calibri", size=14, bold=True, color="002060")
+    sub_font = Font(name="Calibri", size=10, italic=True, color="555555")
+    data_font = Font(name="Calibri", size=10, color="000000")
+    zebra_fill = PatternFill(start_color="F8FAFC", end_color="F8FAFC", fill_type="solid")
+
+    thin_border_side = Side(style="thin", color="CBD5E1")
+    cell_border = Border(left=thin_border_side, right=thin_border_side, top=thin_border_side, bottom=thin_border_side)
+    center_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    left_align = Alignment(horizontal="left", vertical="center", wrap_text=True)
+
+    # Top Title Rows
+    ws.append(["GUJARAT TECHNOLOGICAL UNIVERSITY (GTU) — ITR IIC & R&D CELL"])
+    ws.cell(row=1, column=1).font = title_font
+    ws.row_dimensions[1].height = 26
+
+    depts_str = ", ".join([d.code for d in post.departments]) if post.departments else "All Departments"
+    faculty_str = post.assigned_faculty.full_name if post.assigned_faculty else "Unassigned"
+    ws.append([f"Activity: {post.title} | Allocated: {depts_str} | Lead Faculty: {faculty_str}"])
+    ws.cell(row=2, column=1).font = sub_font
+    ws.row_dimensions[2].height = 18
+
+    ws.append([f"Total Registered Participants: {len(registrations)} | Generated: {datetime.now().strftime('%d %B %Y, %I:%M %p')}"])
+    ws.cell(row=3, column=1).font = sub_font
+    ws.row_dimensions[3].height = 18
+
+    ws.append([])  # Blank row 4
+
+    # Headers Row 5
+    headers = ['#', 'Student Name', 'Enrollment Number', 'Department', 'Semester', 'Email Address', 'Phone Number']
+    standard_ids = {'student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'}
+    for f in fields:
+        if f.get('id') not in standard_ids:
+            headers.append(f.get('label', f.get('id')))
+    headers.append('Registered Timestamp')
+
+    ws.append(headers)
+    header_row_idx = 5
+    ws.row_dimensions[header_row_idx].height = 26
+
+    for col_idx in range(1, len(headers) + 1):
+        c = ws.cell(row=header_row_idx, column=col_idx)
+        c.fill = navy_fill
+        c.font = header_font
+        c.alignment = center_align
+        c.border = cell_border
+
+    # Data Rows
+    for r_idx, reg in enumerate(registrations, start=1):
+        answers = {}
+        if reg.custom_data:
+            try:
+                answers = json.loads(reg.custom_data)
+            except Exception:
+                pass
+
+        row_data = [
+            r_idx,
+            reg.student_name,
+            reg.enrollment_no,
+            reg.department or '',
+            reg.semester or '',
+            reg.email or '',
+            reg.phone or ''
+        ]
+        for f in fields:
+            fid = f.get('id')
+            if fid not in standard_ids:
+                row_data.append(answers.get(fid, ''))
+        row_data.append(reg.registered_at.strftime('%Y-%m-%d %H:%M:%S'))
+
+        ws.append(row_data)
+        curr_row = header_row_idx + r_idx
+        ws.row_dimensions[curr_row].height = 22
+
+        is_even = (r_idx % 2 == 0)
+        for col_idx in range(1, len(row_data) + 1):
+            cell = ws.cell(row=curr_row, column=col_idx)
+            cell.font = data_font
+            cell.border = cell_border
+            if is_even:
+                cell.fill = zebra_fill
+
+            # Alignment
+            if col_idx in (1, 3, 5, len(row_data)):
+                cell.alignment = center_align
+            else:
+                cell.alignment = left_align
+
+    # Auto-fit column widths
+    for col in ws.columns:
+        col_letter = get_column_letter(col[0].column)
+        max_len = 0
+        for cell in col:
+            if cell.row < header_row_idx:
+                continue
+            val_str = str(cell.value or '')
+            if len(val_str) > max_len:
+                max_len = len(val_str)
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 13) if max_len < 45 else 45
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    safe_title = "".join(c for c in post.title[:35] if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
+    filename = f"registrations_{safe_title}_{post.id}.xlsx"
+
+    return Response(
+        output.read(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+    )
 
 
 @posts_bp.route('/<int:post_id>/report', methods=['GET', 'POST'])

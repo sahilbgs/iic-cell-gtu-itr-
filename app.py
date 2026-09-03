@@ -54,7 +54,8 @@ def create_app(config_name=None):
                 user=url.username or 'root',
                 password=decoded_password,
                 port=url.port or 3306,
-                charset='utf8mb4'
+                charset='utf8mb4',
+                connect_timeout=3
             )
             try:
                 with connection.cursor() as cursor:
