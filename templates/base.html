@@ -64,6 +64,11 @@
         <span>Activity Calendar</span>
       </a>
 
+      <a href="{{ url_for('dashboard.announcements') }}" class="sidebar__link" target="_blank">
+        <i data-lucide="globe"></i>
+        <span>Public Announcements</span>
+      </a>
+
       {% if current_user.is_authenticated and current_user.role in ['CHAIRPERSON', 'MASTER_ADMIN'] %}
       <div class="sidebar__section-title">Administration</div>
       <a href="{{ url_for('admin.index') }}" class="sidebar__link {% if request.blueprint == 'admin' and request.endpoint != 'admin.manage_landing_posts' %}active{% endif %}">

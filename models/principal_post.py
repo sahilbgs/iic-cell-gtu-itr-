@@ -62,6 +62,10 @@ class PrincipalPost(db.Model):
     registration_deadline = db.Column(db.DateTime, nullable=True)
     form_config = db.Column(db.Text, nullable=True)
 
+    # Public Announcements & Home Page showcase controls
+    is_public = db.Column(db.Boolean, default=False, nullable=False)
+    external_registration_url = db.Column(db.String(500), nullable=True)
+
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -108,6 +112,38 @@ class PrincipalPost(db.Model):
             return datetime.now() > self.registration_deadline
         if self.end_date:
             return date.today() > self.end_date
+        return False
+
+    @property
+    def has_active_registration(self):
+        """Whether this activity currently accepts registrations (internal or external)."""
+        has_reg_method = self.has_registration_form or bool(self.external_registration_url and self.external_registration_url.strip())
+        return has_reg_method and not self.is_registration_closed
+
+    @property
+    def is_running(self):
+        """Whether this activity is currently active/in progress."""
+        return self.progress_status == 'IN_PROGRESS'
+
+    def can_be_managed_by(self, user):
+        """Check if user has management permissions or is allocated to this activity."""
+        if not user or not user.is_authenticated:
+            return False
+        if user.role in ('MASTER_ADMIN', 'PRINCIPAL', 'CHAIRPERSON', 'RD_COORDINATOR'):
+            return True
+        # Assigned faculty lead
+        if self.assigned_faculty_id and self.assigned_faculty_id == user.id:
+            return True
+        # HOD or Faculty of allocated department(s)
+        if user.department_id:
+            dept_ids = [d.id for d in self.departments]
+            if self.department_id:
+                dept_ids.append(self.department_id)
+            if user.department_id in dept_ids:
+                if user.role == 'HOD':
+                    return True
+                if self.assigned_faculty_id == user.id or not self.assigned_faculty_id:
+                    return True
         return False
 
     @classmethod

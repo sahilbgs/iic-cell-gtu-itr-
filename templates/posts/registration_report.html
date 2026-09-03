@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Activity Registration Report{% endblock %}
+{% block title %}Student Registration Report — {{ post.title }}{% endblock %}
 {% block page_title %}Registration Report{% endblock %}
 
 {% block breadcrumb %}
   <div class="topbar__breadcrumb">
     <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+    <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
+    <a href="{{ url_for('posts.view_post', post_id=post.id) }}">Activity Details</a>
     <i data-lucide="chevron-right" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin:0 4px"></i>
     <span>Registration Report</span>
   </div>
@@ -13,208 +15,814 @@
 
 {% block content %}
 <style>
+  /* ══════════════════════════════════════════════════════════
+     REGISTRATION REPORT STYLING & PRINT OPTIMIZATION
+     ══════════════════════════════════════════════════════════ */
+
   .report-stat-card {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 16px 20px;
+    border-radius: 14px;
+    padding: 18px 22px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
   }
+
   .report-stat-icon {
-    width: 42px; height: 42px;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
   }
-  .report-stat-value {
+
+  .report-stat-val {
     font-family: 'Outfit', sans-serif;
     font-weight: 800;
-    font-size: 1.5rem;
-    line-height: 1;
+    font-size: 1.6rem;
+    line-height: 1.1;
   }
-  .report-stat-label {
+
+  .report-stat-lbl {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-muted);
-    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 3px;
   }
-  
-  .sem-badge {
-    background: rgba(var(--primary-rgb), 0.05);
-    color: var(--primary);
+
+  /* View Mode & Controls */
+  .report-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .view-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .view-toggle-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.25);
+  }
+
+  /* Table Style */
+  .rep-table-wrap {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+    overflow: hidden;
+  }
+
+  .rep-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    text-align: left;
+  }
+
+  .rep-table thead {
+    background: var(--bg-surface-hover);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .rep-table th {
+    padding: 14px 18px;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .rep-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+  }
+
+  .rep-table tbody tr:hover {
+    background: rgba(var(--primary-rgb), 0.02);
+  }
+
+  /* Card Grid View */
+  .rep-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 18px;
+  }
+
+  .rep-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rep-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+    border-color: rgba(var(--primary-rgb), 0.3);
+  }
+
+  .rep-field-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border-color);
+  }
+
+  .rep-field-row:last-child {
+    border-bottom: none;
+  }
+
+  .rep-field-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .rep-field-val {
+    font-size: 12.5px;
+    color: var(--text-primary);
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  /* File & Link Pills */
+  .rep-pill-file {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     padding: 4px 10px;
     border-radius: 6px;
-    font-weight: 700;
+    background: rgba(16, 185, 129, 0.1);
+    color: #047857;
     font-size: 11px;
-    display: inline-block;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    transition: all 0.15s;
+  }
+
+  .rep-pill-file:hover {
+    background: #10b981;
+    color: #ffffff;
+  }
+
+  .rep-pill-url {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(99, 102, 241, 0.1);
+    color: #4338ca;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    transition: all 0.15s;
+  }
+
+  .rep-pill-url:hover {
+    background: #6366f1;
+    color: #ffffff;
+  }
+
+  /* Modal Details */
+  .rep-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 2100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .rep-modal-backdrop.open {
+    display: flex;
+  }
+
+  .rep-modal {
+    background: var(--bg-surface);
+    border-radius: 18px;
+    max-width: 720px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    border: 1px solid var(--border-color);
+  }
+
+  .rep-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .rep-modal-body {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .rep-modal-body {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     PRINT OPTIMIZATION RULES (@media print)
+     ══════════════════════════════════════════════════════════ */
+  .print-only-header {
+    display: none;
+  }
+
+  .print-only-footer {
+    display: none;
+  }
+
+  @media print {
+    /* Hide non-printable web UI */
+    .sidebar, .topbar, .report-toolbar, .no-print, .btn, button, .topbar__breadcrumb, 
+    .rep-modal-backdrop, footer, nav, .portal-watermark {
+      display: none !important;
+    }
+
+    body, html {
+      background: #ffffff !important;
+      color: #000000 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      font-size: 11pt !important;
+    }
+
+    .main-content {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .grid-4 {
+      display: flex !important;
+      justify-content: space-between !important;
+      gap: 10px !important;
+      margin-bottom: 20px !important;
+    }
+
+    .report-stat-card {
+      border: 1px solid #ccc !important;
+      padding: 10px !important;
+      box-shadow: none !important;
+      flex: 1 !important;
+    }
+
+    .print-only-header {
+      display: block !important;
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+
+    .print-only-header h2 {
+      font-size: 18pt;
+      margin: 0 0 4px 0;
+      color: #000;
+    }
+
+    .print-only-header p {
+      font-size: 10pt;
+      color: #444;
+      margin: 2px 0;
+    }
+
+    .rep-table-wrap {
+      border: 1px solid #000 !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+    }
+
+    .rep-table {
+      width: 100% !important;
+      font-size: 9.5pt !important;
+    }
+
+    .rep-table th {
+      background: #f0f0f0 !important;
+      color: #000 !important;
+      border: 1px solid #999 !important;
+      padding: 8px 10px !important;
+    }
+
+    .rep-table td {
+      border: 1px solid #ccc !important;
+      padding: 8px 10px !important;
+      page-break-inside: avoid !important;
+    }
+
+    .rep-table tbody tr {
+      page-break-inside: avoid !important;
+    }
+
+    .print-only-footer {
+      display: block !important;
+      margin-top: 50px;
+      padding-top: 20px;
+      page-break-inside: avoid !important;
+    }
+
+    .signatures-grid {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+    }
+
+    .sig-box {
+      border-top: 1px solid #000;
+      width: 200px;
+      text-align: center;
+      padding-top: 6px;
+      font-size: 10pt;
+    }
   }
 </style>
 
+<!-- PRINT ONLY INSTITUTIONAL HEADER -->
+<div class="print-only-header">
+  <h2>GUJARAT TECHNOLOGICAL UNIVERSITY (GTU)</h2>
+  <p style="font-weight: 700; text-transform: uppercase;">Graduate School of Engineering and Technology (ITR) — IIC &amp; R&amp;D Cell</p>
+  <p style="font-size: 12pt; font-weight: bold; margin-top: 6px;">OFFICIAL STUDENT REGISTRATION REPORT</p>
+  <p><strong>Activity:</strong> {{ post.title }} &nbsp;|&nbsp; <strong>Date Generated:</strong> {{ current_year }}-{{ '%02d' % current_year }}</p>
+</div>
+
 <!-- Stats Grid -->
-<div class="grid grid-4 mb-8" style="gap:16px;">
-  
+<div class="grid grid-4 mb-6" style="gap:16px;">
   <!-- Total Registered -->
   <div class="report-stat-card">
-    <div class="report-stat-icon" style="background: rgba(16, 185, 129, 0.08); color: var(--success);">
-      <i data-lucide="users" style="width:20px;height:20px;"></i>
+    <div class="report-stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+      <i data-lucide="users" style="width:22px;height:22px;"></i>
     </div>
     <div>
-      <div class="report-stat-value" style="color: var(--success);">{{ total_regs }}</div>
-      <div class="report-stat-label">Total Registrations</div>
+      <div class="report-stat-val" style="color: var(--success);">{{ total_regs }}</div>
+      <div class="report-stat-lbl">Total Registrations</div>
     </div>
   </div>
 
-  <!-- Faculty Lead -->
+  <!-- Lead Faculty -->
   <div class="report-stat-card">
-    <div class="report-stat-icon" style="background: rgba(var(--primary-rgb), 0.08); color: var(--primary);">
-      <i data-lucide="user-check" style="width:20px;height:20px;"></i>
+    <div class="report-stat-icon" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary);">
+      <i data-lucide="user-check" style="width:22px;height:22px;"></i>
     </div>
     <div>
-      <div class="report-stat-value" style="color: var(--primary); font-size:1.05rem; font-weight:700;">
+      <div class="report-stat-val" style="color: var(--primary); font-size:1.05rem; font-weight:700;">
         {{ post.assigned_faculty.full_name if post.assigned_faculty else 'Unassigned' }}
       </div>
-      <div class="report-stat-label">Lead Faculty in Charge</div>
+      <div class="report-stat-lbl">Lead Faculty in Charge</div>
     </div>
   </div>
 
   <!-- Departments -->
   <div class="report-stat-card">
-    <div class="report-stat-icon" style="background: rgba(245, 158, 11, 0.08); color: #d97706;">
-      <i data-lucide="building" style="width:20px;height:20px;"></i>
+    <div class="report-stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #d97706;">
+      <i data-lucide="building" style="width:22px;height:22px;"></i>
     </div>
     <div>
-      <div class="report-stat-value" style="color: #d97706; font-size:1.05rem; font-weight:700;">
-        {{ post.departments | map(attribute='code') | join(', ') }}
+      <div class="report-stat-val" style="color: #d97706; font-size:1.05rem; font-weight:700;">
+        {{ post.departments|map(attribute='code')|join(', ') if post.departments else 'All Depts' }}
       </div>
-      <div class="report-stat-label">Allocated Departments</div>
+      <div class="report-stat-lbl">Allocated Departments</div>
     </div>
   </div>
 
-  <!-- Progress -->
+  <!-- Progress Status -->
   <div class="report-stat-card">
-    <div class="report-stat-icon" style="background: rgba(107, 114, 128, 0.08); color: var(--text-muted);">
-      <i data-lucide="activity" style="width:20px;height:20px;"></i>
+    <div class="report-stat-icon" style="background: rgba(107, 114, 128, 0.1); color: var(--text-muted);">
+      <i data-lucide="activity" style="width:22px;height:22px;"></i>
     </div>
     <div>
-      <div class="report-stat-value" style="color: var(--text-muted); font-size:1.05rem; font-weight:700;">
+      <div class="report-stat-val" style="color: var(--text-primary); font-size:1.05rem; font-weight:700;">
         {{ post.status_label }}
       </div>
-      <div class="report-stat-label">Execution Progress</div>
+      <div class="report-stat-lbl">Execution Progress</div>
     </div>
   </div>
-
 </div>
 
-<div class="grid grid-3" style="gap:24px; align-items:start; margin-bottom:24px;">
-  
-  <!-- Left Side (2 cols): Dynamic Student Registrations Table -->
-  <div class="card card--flat" style="grid-column: span 2; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:14px; padding:24px; overflow:hidden;">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:16px; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-      <div>
-        <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--primary); margin:0;">Student Registrations Log</h3>
-        <p class="text-muted text-xs mt-1" style="margin:0;">List of all students registered dynamically for this specific activity.</p>
-      </div>
-      <button onclick="window.print()" class="btn btn--secondary btn--sm flex items-center gap-1">
-        <i data-lucide="printer" style="width:14px;height:14px;"></i> Print Report
+<!-- Toolbar: Search, View Mode Toggle & Export Actions -->
+<div class="report-toolbar no-print">
+  <!-- Search Input -->
+  <div style="position:relative; flex:1; max-width:380px;">
+    <i data-lucide="search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-muted);"></i>
+    <input type="text" id="reportSearch" placeholder="Search by student name, enrollment, dept..." 
+           oninput="filterReportRecords()"
+           style="width:100%; box-sizing:border-box; padding:9px 14px 9px 36px; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-surface); font-size:12.5px; font-family:inherit;">
+  </div>
+
+  <!-- View Toggles & Actions -->
+  <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+    <!-- View Switcher -->
+    <div style="display:flex; background:var(--bg-surface-hover); padding:3px; border-radius:10px; border:1px solid var(--border-color);">
+      <button type="button" class="view-toggle-btn active" id="btn-view-table" onclick="setViewMode('table')">
+        <i data-lucide="table" style="width:14px;height:14px;"></i> Table View
+      </button>
+      <button type="button" class="view-toggle-btn" id="btn-view-cards" onclick="setViewMode('cards')">
+        <i data-lucide="layout-grid" style="width:14px;height:14px;"></i> Detailed Cards
       </button>
     </div>
 
-    <!-- Scrollable Responsive Grid -->
-    <div style="overflow-x:auto;">
-      {% if registrations %}
-        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:12px; min-width:600px;">
-          <thead>
-            <tr style="background:var(--bg-surface-hover); border-bottom:1px solid var(--border-color); color:var(--text-muted); font-weight:700;">
-              <th style="padding:10px 14px;">Student Name</th>
-              <th style="padding:10px 14px;">Enrollment</th>
-              <th style="padding:10px 14px;">Department</th>
-              <th style="padding:10px 14px;">Email</th>
-              <th style="padding:10px 14px;">Semester</th>
-              
-              <!-- Custom field column headers -->
-              {% for field in fields %}
-                {% if not field.is_default %}
-                  <th style="padding:10px 14px;">{{ field.label }}</th>
-                {% endif %}
-              {% endfor %}
-              
-              <th style="padding:10px 14px;">Registered At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for reg in registrations %}
-              <tr style="border-bottom:1px solid var(--border-color); transition:background 0.15s ease;" onmouseover="this.style.background='rgba(var(--primary-rgb), 0.01)';" onmouseout="this.style.background='transparent';">
-                <td style="padding:12px 14px; font-weight:600; color:var(--text-primary);">{{ reg.student_name }}</td>
-                <td style="padding:12px 14px; font-weight:500; font-family:monospace; color:var(--text-secondary);">{{ reg.enrollment_no }}</td>
-                <td style="padding:12px 14px; font-weight:600; color:var(--text-secondary);">{{ reg.department or 'N/A' }}</td>
-                <td style="padding:12px 14px;">{{ reg.email }}</td>
-                <td style="padding:12px 14px; font-weight:700;">Sem {{ reg.semester or 'N/A' }}</td>
-                
-                <!-- Custom field answers columns -->
-                {% for field in fields %}
-                  {% if not field.is_default %}
-                    <td style="padding:12px 14px;">
-                      {% set ans = get_custom_val(reg, field.id) %}
-                      {% if field.type == 'textarea' %}
-                        <span title="{{ ans }}" style="display:inline-block; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-style:italic;">
-                          {{ ans or '-' }}
-                        </span>
-                      {% else %}
-                        {{ ans or '-' }}
-                      {% endif %}
-                    </td>
-                  {% endif %}
-                {% endfor %}
-                
-                <td style="padding:12px 14px; color:var(--text-muted);">{{ reg.registered_at.strftime('%b %d, %H:%M') }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <div style="text-align:center; padding:50px 20px; color:var(--text-muted); font-style:italic;">
-          No student registration entries received yet for this activity.
-        </div>
-      {% endif %}
-    </div>
+    <!-- Export Excel (.xlsx) -->
+    <a href="{{ url_for('posts.export_registrations_excel', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.06); color:#047857; font-weight:700;" title="Download styled Microsoft Excel workbook">
+      <i data-lucide="file-spreadsheet" style="width:14px;height:14px;color:#10b981;"></i> Export Excel (.xlsx)
+    </a>
+
+    <!-- Export CSV -->
+    <a href="{{ url_for('posts.export_registrations_csv', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center gap-1" title="Download standard CSV data">
+      <i data-lucide="file-text" style="width:14px;height:14px;"></i> CSV
+    </a>
+
+    <!-- Print / PDF Report -->
+    <button type="button" onclick="window.print()" class="btn btn--primary btn--sm flex items-center gap-1" style="background:var(--primary); color:#fff; border:none;">
+      <i data-lucide="printer" style="width:14px;height:14px;"></i> Print Formal Report
+    </button>
   </div>
+</div>
 
-  <!-- Right Side (1 col): Semester Statistics Audit -->
-  <div class="card card--flat" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:14px; padding:24px;">
-    <div style="border-bottom:1px solid var(--border-color); padding-bottom:16px; margin-bottom:20px;">
-      <h3 style="font-family:'Outfit',sans-serif; font-weight:700; color:var(--text-secondary); margin:0;">Semester Distribution</h3>
-      <p class="text-muted text-xs mt-1" style="margin:0;">Visual auditing of student registrations across various semesters.</p>
-    </div>
-
-    {% if semester_stats %}
-      <div style="display:flex; flex-direction:column; gap:16px;">
-        {% for sem, count in semester_stats.items() %}
-          {% set pct = (count / total_regs * 100) | round(1) %}
-          <div>
-            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; margin-bottom:4px;">
-              <span class="sem-badge">Semester {{ sem }}</span>
-              <span class="text-muted">{{ count }} Student{{ 's' if count != 1 else '' }} ({{ pct }}%)</span>
-            </div>
-            <div style="background: var(--border-color); border-radius: 4px; height: 6px; overflow: hidden; display:flex;">
-              <div style="width: {{ pct }}%; height: 100%; border-radius: 4px; background:var(--primary); transition:width 0.4s ease;"></div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
+<!-- VIEW 1: Structured Summary Table View -->
+<div id="table-view-container" class="rep-table-wrap mb-8">
+  <div class="table-responsive">
+    {% if registrations %}
+      <table class="rep-table" id="regTable">
+        <thead>
+          <tr>
+            <th style="width:45px;">#</th>
+            <th>Student Details</th>
+            <th>Enrollment No</th>
+            <th>Department &amp; Sem</th>
+            <th>Contact Info</th>
+            <th>Form Responses</th>
+            <th class="no-print" style="width:110px; text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableRowsBody">
+          {% for reg in registrations %}
+            {% set answers = get_all_answers(reg) %}
+            <tr class="reg-data-row" 
+                data-search="{{ reg.student_name|lower }} {{ reg.enrollment_no|lower }} {{ reg.department|lower if reg.department else '' }} {{ reg.email|lower }}">
+              <td style="font-weight:700; color:var(--text-muted);">{{ loop.index }}</td>
+              <td>
+                <div style="font-weight:700; color:var(--text-primary); font-size:13px;">{{ reg.student_name }}</div>
+                <small style="color:var(--text-muted); font-size:11px;">Registered {{ reg.registered_at.strftime('%b %d, %Y %I:%M %p') }}</small>
+              </td>
+              <td>
+                <span style="font-family:monospace; font-weight:700; color:var(--primary); background:rgba(var(--primary-rgb),0.06); padding:3px 8px; border-radius:6px;">
+                  {{ reg.enrollment_no }}
+                </span>
+              </td>
+              <td>
+                <div style="font-weight:600; color:var(--text-primary);">{{ reg.department or 'N/A' }}</div>
+                {% if reg.semester %}
+                  <span style="font-size:11px; font-weight:700; color:#047857; background:rgba(16,185,129,0.1); padding:2px 6px; border-radius:4px;">
+                    Semester {{ reg.semester }}
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="font-size:12px; color:var(--text-primary);">{{ reg.email }}</div>
+                {% if reg.phone %}
+                  <small style="color:var(--text-muted); font-size:11px;">{{ reg.phone }}</small>
+                {% endif %}
+              </td>
+              <td>
+                <!-- Summary preview of custom fields -->
+                <div style="display:flex; flex-wrap:wrap; gap:6px; max-width:320px;">
+                  {% set non_core_count = 0 %}
+                  {% for f in fields %}
+                    {% if f.id not in ('student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone') %}
+                      {% set val = answers.get(f.id, '') %}
+                      {% if val %}
+                        {% set non_core_count = non_core_count + 1 %}
+                        {% if f.type == 'file' %}
+                          <a href="{{ url_for('posts.download_file', filename=val, download=1) }}" class="rep-pill-file" target="_blank" title="{{ f.label }}: {{ val.split('/')[-1] }}">
+                            <i data-lucide="paperclip" style="width:11px;height:11px;"></i> {{ val.split('/')[-1][:12] }}...
+                          </a>
+                        {% elif f.type == 'url' %}
+                          <a href="{{ val }}" class="rep-pill-url" target="_blank" rel="noopener noreferrer" title="{{ f.label }}: {{ val }}">
+                            <i data-lucide="external-link" style="width:11px;height:11px;"></i> Link
+                          </a>
+                        {% else %}
+                          <span style="font-size:11px; background:var(--bg-surface-hover); border:1px solid var(--border-color); padding:2px 7px; border-radius:5px; color:var(--text-secondary);" title="{{ f.label }}: {{ val }}">
+                            <strong>{{ f.label[:12] }}:</strong> {{ val[:16] }}{% if val|length > 16 %}...{% endif %}
+                          </span>
+                        {% endif %}
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+                  {% if non_core_count == 0 %}
+                    <span class="text-muted" style="font-size:11px; font-style:italic;">Standard info</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td class="no-print" style="text-align:right;">
+                <button type="button" class="btn btn--secondary btn--sm" onclick="openStudentModal({{ loop.index0 }})" style="padding:5px 10px; font-size:11.5px;">
+                  <i data-lucide="eye" style="width:13px;height:13px;"></i> View
+                </button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     {% else %}
-      <div style="text-align:center; padding:30px; color:var(--text-muted); font-size:11px; font-style:italic;">
-        No statistical registration logs available.
+      <div style="text-align:center; padding:50px 20px; color:var(--text-muted);">
+        <i data-lucide="inbox" style="width:36px;height:36px;margin:0 auto 8px;display:block;opacity:0.6;"></i>
+        <h4 style="font-family:'Outfit'; font-size:1.15rem; color:var(--text-primary); margin:0 0 4px 0;">No Registrations Yet</h4>
+        <p style="font-size:12px; margin:0;">Students who register will appear here in this report.</p>
       </div>
     {% endif %}
   </div>
-
 </div>
 
-<div>
+<!-- VIEW 2: Detailed Cards Grid View (Hidden by default) -->
+<div id="cards-view-container" class="rep-cards-grid mb-8" style="display:none;">
+  {% if registrations %}
+    {% for reg in registrations %}
+      {% set answers = get_all_answers(reg) %}
+      <div class="rep-card reg-data-card" data-search="{{ reg.student_name|lower }} {{ reg.enrollment_no|lower }} {{ reg.department|lower if reg.department else '' }} {{ reg.email|lower }}">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
+          <div>
+            <h4 style="font-family:'Outfit',sans-serif; font-weight:700; font-size:1.05rem; margin:0 0 2px 0; color:var(--primary);">
+              {{ reg.student_name }}
+            </h4>
+            <span style="font-family:monospace; font-size:11px; font-weight:700; color:var(--text-muted);">
+              {{ reg.enrollment_no }}
+            </span>
+          </div>
+          <span class="badge" style="font-size:9px; background:rgba(var(--primary-rgb),0.08); color:var(--primary); font-weight:700;">
+            #{{ loop.index }}
+          </span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:4px; flex-grow:1;">
+          <div class="rep-field-row">
+            <span class="rep-field-lbl">Department &amp; Semester</span>
+            <span class="rep-field-val">{{ reg.department or 'N/A' }} — Sem {{ reg.semester or 'N/A' }}</span>
+          </div>
+          
+          <div class="rep-field-row">
+            <span class="rep-field-lbl">Contact Details</span>
+            <span class="rep-field-val">{{ reg.email }} {% if reg.phone %}• {{ reg.phone }}{% endif %}</span>
+          </div>
+
+          <!-- All Custom Questions -->
+          {% for f in fields %}
+            {% if f.id not in ('student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone') %}
+              {% set val = answers.get(f.id, '') %}
+              <div class="rep-field-row">
+                <span class="rep-field-lbl">{{ f.label }}</span>
+                <div class="rep-field-val">
+                  {% if not val %}
+                    <span class="text-muted" style="font-style:italic;">Not provided</span>
+                  {% elif f.type == 'file' %}
+                    <a href="{{ url_for('posts.download_file', filename=val, download=1) }}" class="rep-pill-file" target="_blank">
+                      <i data-lucide="download" style="width:12px;height:12px;"></i> Download ({{ val.split('/')[-1] }})
+                    </a>
+                  {% elif f.type == 'url' %}
+                    <a href="{{ val }}" class="rep-pill-url" target="_blank" rel="noopener noreferrer">
+                      <i data-lucide="external-link" style="width:12px;height:12px;"></i> {{ val }}
+                    </a>
+                  {% else %}
+                    {{ val }}
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+
+          <div class="rep-field-row" style="margin-top:auto; padding-top:10px;">
+            <span class="rep-field-lbl">Registration Timestamp</span>
+            <span class="text-muted" style="font-size:11px;">{{ reg.registered_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+
+<!-- PRINT ONLY OFFICIAL SIGNATURE FOOTER -->
+<div class="print-only-footer">
+  <p style="font-size:9.5pt; color:#444; margin-bottom:30px;">
+    * This document constitutes the verified official registration ledger generated by the Gujarat Technological University (GTU-ITR) Innovation and R&amp;D Portal.
+  </p>
+  <div class="signatures-grid">
+    <div class="sig-box">
+      <strong>Faculty in Charge</strong><br>
+      <span style="font-size:9pt; color:#555;">{{ post.assigned_faculty.full_name if post.assigned_faculty else 'Faculty Coordinator' }}</span>
+    </div>
+    <div class="sig-box">
+      <strong>Head of Department (HOD)</strong><br>
+      <span style="font-size:9pt; color:#555;">Signature &amp; Date</span>
+    </div>
+    <div class="sig-box">
+      <strong>IIC Chairperson / Principal</strong><br>
+      <span style="font-size:9pt; color:#555;">GTU ITR Approval</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Comprehensive Single Student Entry View -->
+<div class="rep-modal-backdrop" id="studentModalBackdrop" onclick="closeStudentModal(event)">
+  <div class="rep-modal" onclick="event.stopPropagation()">
+    <div class="rep-modal-header">
+      <div>
+        <span style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.04em;">PARTICIPANT PROFILE</span>
+        <h3 id="modalStudentName" style="font-family:'Outfit'; font-size:1.35rem; margin:2px 0 0 0; color:var(--text-primary);"></h3>
+        <span id="modalEnrollment" style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:12px;"></span>
+      </div>
+      <button type="button" class="btn btn--secondary btn--sm" onclick="closeStudentModal()">
+        <i data-lucide="x" style="width:16px;height:16px;"></i>
+      </button>
+    </div>
+    <div class="rep-modal-body" id="modalStudentFields">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+</div>
+
+<div class="no-print mt-6">
   <a href="{{ url_for('dashboard.index') }}" class="btn btn--secondary flex items-center gap-1" style="width:fit-content;">
-    <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Dashboard
+    <i data-lucide="arrow-left" style="width:15px;height:15px;"></i> Back to Dashboard
   </a>
 </div>
+
+<!-- Structured Data Cache for Modal -->
+<script>
+  const allRegistrations = [
+    {% for reg in registrations %}
+      {
+        student_name: {{ reg.student_name|tojson }},
+        enrollment_no: {{ reg.enrollment_no|tojson }},
+        department: {{ (reg.department or 'N/A')|tojson }},
+        semester: {{ (reg.semester or 'N/A')|tojson }},
+        email: {{ reg.email|tojson }},
+        phone: {{ (reg.phone or 'N/A')|tojson }},
+        registered_at: {{ reg.registered_at.strftime('%B %d, %Y at %I:%M %p')|tojson }},
+        answers: {{ get_all_answers(reg)|tojson }}
+      }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  const fieldConfigs = {{ fields|tojson|safe }};
+
+  // Switch View Mode: Table vs Cards
+  function setViewMode(mode) {
+    const tableWrap = document.getElementById('table-view-container');
+    const cardsWrap = document.getElementById('cards-view-container');
+    const btnTable = document.getElementById('btn-view-table');
+    const btnCards = document.getElementById('btn-view-cards');
+
+    if (mode === 'cards') {
+      tableWrap.style.display = 'none';
+      cardsWrap.style.display = 'grid';
+      btnTable.classList.remove('active');
+      btnCards.classList.add('active');
+    } else {
+      tableWrap.style.display = 'block';
+      cardsWrap.style.display = 'none';
+      btnCards.classList.remove('active');
+      btnTable.classList.add('active');
+    }
+  }
+
+  // Filter Records by Search
+  function filterReportRecords() {
+    const term = document.getElementById('reportSearch').value.toLowerCase().trim();
+    
+    // Filter Table Rows
+    document.querySelectorAll('.reg-data-row').forEach(row => {
+      const text = row.getAttribute('data-search') || '';
+      row.style.display = text.includes(term) ? '' : 'none';
+    });
+
+    // Filter Cards
+    document.querySelectorAll('.reg-data-card').forEach(card => {
+      const text = card.getAttribute('data-search') || '';
+      card.style.display = text.includes(term) ? 'flex' : 'none';
+    });
+  }
+
+  // Open Detailed Student Modal
+  function openStudentModal(index) {
+    const reg = allRegistrations[index];
+    if (!reg) return;
+
+    document.getElementById('modalStudentName').textContent = reg.student_name;
+    document.getElementById('modalEnrollment').textContent = 'Enrollment No: ' + reg.enrollment_no;
+
+    const body = document.getElementById('modalStudentFields');
+    body.innerHTML = '';
+
+    // Standard Core info
+    const coreItems = [
+      { label: 'Department', val: reg.department },
+      { label: 'Semester', val: 'Semester ' + reg.semester },
+      { label: 'Email Address', val: reg.email },
+      { label: 'Phone Number', val: reg.phone },
+      { label: 'Registration Date', val: reg.registered_at }
+    ];
+
+    coreItems.forEach(item => {
+      body.appendChild(createFieldCard(item.label, item.val));
+    });
+
+    // Custom form fields
+    fieldConfigs.forEach(f => {
+      if (!['student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'].includes(f.id)) {
+        const val = reg.answers[f.id] || '';
+        body.appendChild(createFieldCard(f.label, val, f.type));
+      }
+    });
+
+    document.getElementById('studentModalBackdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    lucide.createIcons();
+  }
+
+  function createFieldCard(label, value, type = 'text') {
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--bg-surface-hover); border:1px solid var(--border-color); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px;';
+    
+    let contentHtml = '';
+    if (!value) {
+      contentHtml = '<span class="text-muted" style="font-style:italic; font-size:12px;">Not provided</span>';
+    } else if (type === 'file') {
+      const fname = value.split('/').pop();
+      const downloadUrl = `{{ url_for('posts.download_file', filename='') }}${value}?download=1`;
+      contentHtml = `
+        <a href="${downloadUrl}" class="rep-pill-file" target="_blank">
+          <i data-lucide="download" style="width:12px;height:12px;"></i> Download (${fname})
+        </a>
+      `;
+    } else if (type === 'url') {
+      contentHtml = `
+        <a href="${value}" class="rep-pill-url" target="_blank" rel="noopener noreferrer">
+          <i data-lucide="external-link" style="width:12px;height:12px;"></i> ${value}
+        </a>
+      `;
+    } else {
+      contentHtml = `<span style="font-size:12.5px; color:var(--text-primary); font-weight:600; white-space:pre-wrap; word-break:break-word;">${value}</span>`;
+    }
+
+    card.innerHTML = `
+      <span style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em;">${label}</span>
+      <div>${contentHtml}</div>
+    `;
+    return card;
+  }
+
+  function closeStudentModal(e) {
+    document.getElementById('studentModalBackdrop').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeStudentModal();
+  });
+</script>
 {% endblock %}

@@ -3,24 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Registration - {{ post.title }}</title>
+  <title>Student Registration — {{ post.title }}</title>
   
   <!-- Modern Typography & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root {
       --primary: #0f52ba;
+      --primary-rgb: 15, 82, 186;
       --primary-hover: #1e3a8a;
+      --primary-light: rgba(15, 82, 186, 0.08);
       --success: #10b981;
+      --success-rgb: 16, 185, 129;
+      --warning: #f59e0b;
       --danger: #ef4444;
       --bg-body: #f8fafc;
       --bg-card: #ffffff;
-      --text-main: #1e293b;
+      --text-main: #0f172a;
       --text-muted: #64748b;
       --border-color: #e2e8f0;
-      --shadow-lg: 0 10px 25px -5px rgba(15, 82, 186, 0.05), 0 8px 10px -6px rgba(15, 82, 186, 0.05);
+      --border-focus: #0f52ba;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-md: 0 10px 25px -5px rgba(15, 82, 186, 0.08), 0 8px 10px -6px rgba(15, 82, 186, 0.04);
+      --shadow-lg: 0 20px 35px -10px rgba(15, 82, 186, 0.12), 0 10px 15px -5px rgba(0, 0, 0, 0.04);
     }
 
     * {
@@ -31,7 +40,10 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background: var(--bg-body);
+      background: radial-gradient(at 10% 15%, rgba(15, 82, 186, 0.06) 0px, transparent 50%),
+                  radial-gradient(at 90% 85%, rgba(99, 102, 241, 0.06) 0px, transparent 50%),
+                  radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.04) 0px, transparent 60%),
+                  var(--bg-body);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -41,197 +53,498 @@
     }
 
     .container {
-      max-width: 650px;
+      max-width: 680px;
       width: 100%;
     }
 
     /* Brand Header */
     .brand-header {
       text-align: center;
-      margin-bottom: 32px;
-      animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .brand-header h1 {
-      font-family: 'Outfit', sans-serif;
-      font-weight: 800;
-      color: var(--primary);
-      font-size: 1.6rem;
-      letter-spacing: -0.5px;
-    }
-    .brand-header p {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      margin-top: 4px;
-      text-transform: uppercase;
-    }
-
-    /* Card Box */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      box-shadow: var(--shadow-lg);
-      padding: 32px;
-      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* Activity Meta Info */
-    .activity-hero {
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 20px;
       margin-bottom: 24px;
+      animation: fadeInDown 0.7s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .badge-row {
-      display: flex;
+
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      background: rgba(15, 82, 186, 0.08);
+      border: 1px solid rgba(15, 82, 186, 0.2);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
       margin-bottom: 10px;
     }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse 1.8s infinite;
+    }
+
+    .pulse-dot--warning {
+      background: var(--warning);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    }
+
+    .pulse-dot--danger {
+      background: var(--danger);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+
+    .brand-header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      color: var(--primary);
+      font-size: 1.75rem;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    .brand-header p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    /* Main Form Card */
+    .reg-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(8px);
+    }
+
+    .reg-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--primary) 0%, #6366f1 50%, var(--success) 100%);
+    }
+
+    /* Activity Information Box */
+    .activity-hero {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 22px;
+      margin-bottom: 24px;
+    }
+
+    .activity-badges {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
     .badge {
-      font-size: 9px;
-      font-weight: 700;
-      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 9px;
       border-radius: 6px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      background: rgba(15, 82, 186, 0.06);
-      color: var(--primary);
+      letter-spacing: 0.04em;
     }
+
     .badge--source {
-      background: rgba(16, 185, 129, 0.08);
-      color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+      color: #047857;
+      border: 1px solid rgba(16, 185, 129, 0.25);
     }
+
+    .badge--primary {
+      background: rgba(15, 82, 186, 0.08);
+      color: var(--primary);
+      border: 1px solid rgba(15, 82, 186, 0.2);
+    }
+
     .activity-title {
       font-family: 'Outfit', sans-serif;
-      font-weight: 700;
-      font-size: 1.35rem;
-      line-height: 1.4;
-      color: var(--primary);
-      margin-bottom: 8px;
+      font-weight: 800;
+      font-size: 1.45rem;
+      line-height: 1.3;
+      color: var(--text-main);
+      margin-bottom: 10px;
     }
-    .activity-dates {
-      display: flex;
-      gap: 16px;
-      font-size: 11px;
+
+    .activity-desc {
+      font-size: 13px;
       color: var(--text-muted);
-      font-weight: 500;
+      line-height: 1.55;
+      margin-bottom: 16px;
     }
-    .date-item {
+
+    /* ══════════════════════════════════════════════════════════
+       LIVE COUNTDOWN TIMER MODULE
+       ══════════════════════════════════════════════════════════ */
+    .countdown-banner {
+      background: linear-gradient(135deg, rgba(15, 82, 186, 0.05) 0%, rgba(99, 102, 241, 0.07) 100%);
+      border: 1px solid rgba(15, 82, 186, 0.18);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      animation: pulseGlow 4s infinite alternate;
+    }
+
+    .countdown-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .countdown-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
     }
 
-    /* Form Fields */
+    .countdown-deadline-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      text-align: center;
+    }
+
+    .countdown-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .countdown-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--primary);
+    }
+
+    .countdown-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+      display: block;
+    }
+
+    .countdown-unit {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* Real-Time Form Completion Meter */
+    .progress-wrap {
+      margin-bottom: 24px;
+      background: var(--bg-body);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
+
+    .progress-text-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar-bg {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%);
+      border-radius: 9999px;
+      transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Form Fields & Controls */
     .form-group {
+      margin-bottom: 22px;
+      position: relative;
+      animation: fieldEntrance 0.5s ease backwards;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .req-star {
+      color: var(--danger);
+      font-weight: 800;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      width: 17px;
+      height: 17px;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    .form-control {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 16px;
+      font-size: 13.5px;
+      font-family: inherit;
+      color: var(--text-main);
+      background: var(--bg-body);
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .form-control--with-icon {
+      padding-left: 42px;
+    }
+
+    .form-control:focus {
+      outline: none;
+      background: #ffffff;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.12);
+      transform: translateY(-1px);
+    }
+
+    .form-control:focus + .input-icon,
+    .input-wrapper:focus-within .input-icon {
+      color: var(--primary);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.5;
+    }
+
+    select.form-control {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 40px;
+    }
+
+    /* Option Choice Card Groups (Radio & Checkbox) */
+    .choice-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-bottom: 18px;
-    }
-    .form-group label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--primary);
-      letter-spacing: 0.2px;
-    }
-    .form-group input, .form-group select, .form-group textarea {
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      font-size: 13px;
-      font-family: 'Inter', sans-serif;
-      color: var(--text-main);
-      background: #fff;
-      transition: all 0.2s ease;
-      width: 100%;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.06);
-    }
-    .form-group textarea {
-      resize: vertical;
+      gap: 10px;
+      margin-top: 6px;
     }
 
-    /* Buttons */
+    .choice-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--bg-body);
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .choice-card:hover {
+      background: #ffffff;
+      border-color: rgba(var(--primary-rgb), 0.4);
+      transform: translateX(2px);
+    }
+
+    .choice-card input {
+      accent-color: var(--primary);
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+    }
+
+    /* File Dropzone Box */
+    .file-dropzone {
+      border: 2px dashed var(--border-color);
+      border-radius: 14px;
+      padding: 24px 20px;
+      text-align: center;
+      background: var(--bg-body);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .file-dropzone:hover {
+      background: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.08);
+      transform: translateY(-2px);
+    }
+
+    .file-dropzone-icon {
+      width: 36px;
+      height: 36px;
+      color: var(--primary);
+      margin: 0 auto 8px;
+      display: block;
+      transition: transform 0.2s ease;
+    }
+
+    .file-dropzone:hover .file-dropzone-icon {
+      transform: scale(1.1);
+    }
+
+    /* Submit Action Button */
     .btn-submit {
       width: 100%;
-      background: var(--primary);
-      color: #fff;
+      padding: 14px 24px;
+      border-radius: 12px;
       border: none;
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 13px;
-      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+      color: #ffffff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14.5px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      transition: background 0.2s ease, transform 0.1s ease;
-      box-shadow: 0 4px 12px rgba(0, 51, 102, 0.1);
-    }
-    .btn-submit:hover {
-      background: var(--primary-hover);
-    }
-    .btn-submit:active {
-      transform: scale(0.99);
+      gap: 8px;
+      box-shadow: 0 10px 20px -5px rgba(15, 82, 186, 0.35);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
     }
 
-    /* Success Page */
+    .btn-submit::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.8s ease;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 25px -5px rgba(15, 82, 186, 0.45);
+    }
+
+    .btn-submit:hover::after {
+      left: 100%;
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Success Panel */
     .success-box {
       text-align: center;
-      padding: 20px 0;
-      animation: scaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 30px 10px;
+      animation: scaleUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .success-icon {
-      width: 64px;
-      height: 64px;
-      background: rgba(16, 185, 129, 0.1);
+
+    .success-icon-wrap {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.12);
       color: var(--success);
-      border-radius: 999px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 20px auto;
-    }
-    .success-title {
-      font-family: 'Outfit', sans-serif;
-      font-weight: 800;
-      font-size: 1.5rem;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
-    .success-text {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 24px;
-    }
-    
-    /* Footer Credit */
-    .footer-credit {
-      text-align: center;
-      margin-top: 24px;
-      font-size: 10px;
-      color: var(--text-muted);
-      font-weight: 500;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 0 12px rgba(16, 185, 129, 0.06);
+      animation: pulse 2s infinite;
     }
 
+    /* Keyframes */
     @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-15px); }
+      from { opacity: 0; transform: translateY(-20px); }
       to { opacity: 1; transform: translateY(0); }
     }
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fieldEntrance {
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
     @keyframes scaleUp {
-      from { opacity: 0; transform: scale(0.95); }
+      from { opacity: 0; transform: scale(0.9); }
       to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      70% { box-shadow: 0 0 0 16px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    @keyframes pulseGlow {
+      from { border-color: rgba(15, 82, 186, 0.2); }
+      to { border-color: rgba(15, 82, 186, 0.45); box-shadow: 0 4px 16px rgba(15, 82, 186, 0.08); }
     }
   </style>
 </head>
@@ -239,157 +552,301 @@
 
   <div class="container">
     
-    <!-- Header -->
+    <!-- University Branding Header -->
     <div class="brand-header">
-      <h1>GTU Innovation Council (IIC)</h1>
-      <p>Student Activity Registration Portal</p>
+      <div class="brand-pill">
+        <span class="pulse-dot" id="headerStatusDot"></span>
+        <span id="headerStatusText">GTU ITR • IIC Activity</span>
+      </div>
+      <h1>Gujarat Technological University</h1>
+      <p>Graduate School of Engineering &amp; Technology — Student Activity Registration</p>
     </div>
 
-    <!-- Main Card -->
-    <div class="card">
+    <!-- Main Registration Box -->
+    <div class="reg-card">
       
       {% if success_registered %}
-        <!-- Registration Success Panel -->
+        <!-- SUCCESS VIEW -->
         <div class="success-box">
-          <div class="success-icon">
-            <i data-lucide="check" style="width:36px;height:36px;"></i>
+          <div class="success-icon-wrap">
+            <i data-lucide="check-circle-2" style="width:40px;height:40px;"></i>
           </div>
-          <h2 class="success-title">Registration Successful!</h2>
-          <p class="success-text">
+          <span class="badge badge--source" style="font-size:11px; padding:4px 12px; margin-bottom:12px; display:inline-block;">REGISTRATION CONFIRMED</span>
+          <h2 style="font-family:'Outfit'; font-size:1.6rem; font-weight:800; color:var(--text-main); margin-bottom:8px;">
+            You're Officially Registered!
+          </h2>
+          <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; max-width:480px; margin:0 auto 24px;">
             Thank you, <strong>{{ student_name }}</strong>. Your registration for <br>
-            <strong>{{ post.title }}</strong> has been recorded successfully.
+            <span style="color:var(--primary); font-weight:700;">{{ post.title }}</span> has been submitted successfully to the faculty coordinator.
           </p>
-          <div style="background: var(--bg-body); border: 1px dashed var(--border-color); padding: 14px; border-radius: 8px; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px;">
-            <i data-lucide="info" style="width:14px;height:14px;color:var(--primary);"></i>
-            Please check your email periodically for event scheduling updates.
+
+          <div style="background:var(--bg-body); border:1px solid var(--border-color); border-radius:12px; padding:16px 20px; max-width:480px; margin:0 auto 24px; text-align:left; font-size:12.5px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">
+              <span class="text-muted">Lead Faculty:</span>
+              <strong>{{ post.assigned_faculty.full_name if post.assigned_faculty else 'Faculty Coordinator' }}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span class="text-muted">Registration Status:</span>
+              <strong style="color:var(--success);">Verified &amp; Recorded</strong>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+            <button type="button" onclick="window.print()" class="btn-submit" style="width:auto; padding:10px 22px; font-size:13px; background:var(--bg-body); color:var(--text-main); border:1px solid var(--border-color); box-shadow:none;">
+              <i data-lucide="printer" style="width:14px;height:14px;"></i> Print Slip
+            </button>
+            <a href="{{ url_for('dashboard.announcements') }}" class="btn-submit" style="width:auto; padding:10px 22px; font-size:13px; text-decoration:none;">
+              <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Explore More Activities
+            </a>
           </div>
         </div>
+
       {% elif is_closed %}
-        <!-- Registration Closed Panel -->
-        <div class="success-box" style="animation: scaleUp 0.4s ease;">
-          <div class="success-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);">
-            <i data-lucide="calendar-x" style="width:36px;height:36px;"></i>
+        <!-- REGISTRATION CLOSED VIEW -->
+        <div class="success-box">
+          <div class="success-icon-wrap" style="background:rgba(239,68,68,0.1); color:var(--danger); box-shadow:0 0 0 12px rgba(239,68,68,0.05); animation:none;">
+            <i data-lucide="calendar-x" style="width:38px;height:38px;"></i>
           </div>
-          <h2 class="success-title" style="color: var(--danger);">Registration Closed</h2>
-          <p class="success-text" style="margin-bottom: 16px;">
-            Registration for <strong>{{ post.title }}</strong> closed on <br>
-            <span style="display:inline-block; font-weight:700; color:var(--text-main); margin-top:6px; padding:6px 14px; background:var(--bg-body); border-radius:8px; border:1px solid var(--border-color); font-size:13px;">
-              <i data-lucide="clock" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;color:var(--danger);"></i>
-              {{ closed_deadline_formatted }}
-            </span>
+          <span class="badge" style="background:rgba(239,68,68,0.1); color:var(--danger); font-size:11px; padding:4px 12px; margin-bottom:10px; display:inline-block;">REGISTRATIONS CLOSED</span>
+          <h2 style="font-family:'Outfit'; font-size:1.6rem; font-weight:800; color:var(--text-main); margin-bottom:8px;">
+            Registration Deadline Expired
+          </h2>
+          <p style="font-size:13px; color:var(--text-muted); max-width:440px; margin:0 auto 20px;">
+            The registration window for <strong>{{ post.title }}</strong> closed on:
           </p>
-          <div style="background: var(--bg-body); border: 1px dashed var(--border-color); padding: 14px; border-radius: 8px; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <i data-lucide="alert-circle" style="width:16px;height:16px;color:var(--danger);"></i>
-            New student registrations are no longer accepted for this activity.
+          <div style="background:var(--bg-body); border:1px solid var(--border-color); padding:12px 20px; border-radius:10px; display:inline-flex; align-items:center; gap:8px; font-weight:700; color:var(--danger); font-size:13px; margin-bottom:24px;">
+            <i data-lucide="clock" style="width:16px;height:16px;"></i>
+            {{ closed_deadline_formatted }}
+          </div>
+          <div>
+            <a href="{{ url_for('dashboard.announcements') }}" class="btn-submit" style="width:auto; display:inline-flex; padding:10px 24px; text-decoration:none;">
+              Browse Active Announcements
+            </a>
           </div>
         </div>
+
       {% else %}
-        
-        <!-- Registration Form Panel -->
+
+        <!-- ACTIVE REGISTRATION FORM VIEW -->
+
+        <!-- Activity Overview -->
         <div class="activity-hero">
-          <div class="badge-row">
-            <span class="badge">{{ post.source_label }}</span>
+          <div class="activity-badges">
+            <span class="badge badge--primary">{{ post.source_label }}</span>
             <span class="badge badge--source">APPROVED ACTIVITY</span>
-            {% if post.registration_deadline %}
-              <span class="badge" style="background:rgba(245,158,11,0.15); color:#b45309; font-weight:700;">
-                <i data-lucide="clock" style="width:10px;height:10px;vertical-align:middle;margin-right:2px;"></i>
-                DEADLINE SET
+            {% if post.departments %}
+              <span class="badge" style="background:rgba(245,158,11,0.1); color:#b45309; border:1px solid rgba(245,158,11,0.2);">
+                {{ post.departments|map(attribute='code')|join(', ') }}
               </span>
             {% endif %}
           </div>
+          
           <h2 class="activity-title">{{ post.title }}</h2>
-          <div class="activity-dates">
-            {% if post.registration_deadline %}
-              <div class="date-item" style="color:#d97706; font-weight:700; background:rgba(245,158,11,0.1); padding:4px 10px; border-radius:6px; border:1px solid rgba(245,158,11,0.25);">
-                <i data-lucide="calendar-clock" style="width:14px;height:14px;color:#d97706;"></i>
-                Registration Deadline: {{ post.registration_deadline.strftime('%B %d, %Y at %I:%M %p') }}
+          {% if post.description %}
+            <p class="activity-desc">{{ post.description[:220] }}{% if post.description|length > 220 %}...{% endif %}</p>
+          {% endif %}
+        </div>
+
+        <!-- LIVE DEADLINE COUNTDOWN TIMER -->
+        {% if post.registration_deadline %}
+          <div class="countdown-banner" id="countdownBanner" data-deadline="{{ post.registration_deadline.strftime('%Y-%m-%dT%H:%M:%S') }}">
+            <div class="countdown-header">
+              <span class="countdown-label">
+                <i data-lucide="timer" style="width:14px;height:14px;color:var(--primary);"></i>
+                Registration Closes In
+              </span>
+              <span class="countdown-deadline-text">
+                Deadline: {{ post.registration_deadline.strftime('%b %d, %Y at %I:%M %p') }}
+              </span>
+            </div>
+            
+            <div class="countdown-grid">
+              <div class="countdown-box">
+                <span class="countdown-num" id="cdDays">00</span>
+                <span class="countdown-unit">Days</span>
               </div>
-            {% endif %}
-            {% if post.start_date %}
-              <div class="date-item">
-                <i data-lucide="calendar" style="width:13px;height:13px;color:var(--primary);"></i>
-                Starts: {{ post.start_date.strftime('%B %d, %Y') }}
+              <div class="countdown-box">
+                <span class="countdown-num" id="cdHours">00</span>
+                <span class="countdown-unit">Hours</span>
               </div>
-            {% endif %}
-            {% if post.end_date %}
-              <div class="date-item">
-                <i data-lucide="calendar-days" style="width:13px;height:13px;color:var(--danger);"></i>
-                Ends: {{ post.end_date.strftime('%B %d, %Y') }}
+              <div class="countdown-box">
+                <span class="countdown-num" id="cdMinutes">00</span>
+                <span class="countdown-unit">Mins</span>
               </div>
-            {% endif %}
+              <div class="countdown-box">
+                <span class="countdown-num" id="cdSeconds" style="color:#ef4444;">00</span>
+                <span class="countdown-unit">Secs</span>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Real-Time Progress Tracker -->
+        <div class="progress-wrap">
+          <div class="progress-text-row">
+            <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.04em;">Form Completion</span>
+            <span id="progressText" style="color:var(--primary);">0 of {{ fields|length }} answered (0%)</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressBarFill"></div>
           </div>
         </div>
 
+        <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              <div style="background: {% if category == 'danger' %}rgba(239, 68, 68, 0.08){% else %}rgba(59, 130, 246, 0.08){% endif %};
+              <div style="background: {% if category == 'danger' %}rgba(239, 68, 68, 0.08){% else %}rgba(15, 82, 186, 0.08){% endif %};
                           color: {% if category == 'danger' %}var(--danger){% else %}var(--primary){% endif %};
-                          border: 1px solid {% if category == 'danger' %}rgba(239, 68, 68, 0.2){% else %}rgba(59, 130, 246, 0.2){% endif %};
-                          padding: 12px; border-radius: 8px; font-size: 12px; margin-bottom: 20px; font-weight: 500;">
-                {{ message }}
+                          border: 1px solid {% if category == 'danger' %}rgba(239, 68, 68, 0.25){% else %}rgba(15, 82, 186, 0.25){% endif %};
+                          padding: 12px 16px; border-radius: 10px; font-size: 12.5px; margin-bottom: 22px; font-weight: 600; display:flex; align-items:center; gap:8px;">
+                <i data-lucide="{% if category == 'danger' %}alert-triangle{% else %}info{% endif %}" style="width:16px;height:16px;flex-shrink:0;"></i>
+                <span>{{ message }}</span>
               </div>
             {% endfor %}
           {% endif %}
         {% endwith %}
 
-        <form action="{{ url_for('posts.register', post_id=post.id) }}" method="POST">
+        <!-- REGISTRATION FORM -->
+        <form id="studentRegForm" action="{{ url_for('posts.register', post_id=post.id) }}" method="POST" enctype="multipart/form-data" onsubmit="return handleFormSubmit(this)">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
           {% for field in fields %}
-            <div class="form-group">
-              <label for="{{ field.id }}">
-                {{ field.label }} {% if field.required %}<span style="color:var(--danger)">*</span>{% endif %}
+            <div class="form-group" style="animation-delay: {{ loop.index * 0.05 }}s;">
+              <label class="form-label" for="field_{{ field.id }}">
+                {{ field.label }} {% if field.required %}<span class="req-star">*</span>{% endif %}
               </label>
 
-              {% if field.is_default %}
-                <!-- Render standard default system fields -->
-                {% if field.type == 'select' %}
-                  <select id="{{ field.id }}" name="{{ field.id }}" {% if field.required %}required{% endif %}>
-                    <option value="">Select {{ field.label }}…</option>
-                    {% for opt in field.options %}
-                      <option value="{{ opt }}">{{ opt }}</option>
-                    {% endfor %}
-                  </select>
-                {% elif field.id == 'email' %}
-                  <input type="email" id="{{ field.id }}" name="{{ field.id }}" required placeholder="e.g. yourname@gtu.ac.in">
-                {% elif field.id == 'phone' %}
-                  <input type="tel" id="{{ field.id }}" name="{{ field.id }}" {% if field.required %}required{% endif %} placeholder="e.g. +91 98765 43210">
-                {% else %}
-                  <input type="text" id="{{ field.id }}" name="{{ field.id }}" {% if field.required %}required{% endif %} placeholder="Enter your {{ field.label.lower() }}…">
-                {% endif %}
+              {% if field.type == 'textarea' %}
+                <textarea id="field_{{ field.id }}" name="field_{{ field.id }}" 
+                          class="form-control" 
+                          {% if field.required %}required{% endif %} 
+                          placeholder="{{ field.placeholder or 'Type your detailed answer here…' }}" 
+                          oninput="updateProgress()"></textarea>
+
+              {% elif field.type == 'select' %}
+                <select id="field_{{ field.id }}" name="field_{{ field.id }}" 
+                        class="form-control" 
+                        {% if field.required %}required{% endif %} 
+                        onchange="updateProgress()">
+                  <option value="">Select option…</option>
+                  {% for opt in field.options %}
+                    <option value="{{ opt }}">{{ opt }}</option>
+                  {% endfor %}
+                </select>
+
+              {% elif field.type == 'radio' %}
+                <div class="choice-group">
+                  {% for opt in field.options %}
+                    <label class="choice-card">
+                      <input type="radio" name="field_{{ field.id }}" value="{{ opt }}" 
+                             {% if field.required %}required{% endif %} 
+                             onchange="updateProgress()">
+                      <span>{{ opt }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+
+              {% elif field.type == 'checkbox' %}
+                <div class="choice-group">
+                  {% for opt in field.options %}
+                    <label class="choice-card">
+                      <input type="checkbox" name="field_{{ field.id }}" value="{{ opt }}" 
+                             onchange="updateProgress()">
+                      <span>{{ opt }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+
+              {% elif field.type == 'file' %}
+                <div class="file-dropzone" id="dropzone_{{ field.id }}" onclick="document.getElementById('field_{{ field.id }}').click()">
+                  <input type="file" id="field_{{ field.id }}" name="field_{{ field.id }}" 
+                         style="display:none;" 
+                         {% if field.required %}required{% endif %} 
+                         onchange="handleFileChange(this, 'filename_{{ field.id }}', 'dropzone_{{ field.id }}')">
+                  <i data-lucide="upload-cloud" class="file-dropzone-icon"></i>
+                  <span style="font-weight:700; font-size:13.5px; color:var(--text-main); display:block;">Click to browse or drop file here</span>
+                  <span id="filename_{{ field.id }}" style="font-size:12px; color:var(--text-muted); font-weight:600; display:block; margin-top:4px;">No file chosen</span>
+                  <small style="font-size:10.5px; color:#94a3b8; display:block; margin-top:4px;">Supports PDF, Word, Images, PPT, or ZIP (Max 50MB)</small>
+                </div>
+
+              {% elif field.type == 'url' %}
+                <div class="input-wrapper">
+                  <i data-lucide="link" class="input-icon"></i>
+                  <input type="url" id="field_{{ field.id }}" name="field_{{ field.id }}" 
+                         class="form-control form-control--with-icon" 
+                         {% if field.required %}required{% endif %} 
+                         placeholder="{{ field.placeholder or 'https://github.com/... or Google Drive link' }}" 
+                         oninput="updateProgress()">
+                </div>
+
+              {% elif field.type == 'email' %}
+                <div class="input-wrapper">
+                  <i data-lucide="mail" class="input-icon"></i>
+                  <input type="email" id="field_{{ field.id }}" name="field_{{ field.id }}" 
+                         class="form-control form-control--with-icon" 
+                         {% if field.required %}required{% endif %} 
+                         placeholder="{{ field.placeholder or 'e.g. yourname@gtu.ac.in' }}" 
+                         oninput="updateProgress()">
+                </div>
+
+              {% elif field.type == 'tel' %}
+                <div class="input-wrapper">
+                  <i data-lucide="phone" class="input-icon"></i>
+                  <input type="tel" id="field_{{ field.id }}" name="field_{{ field.id }}" 
+                         class="form-control form-control--with-icon" 
+                         {% if field.required %}required{% endif %} 
+                         placeholder="{{ field.placeholder or 'e.g. +91 98765 43210' }}" 
+                         oninput="updateProgress()">
+                </div>
+
+              {% elif field.type == 'number' %}
+                <div class="input-wrapper">
+                  <i data-lucide="hash" class="input-icon"></i>
+                  <input type="number" step="any" id="field_{{ field.id }}" name="field_{{ field.id }}" 
+                         class="form-control form-control--with-icon" 
+                         {% if field.required %}required{% endif %} 
+                         placeholder="{{ field.placeholder or 'Enter numeric value…' }}" 
+                         oninput="updateProgress()">
+                </div>
+
+              {% elif field.type == 'date' %}
+                <div class="input-wrapper">
+                  <i data-lucide="calendar" class="input-icon"></i>
+                  <input type="date" id="field_{{ field.id }}" name="field_{{ field.id }}" 
+                         class="form-control form-control--with-icon" 
+                         {% if field.required %}required{% endif %} 
+                         onchange="updateProgress()">
+                </div>
+
               {% else %}
-                <!-- Render dynamically generated custom fields -->
-                {% if field.type == 'textarea' %}
-                  <textarea id="custom_{{ field.id }}" name="custom_{{ field.id }}" rows="3" {% if field.required %}required{% endif %} placeholder="Type your answer here…"></textarea>
-                {% elif field.type == 'select' %}
-                  <select id="custom_{{ field.id }}" name="custom_{{ field.id }}" {% if field.required %}required{% endif %}>
-                    <option value="">Select option…</option>
-                    {% for opt in field.options %}
-                      <option value="{{ opt }}">{{ opt }}</option>
-                    {% endfor %}
-                  </select>
-                {% elif field.type == 'number' %}
-                  <input type="number" step="any" id="custom_{{ field.id }}" name="custom_{{ field.id }}" {% if field.required %}required{% endif %} placeholder="Type value…">
-                {% else %}
-                  <input type="text" id="custom_{{ field.id }}" name="custom_{{ field.id }}" {% if field.required %}required{% endif %} placeholder="Type answer…">
-                {% endif %}
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_{{ field.id }}" name="field_{{ field.id }}" 
+                         class="form-control form-control--with-icon" 
+                         {% if field.required %}required{% endif %} 
+                         placeholder="{{ field.placeholder or 'Enter your answer…' }}" 
+                         oninput="updateProgress()">
+                </div>
               {% endif %}
+            </div>
           {% endfor %}
 
-          <div style="margin-top: 18px; margin-bottom: 18px;">
-            <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer; font-weight: 500;">
-              <input type="checkbox" id="privacy_consent" name="privacy_consent" required style="width: 16px; height: 16px; margin-top: 1px; flex-shrink: 0; accent-color: var(--primary);">
+          <!-- Privacy Consent -->
+          <div style="margin: 24px 0;">
+            <label style="display:flex; align-items:flex-start; gap:10px; font-size:12px; color:var(--text-muted); cursor:pointer; font-weight:500; line-height:1.5;">
+              <input type="checkbox" id="privacy_consent" name="privacy_consent" required style="width:17px; height:17px; margin-top:2px; flex-shrink:0; accent-color:var(--primary);">
               <span>
-                I consent to GTU-ITR GSET holding and processing my registration details for organizing this activity under the 
-                <a href="{{ url_for('dashboard.privacy') }}" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: 600;">Privacy Policy</a>.
+                I hereby declare that all provided details are accurate and consent to GTU-ITR holding and processing my registration for organizing this activity under the 
+                <a href="{{ url_for('dashboard.privacy') }}" target="_blank" style="color:var(--primary); text-decoration:underline; font-weight:700;">Privacy Policy</a>.
               </span>
             </label>
           </div>
 
-          <button type="submit" class="btn-submit" style="margin-top: 10px;">
-            <i data-lucide="send" style="width:14px;height:14px;"></i>
-            Submit Registration Form
+          <!-- Submit Button -->
+          <button type="submit" id="btnSubmitForm" class="btn-submit">
+            <i data-lucide="send" style="width:16px;height:16px;"></i>
+            <span>Submit Registration Form</span>
           </button>
         </form>
 
@@ -398,14 +855,171 @@
     </div>
 
     <!-- Footer -->
-    <div class="footer-credit">
-      GTU Innovation Council (IIC) &copy; 2026. All rights reserved.
+    <div style="text-align:center; margin-top:26px; font-size:11px; color:var(--text-muted); font-weight:500;">
+      Gujarat Technological University (GTU) — ITR IIC &amp; R&amp;D Portal &copy; {{ current_year|default('2026') }}.
     </div>
 
   </div>
 
   <script>
     lucide.createIcons();
+
+    // ══════════════════════════════════════════════════════════
+    // LIVE COUNTDOWN TIMER ENGINE
+    // ══════════════════════════════════════════════════════════
+    const countdownEl = document.getElementById('countdownBanner');
+    if (countdownEl) {
+      const deadlineStr = countdownEl.getAttribute('data-deadline');
+      const targetTime = new Date(deadlineStr).getTime();
+
+      function tickCountdown() {
+        const now = new Date().getTime();
+        const diff = targetTime - now;
+
+        if (diff <= 0) {
+          document.getElementById('cdDays').textContent = '00';
+          document.getElementById('cdHours').textContent = '00';
+          document.getElementById('cdMinutes').textContent = '00';
+          document.getElementById('cdSeconds').textContent = '00';
+          
+          const dot = document.getElementById('headerStatusDot');
+          if (dot) dot.className = 'pulse-dot pulse-dot--danger';
+          const text = document.getElementById('headerStatusText');
+          if (text) text.textContent = 'REGISTRATION HAS CLOSED';
+
+          // Disable submit button if open
+          const btn = document.getElementById('btnSubmitForm');
+          if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="calendar-x"></i> Registration Window Has Closed';
+            lucide.createIcons();
+          }
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById('cdDays').textContent = String(days).padStart(2, '0');
+        document.getElementById('cdHours').textContent = String(hours).padStart(2, '0');
+        document.getElementById('cdMinutes').textContent = String(minutes).padStart(2, '0');
+        document.getElementById('cdSeconds').textContent = String(seconds).padStart(2, '0');
+
+        // Pulse warning if less than 24h
+        const dot = document.getElementById('headerStatusDot');
+        if (dot && days === 0) {
+          dot.className = 'pulse-dot pulse-dot--warning';
+        }
+      }
+
+      tickCountdown();
+      setInterval(tickCountdown, 1000);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // DYNAMIC FORM PROGRESS METER
+    // ══════════════════════════════════════════════════════════
+    const fieldInputs = document.querySelectorAll('.form-group input, .form-group select, .form-group textarea');
+    const totalFields = {{ fields|length }};
+
+    function updateProgress() {
+      let answeredCount = 0;
+      const seenNames = new Set();
+
+      fieldInputs.forEach(input => {
+        const name = input.name;
+        if (!name || seenNames.has(name)) return;
+
+        if (input.type === 'radio' || input.type === 'checkbox') {
+          const checked = document.querySelector(`input[name="${name}"]:checked`);
+          if (checked) {
+            answeredCount++;
+            seenNames.add(name);
+          }
+        } else if (input.type === 'file') {
+          if (input.files && input.files.length > 0) {
+            answeredCount++;
+            seenNames.add(name);
+          }
+        } else {
+          if (input.value && input.value.trim().length > 0) {
+            answeredCount++;
+            seenNames.add(name);
+          }
+        }
+      });
+
+      const pct = totalFields > 0 ? Math.min(100, Math.round((answeredCount / totalFields) * 100)) : 100;
+      const progressBar = document.getElementById('progressBarFill');
+      const progressText = document.getElementById('progressText');
+
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (progressText) progressText.textContent = `${answeredCount} of ${totalFields} answered (${pct}%)`;
+    }
+
+    // File change handler
+    function handleFileChange(input, labelId, dropzoneId) {
+      const label = document.getElementById(labelId);
+      const dropzone = document.getElementById(dropzoneId);
+      if (input.files && input.files.length > 0) {
+        const file = input.files[0];
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+        label.innerHTML = `<span style="color:var(--success); font-weight:700;">✓ Attached: ${file.name} (${sizeMb} MB)</span>`;
+        if (dropzone) {
+          dropzone.style.borderColor = 'var(--success)';
+          dropzone.style.background = 'rgba(16, 185, 129, 0.05)';
+        }
+      } else {
+        label.textContent = 'No file chosen';
+        if (dropzone) {
+          dropzone.style.borderColor = '';
+          dropzone.style.background = '';
+        }
+      }
+      updateProgress();
+    }
+
+    // Submit handler with animation
+    function handleFormSubmit(form) {
+      const btn = document.getElementById('btnSubmitForm');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;margin-right:6px;"></span> Submitting Registration...';
+      }
+      return true;
+    }
+
+    // Drag and Drop visual feedback
+    document.querySelectorAll('.file-dropzone').forEach(dropzone => {
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropzone.style.borderColor = 'var(--primary)';
+          dropzone.style.background = 'rgba(15, 82, 186, 0.06)';
+        }, false);
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropzone.style.borderColor = '';
+          dropzone.style.background = '';
+        }, false);
+      });
+      dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        const input = dropzone.querySelector('input[type="file"]');
+        if (input && files.length > 0) {
+          input.files = files;
+          input.dispatchEvent(new Event('change'));
+        }
+      }, false);
+    });
+
+    // Run initial progress count
+    updateProgress();
   </script>
 </body>
 </html>
