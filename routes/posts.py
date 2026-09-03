@@ -831,6 +831,15 @@ def form_builder(post_id):
             else:
                 post.registration_deadline = None
 
+            # Save customizable form heading, subtitle, and badge
+            form_title = request.form.get('form_title', '').strip()
+            form_subtitle = request.form.get('form_subtitle', '').strip()
+            form_badge = request.form.get('form_badge', '').strip()
+
+            post.form_title = form_title or None
+            post.form_subtitle = form_subtitle or None
+            post.form_badge = form_badge or None
+
             if 'external_registration_url' in request.form:
                 post.external_registration_url = request.form.get('external_registration_url', '').strip() or None
             if 'is_public' in request.form:

@@ -53,6 +53,17 @@
         if (backdrop) backdrop.classList.remove('active');
       }
     });
+
+    // Auto-close sidebar on link navigation for mobile screens
+    const sidebarLinks = sidebar.querySelectorAll('.sidebar__link');
+    sidebarLinks.forEach(function (link) {
+      link.addEventListener('click', function () {
+        if (window.innerWidth <= 768) {
+          sidebar.classList.remove('open');
+          if (backdrop) backdrop.classList.remove('active');
+        }
+      });
+    });
   }
 
   // ──────────────────────────────────────────────

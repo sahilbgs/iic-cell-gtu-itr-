@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Registration — {{ post.title }}</title>
+  <title>{{ post.form_title if post.form_title else post.title }} — Student Registration</title>
   
   <!-- Modern Typography & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -546,20 +546,82 @@
       from { border-color: rgba(15, 82, 186, 0.2); }
       to { border-color: rgba(15, 82, 186, 0.45); box-shadow: 0 4px 16px rgba(15, 82, 186, 0.08); }
     }
+
+    /* ══════════════════════════════════════════════════════════
+       MOBILE RESPONSIVENESS (Small screens & narrow phones)
+       ══════════════════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      body {
+        padding: 16px 10px;
+      }
+      .brand-header h1 {
+        font-size: 1.35rem;
+      }
+      .reg-card {
+        padding: 20px 14px;
+        border-radius: 16px;
+      }
+      .countdown-banner {
+        padding: 12px 10px;
+      }
+      .countdown-grid {
+        gap: 6px;
+      }
+      .countdown-box {
+        padding: 8px 4px;
+      }
+      .countdown-num {
+        font-size: 1.25rem;
+      }
+      .countdown-unit {
+        font-size: 8px;
+      }
+      .choice-group {
+        grid-template-columns: 1fr;
+      }
+      .form-actions {
+        flex-direction: column;
+      }
+      .btn-submit {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding: 12px 6px;
+      }
+      .reg-card {
+        padding: 16px 10px;
+      }
+      .brand-header h1 {
+        font-size: 1.2rem;
+      }
+      .countdown-num {
+        font-size: 1.1rem;
+      }
+      .countdown-unit {
+        font-size: 7.5px;
+      }
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
     
-    <!-- University Branding Header -->
+    <!-- Form Custom Header -->
     <div class="brand-header">
-      <div class="brand-pill">
-        <span class="pulse-dot" id="headerStatusDot"></span>
-        <span id="headerStatusText">GTU ITR • IIC Activity</span>
-      </div>
-      <h1>Gujarat Technological University</h1>
-      <p>Graduate School of Engineering &amp; Technology — Student Activity Registration</p>
+      {% if post.form_badge %}
+        <div class="brand-pill">
+          <span class="pulse-dot" id="headerStatusDot"></span>
+          <span id="headerStatusText">{{ post.form_badge }}</span>
+        </div>
+      {% endif %}
+      <h1>{{ post.form_title if post.form_title else post.title }}</h1>
+      {% if post.form_subtitle %}
+        <p>{{ post.form_subtitle }}</p>
+      {% endif %}
     </div>
 
     <!-- Main Registration Box -->
@@ -856,7 +918,7 @@
 
     <!-- Footer -->
     <div style="text-align:center; margin-top:26px; font-size:11px; color:var(--text-muted); font-weight:500;">
-      Gujarat Technological University (GTU) — ITR IIC &amp; R&amp;D Portal &copy; {{ current_year|default('2026') }}.
+      ITR Activity Portal &copy; {{ current_year|default('2026') }}. All rights reserved.
     </div>
 
   </div>
