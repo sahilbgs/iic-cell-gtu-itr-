@@ -13,6 +13,20 @@ pkill -f "gunicorn.*gtu-server-ui" 2>/dev/null || true
 pkill -f "cloudflared.*tunnel run" 2>/dev/null || true
 sleep 1
 
+# Ensure PostgreSQL 16 is running
+export LD_LIBRARY_PATH="/home/gtu-itr/pgsql/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}:/snap/antigravity-cli/19/usr/lib/x86_64-linux-gnu"
+PG_BIN="/home/gtu-itr/pgsql/usr/lib/postgresql/16/bin"
+PG_DATA="/home/gtu-itr/pgsql/data"
+if [ -d "$PG_DATA" ]; then
+    if ! "$PG_BIN/pg_isready" -h 127.0.0.1 -p 5432 >/dev/null 2>&1; then
+        echo "Starting PostgreSQL 16 database server..."
+        "$PG_BIN/pg_ctl" -D "$PG_DATA" -l /home/gtu-itr/pgsql/postgres.log start || true
+        sleep 2
+    else
+        echo "PostgreSQL 16 is already active."
+    fi
+fi
+
 echo "Starting GTU-ITR Portal (Gunicorn on 5000)..."
 "$PROJECT_DIR/venv/bin/gunicorn" \
     --bind 0.0.0.0:5000 \
@@ -56,6 +70,7 @@ echo " [SUCCESS] All Services are up and running!"
 echo " 1. Portal Web App:  https://iic-gtu-itr.aceglory.in  (Port 5000)"
 echo " 2. Server Console:  https://gtu-itr-server.aceglory.in (Port 7000)"
 echo "                     [Local: http://localhost:7000]"
+echo " 3. Database:        PostgreSQL 16 (iic_cell_gtu on 127.0.0.1:5432)"
 echo ""
 echo " Server UI Login:"
 echo "   ID / Username: admin"
