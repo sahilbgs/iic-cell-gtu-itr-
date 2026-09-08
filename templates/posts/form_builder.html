@@ -735,8 +735,12 @@
   function addPreset(label, type, required, placeholder, id = null, options = []) {
     recordHistory();
     fieldCounter++;
+    let uniqueId = id;
+    if (!uniqueId || fields.some(f => f.id === uniqueId)) {
+      uniqueId = uniqueId ? `${uniqueId}_${Date.now()}_${fieldCounter}` : `field_${Date.now()}_${fieldCounter}`;
+    }
     fields.push({
-      id: id || `field_${Date.now()}_${fieldCounter}`,
+      id: uniqueId,
       label: label,
       type: type,
       required: required,
@@ -1004,6 +1008,14 @@
       alert("Please add at least one registration field.");
       return false;
     }
+    // Guarantee uniqueness of IDs across all fields
+    const seenIds = new Set();
+    fields.forEach((f, idx) => {
+      if (!f.id || seenIds.has(f.id)) {
+        f.id = (f.id ? f.id + '_' : 'field_') + Date.now() + '_' + (idx + 1);
+      }
+      seenIds.add(f.id);
+    });
     document.getElementById('config_json').value = JSON.stringify(fields);
     return true;
   }

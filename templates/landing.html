@@ -607,6 +607,34 @@
         }
       });
     });
+
+    // Visitor Heartbeat Tracking
+    (function() {
+      var startTime = Date.now();
+      var path = window.location.pathname;
+
+      function pingHeartbeat() {
+        var elapsed = Math.round((Date.now() - startTime) / 1000);
+        var payload = JSON.stringify({ current_path: path, elapsed_seconds: elapsed });
+        if (navigator.sendBeacon) {
+          var blob = new Blob([payload], { type: 'application/json' });
+          navigator.sendBeacon('/api/analytics/heartbeat', blob);
+        } else {
+          fetch('/api/analytics/heartbeat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+            keepalive: true
+          }).catch(function() {});
+        }
+      }
+
+      setInterval(pingHeartbeat, 25000);
+      window.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') pingHeartbeat();
+      });
+      window.addEventListener('beforeunload', pingHeartbeat);
+    })();
   </script>
 </body>
 </html>

@@ -57,6 +57,8 @@ def login():
         if user is None or user.is_deleted or not user.check_password(password):
             _FAILED_LOGINS[client_ip].append(now)
             attempts_left = _MAX_FAILED_ATTEMPTS - len(_FAILED_LOGINS[client_ip])
+            from utils.analytics_tracker import log_auth_event
+            log_auth_event('LOGIN_FAILED', status='FAILED', email=email, reason='Invalid email or password')
             if attempts_left > 0:
                 flash(f'Invalid email or password. ({attempts_left} attempts remaining before temporary lockout)', 'danger')
             else:
@@ -64,11 +66,19 @@ def login():
             return render_template('auth/login.html')
 
         if not user.is_active:
+            from utils.analytics_tracker import log_auth_event
+            log_auth_event('LOGIN_FAILED', status='FAILED', user=user, email=email, reason='Account deactivated')
             flash('Your account has been deactivated. Contact administration.', 'warning')
             return render_template('auth/login.html')
 
         # Successful login: reset failed counter for this IP
         _FAILED_LOGINS.pop(client_ip, None)
+
+        from flask import session as flask_session
+        flask_session['login_time'] = time.time()
+
+        from utils.analytics_tracker import log_auth_event
+        log_auth_event('LOGIN_SUCCESS', status='SUCCESS', user=user)
 
         login_user(user, remember=remember)
         flash(f'Welcome back, {user.full_name}!', 'success')
@@ -89,6 +99,17 @@ def login():
 @login_required
 def logout():
     """Log out the current user."""
+    from flask import session as flask_session
+    duration = None
+    if 'login_time' in flask_session:
+        try:
+            duration = int(time.time() - float(flask_session['login_time']))
+        except Exception:
+            pass
+
+    from utils.analytics_tracker import log_auth_event
+    log_auth_event('LOGOUT', status='SUCCESS', user=current_user, session_duration=duration)
+
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))

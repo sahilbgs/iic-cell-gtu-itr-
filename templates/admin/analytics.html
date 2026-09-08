@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block title %}Server Logs & Visitor Analytics{% endblock %}
+{% block page_title %}Traffic & Server Intelligence{% endblock %}
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">Real-time visitor logs, IP tracking, session duration, and authentication audit</div>
+{% endblock %}
+
+{% block content %}
+<!-- Live Stats KPI Cards -->
+<div class="grid grid-4 mb-8 stagger">
+  <div class="kpi-card kpi-card--gold">
+    <div class="kpi-card__top">
+      <div>
+        <div class="kpi-card__value" id="kpi-total-visitors">--</div>
+        <div class="kpi-card__label">Total Unique Visitors</div>
+      </div>
+      <div class="kpi-card__icon"><i data-lucide="users"></i></div>
+    </div>
+    <div style="font-size: 11px; margin-top: 8px; color: var(--text-secondary);">
+      Today: <strong id="kpi-today-visitors" style="color: var(--primary);">--</strong>
+    </div>
+  </div>
+
+  <div class="kpi-card kpi-card--success">
+    <div class="kpi-card__top">
+      <div>
+        <div class="kpi-card__value" id="kpi-active-visitors" style="color: #10b981;">--</div>
+        <div class="kpi-card__label">Active Online Now</div>
+      </div>
+      <div class="kpi-card__icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981; box-shadow: 0 0 10px #10b981;"></span>
+      </div>
+    </div>
+    <div style="font-size: 11px; margin-top: 8px; color: var(--text-secondary);">
+      Active within last 5 mins
+    </div>
+  </div>
+
+  <div class="kpi-card kpi-card--info">
+    <div class="kpi-card__top">
+      <div>
+        <div class="kpi-card__value" id="kpi-avg-duration">--</div>
+        <div class="kpi-card__label">Average Time Spent</div>
+      </div>
+      <div class="kpi-card__icon"><i data-lucide="timer"></i></div>
+    </div>
+    <div style="font-size: 11px; margin-top: 8px; color: var(--text-secondary);">
+      Per visitor session
+    </div>
+  </div>
+
+  <div class="kpi-card kpi-card--warning">
+    <div class="kpi-card__top">
+      <div>
+        <div class="kpi-card__value" id="kpi-total-views">--</div>
+        <div class="kpi-card__label">Total Page Views</div>
+      </div>
+      <div class="kpi-card__icon"><i data-lucide="eye"></i></div>
+    </div>
+    <div style="font-size: 11px; margin-top: 8px; color: var(--text-secondary);">
+      All recorded hits
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-2 mb-8">
+  <div class="card p-4">
+    <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+      <i data-lucide="smartphone" style="width: 16px; height: 16px; color: var(--primary);"></i>
+      Devices & Platforms
+    </h3>
+    <div style="height: 200px; position: relative;">
+      <canvas id="deviceChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card p-4">
+    <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+      <i data-lucide="compass" style="width: 16px; height: 16px; color: #10b981;"></i>
+      Top Visited Pages
+    </h3>
+    <div id="top-pages-list" style="font-size: 13px; max-height: 200px; overflow-y: auto;">
+      <div style="text-align: center; color: var(--text-muted); padding: 20px;">Loading top pages...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Controls Bar -->
+<div class="card p-3 mb-6" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Filter Search:</span>
+    <input type="text" id="filter-input" placeholder="Search IP, Email, URL, Device..." 
+           style="padding: 6px 12px; font-size: 13px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-primary); min-width: 260px;"
+           onkeyup="applyFilter()">
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <span id="last-updated-text" style="font-size: 11px; color: var(--text-muted);">Updated: Just now</span>
+    <button class="btn btn--secondary btn--sm" onclick="loadAnalyticsData()" title="Refresh Data">
+      <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
+    </button>
+  </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div class="tabs" id="analytics-tabs">
+  <button class="tab-btn active" data-tab="tab-sessions" onclick="switchAnalyticsTab(event, 'tab-sessions')">
+    <i data-lucide="users" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
+    Visitor Sessions & Time Spent (<span id="count-sessions">0</span>)
+  </button>
+  <button class="tab-btn" data-tab="tab-auth" onclick="switchAnalyticsTab(event, 'tab-auth')">
+    <i data-lucide="shield" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
+    Login / Logout Audit Logs (<span id="count-auth">0</span>)
+  </button>
+  <button class="tab-btn" data-tab="tab-views" onclick="switchAnalyticsTab(event, 'tab-views')">
+    <i data-lucide="list" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
+    All Page Visits &amp; IPs (<span id="count-views">0</span>)
+  </button>
+</div>
+
+<!-- TAB 1: VISITOR SESSIONS -->
+<div class="tab-pane active" id="tab-sessions">
+  <div class="card table-responsive">
+    <table class="data-table" id="table-sessions">
+      <thead>
+        <tr>
+          <th>Client IP Address</th>
+          <th>User Identity</th>
+          <th>Device / Browser / OS</th>
+          <th>Time Spent</th>
+          <th>Pages</th>
+          <th>Entry Page</th>
+          <th>Last Activity</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-sessions">
+        <tr><td colspan="8" style="text-align:center; padding: 24px; color: var(--text-muted);">Loading sessions...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TAB 2: AUTH AUDIT LOGS -->
+<div class="tab-pane" id="tab-auth" style="display: none;">
+  <div class="card table-responsive">
+    <table class="data-table" id="table-auth">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Event Type</th>
+          <th>User Email / Name</th>
+          <th>Role</th>
+          <th>IP Address</th>
+          <th>Device &amp; OS</th>
+          <th>Session Duration</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-auth">
+        <tr><td colspan="8" style="text-align:center; padding: 24px; color: var(--text-muted);">Loading audit logs...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TAB 3: ALL PAGE VISITS -->
+<div class="tab-pane" id="tab-views" style="display: none;">
+  <div class="card table-responsive">
+    <table class="data-table" id="table-views">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Client IP</th>
+          <th>User</th>
+          <th>Method</th>
+          <th>Requested Path</th>
+          <th>Status</th>
+          <th>Device</th>
+          <th>Referrer</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-views">
+        <tr><td colspan="8" style="text-align:center; padding: 24px; color: var(--text-muted);">Loading page views...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let analyticsData = null;
+let deviceChart = null;
+
+function switchAnalyticsTab(e, tabId) {
+  document.querySelectorAll('#analytics-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(pane => pane.style.display = 'none');
+  
+  e.currentTarget.classList.add('active');
+  const target = document.getElementById(tabId);
+  if (target) target.style.display = 'block';
+}
+
+async function loadAnalyticsData() {
+  try {
+    const res = await fetch('/api/analytics/stats');
+    if (!res.ok) throw new Error('Failed to load stats');
+    analyticsData = await res.json();
+    renderAnalytics();
+  } catch (err) {
+    console.error('Analytics load error:', err);
+  }
+}
+
+function renderAnalytics() {
+  if (!analyticsData) return;
+  const d = analyticsData;
+
+  // KPIs
+  document.getElementById('kpi-total-visitors').textContent = d.total_visitors;
+  document.getElementById('kpi-today-visitors').textContent = d.today_visitors + ' today';
+  document.getElementById('kpi-active-visitors').textContent = d.active_visitors;
+  document.getElementById('kpi-avg-duration').textContent = d.avg_duration_formatted || '< 1s';
+  document.getElementById('kpi-total-views').textContent = d.total_pageviews;
+
+  document.getElementById('count-sessions').textContent = d.recent_sessions.length;
+  document.getElementById('count-auth').textContent = d.recent_auth_logs.length;
+  document.getElementById('count-views').textContent = d.recent_pageviews.length;
+  document.getElementById('last-updated-text').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+
+  // Top Pages
+  const topPagesEl = document.getElementById('top-pages-list');
+  if (d.top_pages && d.top_pages.length > 0) {
+    topPagesEl.innerHTML = d.top_pages.map(p => `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-color);">
+        <span style="font-family: monospace; font-size: 12px; color: var(--text-primary);">${p.path}</span>
+        <div>
+          <span class="badge" style="background: rgba(var(--primary-rgb), 0.15); color: var(--primary); font-size: 11px;">${p.views} views</span>
+          <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 11px;">${p.unique_visitors} visitors</span>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    topPagesEl.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">No page views yet</div>';
+  }
+
+  // Device Chart
+  renderDeviceChart(d.device_breakdown);
+
+  // Sessions Table
+  renderSessionsTable(d.recent_sessions);
+
+  // Auth Logs Table
+  renderAuthTable(d.recent_auth_logs);
+
+  // Pageviews Table
+  renderViewsTable(d.recent_pageviews);
+
+  // Re-create icons
+  if (window.lucide) lucide.createIcons();
+}
+
+function renderDeviceChart(deviceMap) {
+  const ctx = document.getElementById('deviceChart');
+  if (!ctx) return;
+  const labels = Object.keys(deviceMap || {});
+  const data = Object.values(deviceMap || {});
+
+  if (deviceChart) {
+    deviceChart.destroy();
+  }
+
+  deviceChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels.length ? labels : ['No Data'],
+      datasets: [{
+        data: data.length ? data : [1],
+        backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, color: '#9ca3af' } }
+      }
+    }
+  });
+}
+
+function renderSessionsTable(sessions) {
+  const tbody = document.getElementById('tbody-sessions');
+  if (!sessions || sessions.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 24px; color: var(--text-muted);">No visitor sessions recorded yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = sessions.map(s => {
+    const isOnline = s.is_active;
+    const statusBadge = isOnline 
+      ? '<span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-weight:700;">🟢 Online</span>'
+      : '<span class="badge" style="background: rgba(156,163,175,0.1); color: #9ca3af;">Offline</span>';
+    
+    return `
+      <tr>
+        <td>
+          <code style="font-weight: 700; color: #38bdf8; font-size: 12px;">${s.ip_address}</code>
+        </td>
+        <td>
+          <div style="font-weight: 600; font-size: 13px;">${s.user_name}</div>
+          <small style="color: var(--text-secondary);">${s.user_email}</small>
+        </td>
+        <td>
+          <span style="font-size: 12px; font-weight: 600;">${s.device_type}</span>
+          <div style="font-size: 11px; color: var(--text-secondary);">${s.browser} • ${s.os}</div>
+        </td>
+        <td>
+          <strong style="color: #f59e0b; font-size: 13px;">${s.duration_formatted}</strong>
+        </td>
+        <td>
+          <span class="badge" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary);">${s.pageviews} views</span>
+        </td>
+        <td style="font-family: monospace; font-size: 12px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          ${s.entry_path}
+        </td>
+        <td style="font-size: 11px; color: var(--text-secondary);">
+          ${s.last_seen || '--'}
+        </td>
+        <td>${statusBadge}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderAuthTable(authLogs) {
+  const tbody = document.getElementById('tbody-auth');
+  if (!authLogs || authLogs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 24px; color: var(--text-muted);">No login/logout records.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = authLogs.map(a => {
+    let eventBadge = '';
+    if (a.event_type === 'LOGIN_SUCCESS') {
+      eventBadge = '<span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; font-weight: 600;">🔓 Login Success</span>';
+    } else if (a.event_type === 'LOGOUT') {
+      eventBadge = '<span class="badge" style="background: rgba(2,132,199,0.2); color: #38bdf8; font-weight: 600;">🔒 Logged Out</span>';
+    } else {
+      eventBadge = `<span class="badge" style="background: rgba(239,68,68,0.2); color: #ef4444; font-weight: 600;">⚠️ Failed: ${a.reason || 'Denied'}</span>`;
+    }
+
+    return `
+      <tr>
+        <td style="font-size: 11px; color: var(--text-secondary);">${a.created_at}</td>
+        <td>${eventBadge}</td>
+        <td>
+          <div style="font-weight: 600; font-size: 13px;">${a.user_name}</div>
+          <small style="color: var(--text-secondary);">${a.user_email}</small>
+        </td>
+        <td><span class="badge" style="background: rgba(255,255,255,0.06);">${a.user_role}</span></td>
+        <td><code style="color: #38bdf8; font-size: 12px;">${a.ip_address}</code></td>
+        <td style="font-size: 11px; color: var(--text-secondary);">${a.device_type} • ${a.browser} (${a.os})</td>
+        <td>${a.session_duration_formatted ? `<strong style="color:#f59e0b;">${a.session_duration_formatted}</strong>` : '--'}</td>
+        <td>
+          <span style="font-weight: 700; color: ${a.status === 'SUCCESS' ? '#10b981' : '#ef4444'}; font-size: 12px;">
+            ${a.status}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderViewsTable(views) {
+  const tbody = document.getElementById('tbody-views');
+  if (!views || views.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 24px; color: var(--text-muted);">No page views logged.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = views.map(v => {
+    const statusColor = v.status_code >= 500 ? '#ef4444' : v.status_code >= 400 ? '#f59e0b' : v.status_code >= 300 ? '#38bdf8' : '#10b981';
+    return `
+      <tr>
+        <td style="font-size: 11px; color: var(--text-secondary);">${v.timestamp}</td>
+        <td><code style="color: #38bdf8; font-size: 12px;">${v.ip_address}</code></td>
+        <td style="font-size: 12px;">${v.user_name || 'Guest'}</td>
+        <td><span class="badge" style="background: rgba(255,255,255,0.05); font-weight:700;">${v.method}</span></td>
+        <td style="font-family: monospace; font-size: 12px; color: var(--text-primary);">${v.path}</td>
+        <td><strong style="color: ${statusColor}; font-size: 12px;">${v.status_code}</strong></td>
+        <td style="font-size: 11px; color: var(--text-secondary);">${v.device_type} • ${v.browser}</td>
+        <td style="font-size: 11px; color: var(--text-secondary); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          ${v.referrer || '-'}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function applyFilter() {
+  const q = document.getElementById('filter-input').value.toLowerCase();
+  ['tbody-sessions', 'tbody-auth', 'tbody-views'].forEach(id => {
+    const rows = document.querySelectorAll('#' + id + ' tr');
+    rows.forEach(r => {
+      const text = r.innerText.toLowerCase();
+      r.style.display = text.includes(q) ? '' : 'none';
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadAnalyticsData();
+  // Auto-refresh every 15s
+  setInterval(loadAnalyticsData, 15000);
+});
+</script>
+{% endblock %}

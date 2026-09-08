@@ -1,0 +1,17 @@
+[Unit]
+Description=GTU-ITR PostgreSQL 16 Database Server
+After=network.target
+
+[Service]
+Type=forking
+User=gtu-itr
+WorkingDirectory=/home/gtu-itr/pgsql
+Environment="LD_LIBRARY_PATH=/home/gtu-itr/pgsql/usr/lib/x86_64-linux-gnu"
+ExecStart=/home/gtu-itr/pgsql/usr/lib/postgresql/16/bin/pg_ctl -D /home/gtu-itr/pgsql/data -l /home/gtu-itr/pgsql/postgres.log start
+ExecStop=/home/gtu-itr/pgsql/usr/lib/postgresql/16/bin/pg_ctl -D /home/gtu-itr/pgsql/data -m fast stop
+PIDFile=/home/gtu-itr/pgsql/data/postmaster.pid
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

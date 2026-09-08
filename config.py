@@ -33,6 +33,10 @@ class Config:
             'postgresql+psycopg2://gtu_admin:44113290@localhost:5432/iic_cell_gtu'
             
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300
+    }
 
     # File Uploads
     UPLOAD_FOLDER = os.path.join(basedir, 'uploads')

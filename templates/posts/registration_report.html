@@ -110,18 +110,20 @@
   }
 
   .rep-table th {
-    padding: 14px 18px;
+    padding: 12px 16px;
     font-weight: 700;
     color: var(--text-muted);
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    white-space: nowrap;
   }
 
   .rep-table td {
-    padding: 14px 18px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
+    white-space: nowrap;
   }
 
   .rep-table tbody tr:hover {
@@ -518,81 +520,65 @@
 
 <!-- VIEW 1: Structured Summary Table View -->
 <div id="table-view-container" class="rep-table-wrap mb-8">
-  <div class="table-responsive">
+  <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
     {% if registrations %}
-      <table class="rep-table" id="regTable">
+      <table class="rep-table" id="regTable" style="min-width: 100%;">
         <thead>
           <tr>
-            <th style="width:45px;">#</th>
-            <th>Student Details</th>
-            <th>Enrollment No</th>
-            <th>Department &amp; Sem</th>
-            <th>Contact Info</th>
-            <th>Form Responses</th>
-            <th class="no-print" style="width:110px; text-align:right;">Actions</th>
+            <th style="width:45px; text-align:center;">#</th>
+            {% if fields %}
+              {% for f in fields %}
+                <th style="white-space:nowrap;">{{ f.label or f.id }}</th>
+              {% endfor %}
+            {% else %}
+              <th style="white-space:nowrap;">Student Name</th>
+              <th style="white-space:nowrap;">Enrollment No</th>
+              <th style="white-space:nowrap;">Department</th>
+              <th style="white-space:nowrap;">Semester</th>
+              <th style="white-space:nowrap;">Email</th>
+              <th style="white-space:nowrap;">Phone</th>
+            {% endif %}
+            <th style="white-space:nowrap;">Registered At</th>
+            <th class="no-print" style="width:85px; text-align:center; position:sticky; right:0; background:var(--bg-surface-hover); z-index:2; box-shadow:-2px 0 6px rgba(0,0,0,0.05);">Actions</th>
           </tr>
         </thead>
         <tbody id="tableRowsBody">
           {% for reg in registrations %}
-            {% set answers = get_all_answers(reg) %}
             <tr class="reg-data-row" 
-                data-search="{{ reg.student_name|lower }} {{ reg.enrollment_no|lower }} {{ reg.department|lower if reg.department else '' }} {{ reg.email|lower }}">
-              <td style="font-weight:700; color:var(--text-muted);">{{ loop.index }}</td>
-              <td>
-                <div style="font-weight:700; color:var(--text-primary); font-size:13px;">{{ reg.student_name }}</div>
-                <small style="color:var(--text-muted); font-size:11px;">Registered {{ reg.registered_at.strftime('%b %d, %Y %I:%M %p') }}</small>
-              </td>
-              <td>
-                <span style="font-family:monospace; font-weight:700; color:var(--primary); background:rgba(var(--primary-rgb),0.06); padding:3px 8px; border-radius:6px;">
-                  {{ reg.enrollment_no }}
-                </span>
-              </td>
-              <td>
-                <div style="font-weight:600; color:var(--text-primary);">{{ reg.department or 'N/A' }}</div>
-                {% if reg.semester %}
-                  <span style="font-size:11px; font-weight:700; color:#047857; background:rgba(16,185,129,0.1); padding:2px 6px; border-radius:4px;">
-                    Semester {{ reg.semester }}
-                  </span>
-                {% endif %}
-              </td>
-              <td>
-                <div style="font-size:12px; color:var(--text-primary);">{{ reg.email }}</div>
-                {% if reg.phone %}
-                  <small style="color:var(--text-muted); font-size:11px;">{{ reg.phone }}</small>
-                {% endif %}
-              </td>
-              <td>
-                <!-- Summary preview of custom fields -->
-                <div style="display:flex; flex-wrap:wrap; gap:6px; max-width:320px;">
-                  {% set non_core_count = 0 %}
-                  {% for f in fields %}
-                    {% if f.id not in ('student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone') %}
-                      {% set val = answers.get(f.id, '') %}
-                      {% if val %}
-                        {% set non_core_count = non_core_count + 1 %}
-                        {% if f.type == 'file' %}
-                          <a href="{{ url_for('posts.download_file', filename=val, download=1) }}" class="rep-pill-file" target="_blank" title="{{ f.label }}: {{ val.split('/')[-1] }}">
-                            <i data-lucide="paperclip" style="width:11px;height:11px;"></i> {{ val.split('/')[-1][:12] }}...
-                          </a>
-                        {% elif f.type == 'url' %}
-                          <a href="{{ val }}" class="rep-pill-url" target="_blank" rel="noopener noreferrer" title="{{ f.label }}: {{ val }}">
-                            <i data-lucide="external-link" style="width:11px;height:11px;"></i> Link
-                          </a>
-                        {% else %}
-                          <span style="font-size:11px; background:var(--bg-surface-hover); border:1px solid var(--border-color); padding:2px 7px; border-radius:5px; color:var(--text-secondary);" title="{{ f.label }}: {{ val }}">
-                            <strong>{{ f.label[:12] }}:</strong> {{ val[:16] }}{% if val|length > 16 %}...{% endif %}
-                          </span>
-                        {% endif %}
-                      {% endif %}
+                data-search="{{ reg.student_name|lower }} {{ reg.enrollment_no|lower }} {{ reg.department|lower if reg.department else '' }} {{ reg.email|lower }} {{ reg.custom_data|lower if reg.custom_data else '' }}">
+              <td style="font-weight:700; color:var(--text-muted); text-align:center;">{{ loop.index }}</td>
+              {% if fields %}
+                {% for f in fields %}
+                  {% set val = get_custom_val(reg, f.id) %}
+                  <td style="white-space:nowrap;">
+                    {% if not val %}
+                      <span class="text-muted" style="font-size:11.5px; font-style:italic;">—</span>
+                    {% elif f.type == 'file' %}
+                      <a href="{{ url_for('posts.download_file', filename=val, download=1) }}" class="rep-pill-file" target="_blank" title="{{ f.label }}: {{ val.split('/')[-1] }}">
+                        <i data-lucide="paperclip" style="width:12px;height:12px;"></i> {{ val.split('/')[-1][:20] }}{% if val.split('/')[-1]|length > 20 %}...{% endif %}
+                      </a>
+                    {% elif f.type == 'url' %}
+                      <a href="{{ val if val.startswith('http') else 'https://' ~ val }}" class="rep-pill-url" target="_blank" rel="noopener noreferrer" title="{{ val }}">
+                        <i data-lucide="external-link" style="width:12px;height:12px;"></i> Link
+                      </a>
+                    {% else %}
+                      <span style="font-size:12.5px; color:var(--text-primary); font-weight:500;">{{ val }}</span>
                     {% endif %}
-                  {% endfor %}
-                  {% if non_core_count == 0 %}
-                    <span class="text-muted" style="font-size:11px; font-style:italic;">Standard info</span>
-                  {% endif %}
-                </div>
+                  </td>
+                {% endfor %}
+              {% else %}
+                <td style="font-weight:600; color:var(--text-primary); white-space:nowrap;">{{ reg.student_name }}</td>
+                <td style="font-family:monospace; font-weight:700; color:var(--primary); white-space:nowrap;">{{ reg.enrollment_no }}</td>
+                <td style="white-space:nowrap;">{{ reg.department or 'N/A' }}</td>
+                <td style="white-space:nowrap;">{{ reg.semester or 'N/A' }}</td>
+                <td style="white-space:nowrap;">{{ reg.email }}</td>
+                <td style="white-space:nowrap;">{{ reg.phone or 'N/A' }}</td>
+              {% endif %}
+              <td style="font-size:11.5px; color:var(--text-muted); white-space:nowrap;">
+                {{ reg.registered_at.strftime('%d %b %Y, %I:%M %p') }}
               </td>
-              <td class="no-print" style="text-align:right;">
-                <button type="button" class="btn btn--secondary btn--sm" onclick="openStudentModal({{ loop.index0 }})" style="padding:5px 10px; font-size:11.5px;">
+              <td class="no-print" style="text-align:center; position:sticky; right:0; background:var(--bg-surface); z-index:1; box-shadow:-2px 0 6px rgba(0,0,0,0.05);">
+                <button type="button" class="btn btn--secondary btn--sm" onclick="openStudentModal({{ loop.index0 }})" style="padding:4px 10px; font-size:11.5px;">
                   <i data-lucide="eye" style="width:13px;height:13px;"></i> View
                 </button>
               </td>
@@ -614,8 +600,7 @@
 <div id="cards-view-container" class="rep-cards-grid mb-8" style="display:none;">
   {% if registrations %}
     {% for reg in registrations %}
-      {% set answers = get_all_answers(reg) %}
-      <div class="rep-card reg-data-card" data-search="{{ reg.student_name|lower }} {{ reg.enrollment_no|lower }} {{ reg.department|lower if reg.department else '' }} {{ reg.email|lower }}">
+      <div class="rep-card reg-data-card" data-search="{{ reg.student_name|lower }} {{ reg.enrollment_no|lower }} {{ reg.department|lower if reg.department else '' }} {{ reg.email|lower }} {{ reg.custom_data|lower if reg.custom_data else '' }}">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
           <div>
             <h4 style="font-family:'Outfit',sans-serif; font-weight:700; font-size:1.05rem; margin:0 0 2px 0; color:var(--primary);">
@@ -631,31 +616,20 @@
         </div>
 
         <div style="display:flex; flex-direction:column; gap:4px; flex-grow:1;">
-          <div class="rep-field-row">
-            <span class="rep-field-lbl">Department &amp; Semester</span>
-            <span class="rep-field-val">{{ reg.department or 'N/A' }} — Sem {{ reg.semester or 'N/A' }}</span>
-          </div>
-          
-          <div class="rep-field-row">
-            <span class="rep-field-lbl">Contact Details</span>
-            <span class="rep-field-val">{{ reg.email }} {% if reg.phone %}• {{ reg.phone }}{% endif %}</span>
-          </div>
-
-          <!-- All Custom Questions -->
-          {% for f in fields %}
-            {% if f.id not in ('student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone') %}
-              {% set val = answers.get(f.id, '') %}
+          {% if fields %}
+            {% for f in fields %}
+              {% set val = get_custom_val(reg, f.id) %}
               <div class="rep-field-row">
-                <span class="rep-field-lbl">{{ f.label }}</span>
+                <span class="rep-field-lbl">{{ f.label or f.id }}</span>
                 <div class="rep-field-val">
                   {% if not val %}
-                    <span class="text-muted" style="font-style:italic;">Not provided</span>
+                    <span class="text-muted" style="font-style:italic; font-size:11.5px;">Not provided</span>
                   {% elif f.type == 'file' %}
                     <a href="{{ url_for('posts.download_file', filename=val, download=1) }}" class="rep-pill-file" target="_blank">
                       <i data-lucide="download" style="width:12px;height:12px;"></i> Download ({{ val.split('/')[-1] }})
                     </a>
                   {% elif f.type == 'url' %}
-                    <a href="{{ val }}" class="rep-pill-url" target="_blank" rel="noopener noreferrer">
+                    <a href="{{ val if val.startswith('http') else 'https://' ~ val }}" class="rep-pill-url" target="_blank" rel="noopener noreferrer">
                       <i data-lucide="external-link" style="width:12px;height:12px;"></i> {{ val }}
                     </a>
                   {% else %}
@@ -663,8 +637,18 @@
                   {% endif %}
                 </div>
               </div>
-            {% endif %}
-          {% endfor %}
+            {% endfor %}
+          {% else %}
+            <div class="rep-field-row">
+              <span class="rep-field-lbl">Department &amp; Semester</span>
+              <span class="rep-field-val">{{ reg.department or 'N/A' }} — Sem {{ reg.semester or 'N/A' }}</span>
+            </div>
+            
+            <div class="rep-field-row">
+              <span class="rep-field-lbl">Contact Details</span>
+              <span class="rep-field-val">{{ reg.email }} {% if reg.phone %}• {{ reg.phone }}{% endif %}</span>
+            </div>
+          {% endif %}
 
           <div class="rep-field-row" style="margin-top:auto; padding-top:10px;">
             <span class="rep-field-lbl">Registration Timestamp</span>
@@ -789,26 +773,30 @@
     const body = document.getElementById('modalStudentFields');
     body.innerHTML = '';
 
-    // Standard Core info
-    const coreItems = [
-      { label: 'Department', val: reg.department },
-      { label: 'Semester', val: 'Semester ' + reg.semester },
-      { label: 'Email Address', val: reg.email },
-      { label: 'Phone Number', val: reg.phone },
-      { label: 'Registration Date', val: reg.registered_at }
-    ];
+    // Render questions from configured form fields
+    if (fieldConfigs && fieldConfigs.length > 0) {
+      fieldConfigs.forEach(f => {
+        let val = reg.answers ? reg.answers[f.id] : '';
+        if ((val === undefined || val === '') && ['student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'].includes(f.id)) {
+          val = reg[f.id];
+        }
+        body.appendChild(createFieldCard(f.label || f.id, val || '', f.type));
+      });
+      body.appendChild(createFieldCard('Registration Date', reg.registered_at));
+    } else {
+      // Standard Core info fallback
+      const coreItems = [
+        { label: 'Department', val: reg.department },
+        { label: 'Semester', val: reg.semester ? 'Semester ' + reg.semester : 'N/A' },
+        { label: 'Email Address', val: reg.email },
+        { label: 'Phone Number', val: reg.phone },
+        { label: 'Registration Date', val: reg.registered_at }
+      ];
 
-    coreItems.forEach(item => {
-      body.appendChild(createFieldCard(item.label, item.val));
-    });
-
-    // Custom form fields
-    fieldConfigs.forEach(f => {
-      if (!['student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'].includes(f.id)) {
-        const val = reg.answers[f.id] || '';
-        body.appendChild(createFieldCard(f.label, val, f.type));
-      }
-    });
+      coreItems.forEach(item => {
+        body.appendChild(createFieldCard(item.label, item.val));
+      });
+    }
 
     document.getElementById('studentModalBackdrop').classList.add('open');
     document.body.style.overflow = 'hidden';

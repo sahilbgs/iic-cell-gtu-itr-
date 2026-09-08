@@ -8,6 +8,7 @@ from models.principal_post import PrincipalPost
 from models.student_registration import StudentRegistration
 from models.activity_report import ActivityReport
 from models.landing_post import LandingPost
+from models.analytics import AuthAuditLog, VisitorSession, VisitorLog, format_duration
 
 __all__ = [
     'User',
@@ -16,5 +17,9 @@ __all__ = [
     'StudentRegistration',
     'ActivityReport',
     'LandingPost',
+    'AuthAuditLog',
+    'VisitorSession',
+    'VisitorLog',
+    'format_duration',
 ]
 

@@ -105,8 +105,14 @@ def create_app(config_name=None):
         return render_template('errors/500.html'), 500
 
     @app.after_request
-    def add_security_headers(response):
-        """Inject secure response headers for legal/security compliance."""
+    def post_request_processing(response):
+        """Track visitor analytics and inject secure response headers."""
+        try:
+            from utils.analytics_tracker import track_request
+            response = track_request(response)
+        except Exception:
+            pass
+
         # Content Security Policy (CSP): Allow self, Google Fonts, Lucide icons (unpkg.com), Chart.js (jsdelivr)
         csp_policies = [
             "default-src 'self'",

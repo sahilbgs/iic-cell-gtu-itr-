@@ -75,6 +75,10 @@
         <i data-lucide="shield-check"></i>
         <span>Admin Panel</span>
       </a>
+      <a href="{{ url_for('analytics.admin_analytics_view') }}" class="sidebar__link {% if request.blueprint == 'analytics' %}active{% endif %}">
+        <i data-lucide="activity"></i>
+        <span>Traffic &amp; Server Logs</span>
+      </a>
       <a href="{{ url_for('admin.manage_landing_posts') }}" class="sidebar__link {% if request.endpoint == 'admin.manage_landing_posts' %}active{% endif %}">
         <i data-lucide="image"></i>
         <span>Landing Posts</span>
@@ -276,6 +280,36 @@
         });
       }
     });
+  </script>
+
+  <!-- Visitor Heartbeat Tracking -->
+  <script>
+    (function() {
+      var startTime = Date.now();
+      var path = window.location.pathname;
+
+      function pingHeartbeat() {
+        var elapsed = Math.round((Date.now() - startTime) / 1000);
+        var payload = JSON.stringify({ current_path: path, elapsed_seconds: elapsed });
+        if (navigator.sendBeacon) {
+          var blob = new Blob([payload], { type: 'application/json' });
+          navigator.sendBeacon('/api/analytics/heartbeat', blob);
+        } else {
+          fetch('/api/analytics/heartbeat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+            keepalive: true
+          }).catch(function() {});
+        }
+      }
+
+      setInterval(pingHeartbeat, 25000);
+      window.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') pingHeartbeat();
+      });
+      window.addEventListener('beforeunload', pingHeartbeat);
+    })();
   </script>
 
   <!-- App JS -->

@@ -883,6 +883,15 @@ def form_builder(post_id):
             if not isinstance(full_config, list) or len(full_config) == 0:
                 full_config = starter_fields
 
+            # Guarantee all field IDs are unique and valid
+            seen_ids = set()
+            for idx, f in enumerate(full_config):
+                fid = (f.get('id') or '').strip()
+                if not fid or fid in seen_ids:
+                    fid = f"{fid or 'field'}_{int(time.time())}_{idx + 1}"
+                    f['id'] = fid
+                seen_ids.add(fid)
+
             post.form_config = json.dumps(full_config)
             post.has_registration_form = True
             
@@ -1047,7 +1056,7 @@ def register(post_id):
         if not enrollment_no:
             for fid, v in answers.items():
                 fl = next((f.get('label', '').lower() for f in fields if f.get('id') == fid), '')
-                if 'enroll' in fl or 'roll' in fl or 'id' in fl:
+                if any(kw in fl for kw in ['enroll', 'roll', 'enrolment']) or fl.strip() in ('id', 'id no', 'id number', 'student id'):
                     enrollment_no = v
                     break
         if not enrollment_no:
@@ -1152,20 +1161,23 @@ def registration_report(post_id):
 
     # Helper to parse custom responses in template
     def get_custom_val(reg_obj, field_id):
-        if not reg_obj.custom_data:
-            return ""
-        try:
-            answers = json.loads(reg_obj.custom_data)
-            return answers.get(field_id, "")
-        except Exception:
-            return ""
+        answers = {}
+        if reg_obj.custom_data:
+            try:
+                answers = json.loads(reg_obj.custom_data) if isinstance(reg_obj.custom_data, str) else reg_obj.custom_data
+            except Exception:
+                answers = {}
+        val = answers.get(field_id)
+        if (val is None or val == '') and field_id in ('student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'):
+            val = getattr(reg_obj, field_id, '')
+        return str(val) if val is not None else ""
 
     # Helper to get full answers dict
     def get_all_answers(reg_obj):
         if not reg_obj.custom_data:
             return {}
         try:
-            return json.loads(reg_obj.custom_data)
+            return json.loads(reg_obj.custom_data) if isinstance(reg_obj.custom_data, str) else reg_obj.custom_data
         except Exception:
             return {}
 
@@ -1218,39 +1230,54 @@ def export_registrations_csv(post_id):
     output.write('\ufeff')  # UTF-8 BOM for Excel
     writer = csv.writer(output)
 
-    # Prepare Headers
-    headers = ['#', 'Student Name', 'Enrollment Number', 'Department', 'Semester', 'Email', 'Phone']
-    standard_ids = {'student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'}
-    for f in fields:
-        if f.get('id') not in standard_ids:
-            headers.append(f.get('label', f.get('id')))
-    headers.append('Registered At')
-    writer.writerow(headers)
+    host_url = request.host_url.rstrip('/')
 
-    # Prepare Data Rows
-    for idx, reg in enumerate(registrations, start=1):
-        answers = {}
-        if reg.custom_data:
-            try:
-                answers = json.loads(reg.custom_data)
-            except Exception:
-                pass
-
-        row = [
-            idx,
-            reg.student_name,
-            reg.enrollment_no,
-            reg.department or '',
-            reg.semester or '',
-            reg.email or '',
-            reg.phone or ''
-        ]
+    if fields:
+        headers = ['#']
         for f in fields:
-            fid = f.get('id')
-            if fid not in standard_ids:
-                row.append(answers.get(fid, ''))
-        row.append(reg.registered_at.strftime('%Y-%m-%d %H:%M:%S'))
-        writer.writerow(row)
+            headers.append((f.get('label') or f.get('id') or '').strip())
+        headers.append('Registered At')
+        writer.writerow(headers)
+
+        for idx, reg in enumerate(registrations, start=1):
+            answers = {}
+            if reg.custom_data:
+                try:
+                    answers = json.loads(reg.custom_data) if isinstance(reg.custom_data, str) else reg.custom_data
+                except Exception:
+                    answers = {}
+
+            row = [idx]
+            for f in fields:
+                fid = f.get('id')
+                ftype = f.get('type')
+                val = answers.get(fid)
+                if (val is None or val == '') and fid in ('student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'):
+                    val = getattr(reg, fid, '')
+                if val is None:
+                    val = ''
+
+                if ftype == 'file' and val:
+                    val = f"{host_url}/posts/uploads/{val}"
+                row.append(str(val))
+            row.append(reg.registered_at.strftime('%Y-%m-%d %H:%M:%S'))
+            writer.writerow(row)
+    else:
+        headers = ['#', 'Student Name', 'Enrollment Number', 'Department', 'Semester', 'Email', 'Phone', 'Registered At']
+        writer.writerow(headers)
+
+        for idx, reg in enumerate(registrations, start=1):
+            row = [
+                idx,
+                reg.student_name,
+                reg.enrollment_no,
+                reg.department or '',
+                reg.semester or '',
+                reg.email or '',
+                reg.phone or '',
+                reg.registered_at.strftime('%Y-%m-%d %H:%M:%S')
+            ]
+            writer.writerow(row)
 
     safe_title = "".join(c for c in post.title[:35] if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
     filename = f"registrations_{safe_title}_{post.id}.csv"
@@ -1277,7 +1304,7 @@ def export_registrations_excel(post_id):
     import io
     import json
     from datetime import datetime
-    from flask import Response
+    from flask import Response, request
     from models.student_registration import StudentRegistration
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -1305,6 +1332,7 @@ def export_registrations_excel(post_id):
     title_font = Font(name="Calibri", size=14, bold=True, color="002060")
     sub_font = Font(name="Calibri", size=10, italic=True, color="555555")
     data_font = Font(name="Calibri", size=10, color="000000")
+    link_font = Font(name="Calibri", size=10, color="0F52BA", underline="single")
     zebra_fill = PatternFill(start_color="F8FAFC", end_color="F8FAFC", fill_type="solid")
 
     thin_border_side = Side(style="thin", color="CBD5E1")
@@ -1330,16 +1358,17 @@ def export_registrations_excel(post_id):
     ws.append([])  # Blank row 4
 
     # Headers Row 5
-    headers = ['#', 'Student Name', 'Enrollment Number', 'Department', 'Semester', 'Email Address', 'Phone Number']
-    standard_ids = {'student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'}
-    for f in fields:
-        if f.get('id') not in standard_ids:
-            headers.append(f.get('label', f.get('id')))
-    headers.append('Registered Timestamp')
+    if fields:
+        headers = ['#']
+        for f in fields:
+            headers.append((f.get('label') or f.get('id') or '').strip())
+        headers.append('Registered Timestamp')
+    else:
+        headers = ['#', 'Student Name', 'Enrollment Number', 'Department', 'Semester', 'Email Address', 'Phone Number', 'Registered Timestamp']
 
     ws.append(headers)
     header_row_idx = 5
-    ws.row_dimensions[header_row_idx].height = 26
+    ws.row_dimensions[header_row_idx].height = 28
 
     for col_idx in range(1, len(headers) + 1):
         c = ws.cell(row=header_row_idx, column=col_idx)
@@ -1348,35 +1377,61 @@ def export_registrations_excel(post_id):
         c.alignment = center_align
         c.border = cell_border
 
+    host_url = request.host_url.rstrip('/')
+
     # Data Rows
     for r_idx, reg in enumerate(registrations, start=1):
         answers = {}
         if reg.custom_data:
             try:
-                answers = json.loads(reg.custom_data)
+                answers = json.loads(reg.custom_data) if isinstance(reg.custom_data, str) else reg.custom_data
             except Exception:
-                pass
+                answers = {}
 
-        row_data = [
-            r_idx,
-            reg.student_name,
-            reg.enrollment_no,
-            reg.department or '',
-            reg.semester or '',
-            reg.email or '',
-            reg.phone or ''
-        ]
-        for f in fields:
-            fid = f.get('id')
-            if fid not in standard_ids:
-                row_data.append(answers.get(fid, ''))
-        row_data.append(reg.registered_at.strftime('%Y-%m-%d %H:%M:%S'))
-
-        ws.append(row_data)
         curr_row = header_row_idx + r_idx
         ws.row_dimensions[curr_row].height = 22
-
         is_even = (r_idx % 2 == 0)
+
+        hyperlinks = {}
+        if fields:
+            row_data = [r_idx]
+            for c_idx, f in enumerate(fields, start=2):
+                fid = f.get('id')
+                ftype = f.get('type')
+                val = answers.get(fid)
+                if (val is None or val == '') and fid in ('student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'):
+                    val = getattr(reg, fid, '')
+                if val is None:
+                    val = ''
+
+                if ftype == 'file' and val:
+                    val_str = str(val).strip()
+                    display_val = val_str.split('/')[-1] if '/' in val_str else val_str
+                    dl_url = f"{host_url}/posts/uploads/{val_str}"
+                    row_data.append(display_val)
+                    hyperlinks[c_idx] = dl_url
+                elif ftype == 'url' and val:
+                    url_str = str(val).strip()
+                    row_data.append(url_str)
+                    target_url = url_str if url_str.startswith(('http://', 'https://')) else f"https://{url_str}"
+                    hyperlinks[c_idx] = target_url
+                else:
+                    row_data.append(val)
+            row_data.append(reg.registered_at.strftime('%Y-%m-%d %H:%M:%S'))
+        else:
+            row_data = [
+                r_idx,
+                reg.student_name,
+                reg.enrollment_no,
+                reg.department or '',
+                reg.semester or '',
+                reg.email or '',
+                reg.phone or '',
+                reg.registered_at.strftime('%Y-%m-%d %H:%M:%S')
+            ]
+
+        ws.append(row_data)
+
         for col_idx in range(1, len(row_data) + 1):
             cell = ws.cell(row=curr_row, column=col_idx)
             cell.font = data_font
@@ -1384,8 +1439,12 @@ def export_registrations_excel(post_id):
             if is_even:
                 cell.fill = zebra_fill
 
+            if col_idx in hyperlinks:
+                cell.hyperlink = hyperlinks[col_idx]
+                cell.font = link_font
+
             # Alignment
-            if col_idx in (1, 3, 5, len(row_data)):
+            if col_idx in (1, len(row_data)):
                 cell.alignment = center_align
             else:
                 cell.alignment = left_align
@@ -1400,7 +1459,7 @@ def export_registrations_excel(post_id):
             val_str = str(cell.value or '')
             if len(val_str) > max_len:
                 max_len = len(val_str)
-        ws.column_dimensions[col_letter].width = max(max_len + 4, 13) if max_len < 45 else 45
+        ws.column_dimensions[col_letter].width = max(min(max_len + 4, 50), 14)
 
     output = io.BytesIO()
     wb.save(output)

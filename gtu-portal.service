@@ -1,12 +1,15 @@
 [Unit]
 Description=GTU-ITR R&D & IIC Portal Service
-After=network.target
+After=network.target gtu-postgres.service
+Wants=gtu-postgres.service
 
 [Service]
 Type=simple
 User=gtu-itr
 WorkingDirectory=/home/gtu-itr/iic-cell-gtu-itr-
 Environment="PATH=/home/gtu-itr/iic-cell-gtu-itr-/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin"
+Environment="DATABASE_URL=postgresql+psycopg2://gtu_admin:44113290@localhost:5432/iic_cell_gtu"
+Environment="LD_LIBRARY_PATH=/home/gtu-itr/pgsql/usr/lib/x86_64-linux-gnu"
 ExecStart=/home/gtu-itr/iic-cell-gtu-itr-/venv/bin/gunicorn --bind 0.0.0.0:5000 --workers 3 --timeout 120 --access-logfile /home/gtu-itr/iic-cell-gtu-itr-/logs/portal_access.log --error-logfile /home/gtu-itr/iic-cell-gtu-itr-/logs/portal_error.log --capture-output wsgi:app
 StandardOutput=journal
 StandardError=journal
