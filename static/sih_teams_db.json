@@ -264,7 +264,7 @@
     "id": 5,
     "team_no": 5,
     "reg_id": "REG-0005",
-    "team_name": "InfraDeveloper",
+    "team_name": "InfraDevelopers",
     "token": "1d80c56db6",
     "leader_name": "Dwij Chetankumar Bhatt",
     "leader_enrollment": "15",
@@ -297,26 +297,26 @@
       {
         "role": "Member 2",
         "is_leader": false,
-        "name": "Aryan Dineshbhai Chaudhary",
-        "enrollment": "04",
+        "name": "Uttar Sovik Sutradhar",
+        "enrollment": "54",
         "branch": "Civil engineering",
-        "phone": "+919978036348",
-        "email": "aryanchaudhary21228@gmail.com"
+        "phone": "7069287757",
+        "email": "uttarsoviksutradhar@gmail.com"
       },
       {
         "role": "Member 3",
         "is_leader": false,
-        "name": "Sovik Uttar Sutradhar",
-        "enrollment": "27",
+        "name": "Patel tanvi bipinbhai",
+        "enrollment": "254600306006",
         "branch": "Civil engineering",
-        "phone": "+917069287757",
-        "email": "uttarsoviksutradhar@gmail.com"
+        "phone": "8320826657",
+        "email": "tp6173@gamil.com"
       },
       {
         "role": "Member 4",
         "is_leader": false,
         "name": "Yash Raj",
-        "enrollment": "22",
+        "enrollment": "",
         "branch": "Civil engineering",
         "phone": "+916354347502",
         "email": "Kp.ranjan2008@gmail.com"
@@ -324,11 +324,11 @@
       {
         "role": "Member 5",
         "is_leader": false,
-        "name": "Diya Janardanbhai Gurjar",
-        "enrollment": "14",
-        "branch": "Civil engineering",
-        "phone": "+919426218522",
-        "email": "diyagurjar585@gmail.com"
+        "name": "Prem sharma",
+        "enrollment": "",
+        "branch": "MSc it (bsc it)",
+        "phone": "9408496563",
+        "email": "premsharma878@gmail.com"
       }
     ]
   },
@@ -2192,6 +2192,78 @@
         "branch": "Mechanical",
         "phone": "9924136306",
         "email": "celestine15000@loyolahallahd.com"
+      }
+    ]
+  },
+  {
+    "id": 43,
+    "team_no": 32,
+    "reg_id": "REG-0043",
+    "team_name": "Promptly Yours",
+    "token": "ba12846ba3",
+    "leader_name": "Dibyo Sarkar",
+    "leader_enrollment": "26E073",
+    "leader_phone": "9054315663",
+    "leader_email": "dibyo.sarkar120@gmail.com",
+    "psid": "26154",
+    "ps_title": "Gen AI Platform for Automated Content Transformation",
+    "theme": "Blockchain & Cybersecurity",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Dibyo Sarkar",
+        "enrollment": "26E073",
+        "branch": "Computer Engineering",
+        "phone": "9054315663",
+        "email": "dibyo.sarkar120@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Sreoshi Chakraborty",
+        "enrollment": "26E075",
+        "branch": "Computer Engineering",
+        "phone": "8509661486",
+        "email": "sreoshi.sc760@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Pushpita Chakrabarty",
+        "enrollment": "26E071",
+        "branch": "Computer Engineering",
+        "phone": "9662926087",
+        "email": "pushpitachakrabarty7@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Srawashi Bhowmick Mou",
+        "enrollment": "26E074",
+        "branch": "Computer Engineering",
+        "phone": "9016810447",
+        "email": "mou.bd2006@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Krishna Mani Gosai",
+        "enrollment": "26E070",
+        "branch": "Computer Engineering",
+        "phone": "6386109034",
+        "email": "krishnamanigosai053@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Bipul Roy",
+        "enrollment": "26E072",
+        "branch": "Computer Engineering",
+        "phone": "9104369372",
+        "email": "rdhormoraj@gmail.com"
       }
     ]
   }
