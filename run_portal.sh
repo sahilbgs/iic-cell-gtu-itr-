@@ -16,7 +16,12 @@ echo "======================================================================"
 
 mkdir -p "$PROJECT_DIR/logs"
 
-exec ./venv/bin/gunicorn --bind 0.0.0.0:5000 \
+GUNICORN_BIN="/usr/bin/gunicorn"
+if [ ! -x "$GUNICORN_BIN" ]; then
+    GUNICORN_BIN="./venv/bin/gunicorn"
+fi
+
+exec $GUNICORN_BIN --bind 0.0.0.0:5000 \
     --workers 3 \
     --timeout 120 \
     --access-logfile "$PROJECT_DIR/logs/portal_access.log" \

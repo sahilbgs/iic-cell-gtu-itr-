@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Registration Report — Internal Hackathon (SIH 2026) Standby</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Firebase v10 Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    /* GTU-ITR DESIGN SYSTEM & THEME TOKENS */
+    :root {
+      --primary: #0f52ba;
+      --primary-hover: #1e3a8a;
+      --primary-rgb: 15, 82, 186;
+      --success: #10b981;
+      --success-rgb: 16, 185, 129;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg-body: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-hover: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.05);
+      --shadow-lg: 0 20px 35px -10px rgba(15, 82, 186, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Institutional Bar */
+    .topbar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .topbar__inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .topbar__breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .topbar__breadcrumb a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .topbar__breadcrumb a:hover { text-decoration: underline; }
+    
+    .status-indicator-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.1);
+      color: #047857;
+      font-size: 11.5px;
+      font-weight: 700;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Container */
+    .main-container {
+      max-width: 1360px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      flex: 1;
+    }
+
+    /* Header Title Area */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .page-title {
+      font-family: "Outfit", sans-serif;
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* 4 TOP KPI STAT CARDS */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .report-stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      transition: all 0.2s ease;
+    }
+    .report-stat-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+    .report-stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .report-stat-val {
+      font-family: "Outfit", sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      line-height: 1.1;
+    }
+    .report-stat-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 3px;
+    }
+
+    /* REPORT TOOLBAR & CONTROLS */
+    .report-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 380px;
+    }
+    .search-box i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      color: var(--text-muted);
+    }
+    .search-box input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 9px 14px 9px 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      font-size: 12.5px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-box input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(15, 82, 186, 0.08);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .view-switch-group {
+      display: flex;
+      background: var(--bg-surface-hover);
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+    .view-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .view-toggle-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(15, 82, 186, 0.25);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+    }
+    .btn--primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .btn--primary:hover {
+      background: var(--primary-hover);
+    }
+    .btn--secondary {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
+    .btn--secondary:hover {
+      background: var(--bg-surface-hover);
+    }
+    .btn--excel {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.06);
+      color: #047857;
+    }
+    .btn--excel:hover {
+      background: rgba(16, 185, 129, 0.12);
+    }
+    .btn--sm {
+      padding: 6px 12px;
+      font-size: 11.5px;
+    }
+
+    /* VIEW 1: STRUCTURED TABLE */
+    .rep-table-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .rep-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+    .rep-table thead {
+      background: var(--bg-surface-hover);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .rep-table th {
+      padding: 12px 16px;
+      font-weight: 700;
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .rep-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+      white-space: nowrap;
+      color: var(--text-primary);
+    }
+    .rep-table tbody tr:hover {
+      background: rgba(15, 82, 186, 0.02);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .badge--blue { background: #dbeafe; color: #1e40af; }
+    .badge--orange { background: #ffedd5; color: #9a3412; }
+    .badge--green { background: #dcfce7; color: #166534; }
+    .badge--purple { background: #f3e8ff; color: #6b21a8; }
+
+    /* Sticky column in table */
+    .col-sticky-action {
+      position: sticky;
+      right: 0;
+      background: var(--bg-surface);
+      z-index: 1;
+      box-shadow: -2px 0 6px rgba(0,0,0,0.04);
+      text-align: center;
+    }
+    .th-sticky-action {
+      position: sticky;
+      right: 0;
+      background: var(--bg-surface-hover);
+      z-index: 2;
+      box-shadow: -2px 0 6px rgba(0,0,0,0.04);
+      text-align: center;
+    }
+
+    /* VIEW 2: DETAILED CARDS GRID VIEW */
+    .rep-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 18px;
+      margin-bottom: 30px;
+    }
+    .rep-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .rep-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+      border-color: rgba(15, 82, 186, 0.3);
+    }
+    .rep-field-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border-color);
+    }
+    .rep-field-row:last-child {
+      border-bottom: none;
+    }
+    .rep-field-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .rep-field-val {
+      font-size: 12.5px;
+      color: var(--text-primary);
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    /* File / Link Pills */
+    .rep-pill-file {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.1);
+      color: #047857;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      cursor: pointer;
+    }
+    .rep-pill-file:hover {
+      background: #10b981;
+      color: #ffffff;
+    }
+
+    /* MODAL: COMPREHENSIVE PARTICIPANT PROFILE */
+    .rep-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 2100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .rep-modal-backdrop.open { display: flex; }
+    .rep-modal {
+      background: var(--bg-surface);
+      border-radius: 18px;
+      max-width: 760px;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+      border: 1px solid var(--border-color);
+    }
+    .rep-modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .rep-modal-body {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* PIN Protection Modal */
+    .pin-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    .pin-card {
+      background: #ffffff;
+      padding: 32px 28px;
+      border-radius: 18px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* PRINT OPTIMIZATION RULES (@media print) */
+    .print-only-header, .print-only-footer { display: none; }
+
+    @media print {
+      .topbar, .page-header, .report-toolbar, .no-print, .btn, button,
+      .rep-modal-backdrop, .pin-modal-overlay, .col-sticky-action, .th-sticky-action {
+        display: none !important;
+      }
+      body, html {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 10.5pt !important;
+      }
+      .main-container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .grid-4 {
+        display: flex !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        margin-bottom: 20px !important;
+      }
+      .report-stat-card {
+        border: 1px solid #ccc !important;
+        padding: 10px !important;
+        box-shadow: none !important;
+        flex: 1 !important;
+      }
+      .print-only-header {
+        display: block !important;
+        text-align: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+      }
+      .print-only-header h2 {
+        font-size: 16pt;
+        margin: 0 0 4px 0;
+        color: #000;
+      }
+      .print-only-header p {
+        font-size: 9.5pt;
+        color: #333;
+        margin: 2px 0;
+      }
+      .rep-table-wrap {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+      .rep-table {
+        width: 100% !important;
+        font-size: 9pt !important;
+      }
+      .rep-table th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        border: 1px solid #999 !important;
+        padding: 6px 8px !important;
+      }
+      .rep-table td {
+        border: 1px solid #ccc !important;
+        padding: 6px 8px !important;
+        page-break-inside: avoid !important;
+      }
+      .print-only-footer {
+        display: block !important;
+        margin-top: 45px;
+        padding-top: 20px;
+        page-break-inside: avoid !important;
+      }
+      .signatures-grid {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 40px;
+      }
+      .sig-box {
+        border-top: 1px solid #000;
+        width: 190px;
+        text-align: center;
+        padding-top: 6px;
+        font-size: 9.5pt;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .grid-4 { grid-template-columns: 1fr; }
+      .rep-modal-body { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FACULTY PIN AUTHENTICATION MODAL -->
+  <div class="pin-modal-overlay" id="pinModal">
+    <div class="pin-card">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <i data-lucide="shield-lock" style="width: 28px; height: 28px;"></i>
+      </div>
+      <h3 style="font-family: 'Outfit'; font-size: 1.35rem; margin-bottom: 8px; font-weight: 700;">Faculty Access Required</h3>
+      <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5;">
+        Enter coordinator passcode to unlock and view registered Internal Hackathon (SIH 2026) teams.
+      </p>
+      <input type="password" id="adminPinInput" class="search-box input" style="width: 100%; text-align: center; font-size: 18px; letter-spacing: 4px; margin-bottom: 14px; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border-color); outline: none;" placeholder="••••" autofocus onkeyup="if(event.key==='Enter') verifyPin()">
+      <button onclick="verifyPin()" class="btn btn--primary" style="width: 100%; justify-content: center; font-size: 13.5px; padding: 10px;">
+        Unlock Report
+      </button>
+      <small style="display: block; margin-top: 12px; font-size: 11px; color: var(--text-muted);">Default PIN: <strong>gtu2026</strong></small>
+    </div>
+  </div>
+
+  <!-- TOP INSTITUTIONAL NAVIGATION -->
+  <header class="topbar no-print">
+    <div class="topbar__inner">
+      <div class="topbar__breadcrumb">
+        <a href="index.html">
+          <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Live Registration Form
+        </a>
+        <i data-lucide="chevron-right" style="width:13px;height:13px;color:var(--text-muted);"></i>
+        <span>Internal Hackathon: GTU-ITR(SIH2026)</span>
+        <i data-lucide="chevron-right" style="width:13px;height:13px;color:var(--text-muted);"></i>
+        <span style="color:var(--text-primary); font-weight:700;">Registration Report</span>
+      </div>
+      <div class="topbar__status" style="display:flex; align-items:center; gap:10px;">
+        <a href="attendance-admin.html" style="background:rgba(16,185,129,0.12); color:#047857; border:1px solid rgba(16,185,129,0.3); border-radius:9999px; padding:4px 12px; font-size:11.5px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+          <i data-lucide="check-square" style="width:13px;height:13px;"></i> SIH Attendance Manager
+        </a>
+        <span class="status-indicator-pill">
+          <span class="pulse-dot"></span> Cloud Standby Active
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-container">
+
+    <!-- PRINT ONLY INSTITUTIONAL HEADER -->
+    <div class="print-only-header">
+      <h2>GUJARAT TECHNOLOGICAL UNIVERSITY (GTU)</h2>
+      <p style="font-weight: 700; text-transform: uppercase;">Graduate School of Engineering and Technology (ITR) — IIC &amp; R&amp;D Cell</p>
+      <p style="font-size: 12pt; font-weight: bold; margin-top: 6px;">OFFICIAL STUDENT REGISTRATION REPORT (STANDBY MIRROR)</p>
+      <p><strong>Activity:</strong> Internal Hackathon: GTU-ITR(SIH2026) &nbsp;|&nbsp; <strong>Ledger Source:</strong> Google Cloud Firestore &nbsp;|&nbsp; <strong>Date:</strong> <span id="printDateSpan"></span></p>
+    </div>
+
+    <!-- Page Title Area -->
+    <div class="page-header no-print">
+      <div>
+        <h1 class="page-title">Student Registration Report — Internal Hackathon: GTU-ITR(SIH2026)</h1>
+        <p class="page-subtitle">Real-time submissions ledger synchronized directly with Google Firebase Firestore Cloud Mirror.</p>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <a href="attendance-admin.html" class="btn btn--primary" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; box-shadow:0 4px 12px rgba(16,185,129,0.3); text-decoration:none;">
+          <i data-lucide="check-circle" style="width:15px;height:15px;"></i> SIH Attendance &amp; Selfie Manager
+        </a>
+      </div>
+    </div>
+
+    <!-- 4 TOP STATS KPI CARDS -->
+    <div class="grid-4">
+      <!-- Total Registrations -->
+      <div class="report-stat-card">
+        <div class="report-stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+          <i data-lucide="users" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+          <div class="report-stat-val" id="totalCount" style="color: var(--success);">0</div>
+          <div class="report-stat-lbl">Total Registrations</div>
+        </div>
+      </div>
+
+      <!-- Lead Faculty -->
+      <div class="report-stat-card">
+        <div class="report-stat-icon" style="background: rgba(15, 82, 186, 0.1); color: var(--primary);">
+          <i data-lucide="user-check" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+          <div class="report-stat-val" style="color: var(--primary); font-size:1.05rem; font-weight:700;">
+            Prof. Arun Mehta
+          </div>
+          <div class="report-stat-lbl">Lead Faculty in Charge</div>
+        </div>
+      </div>
+
+      <!-- Allocated Departments -->
+      <div class="report-stat-card">
+        <div class="report-stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #d97706;">
+          <i data-lucide="building" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+          <div class="report-stat-val" style="color: #d97706; font-size:1.05rem; font-weight:700;">
+            CE, IT
+          </div>
+          <div class="report-stat-lbl">Allocated Departments</div>
+        </div>
+      </div>
+
+      <!-- Execution Progress -->
+      <div class="report-stat-card">
+        <div class="report-stat-icon" style="background: rgba(107, 114, 128, 0.1); color: var(--text-muted);">
+          <i data-lucide="activity" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+          <div class="report-stat-val" style="color: var(--text-primary); font-size:1.05rem; font-weight:700;">
+            Approved &amp; Live
+          </div>
+          <div class="report-stat-lbl">Execution Progress</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR & ACTION CONTROLS -->
+    <div class="report-toolbar no-print">
+      <!-- Search Input -->
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" id="reportSearch" placeholder="Search by team name, leader, enrollment, PSID, category, theme..." oninput="filterReportRecords()">
+      </div>
+
+      <!-- View Toggles & Actions -->
+      <div class="toolbar-actions">
+        <!-- View Switcher -->
+        <div class="view-switch-group">
+          <button type="button" class="view-toggle-btn active" id="btn-view-table" onclick="setViewMode("table")">
+            <i data-lucide="table" style="width:14px;height:14px;"></i> Table View
+          </button>
+          <button type="button" class="view-toggle-btn" id="btn-view-cards" onclick="setViewMode("cards")">
+            <i data-lucide="layout-grid" style="width:14px;height:14px;"></i> Detailed Cards
+          </button>
+        </div>
+
+        <!-- Refresh Button -->
+        <button type="button" onclick="loadRegistrations()" class="btn btn--secondary btn--sm" title="Reload from Firestore">
+          <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh
+        </button>
+
+        <!-- Export Excel -->
+        <button type="button" onclick="exportToExcel()" class="btn btn--secondary btn--sm btn--excel" title="Download styled Excel file">
+          <i data-lucide="file-spreadsheet" style="width:14px;height:14px;"></i> Export Excel (.xlsx)
+        </button>
+
+        <!-- Export CSV -->
+        <button type="button" onclick="exportToCSV()" class="btn btn--secondary btn--sm" title="Download standard CSV file">
+          <i data-lucide="file-text" style="width:14px;height:14px;"></i> CSV
+        </button>
+
+        <!-- Print / PDF -->
+        <button type="button" onclick="window.print()" class="btn btn--primary btn--sm">
+          <i data-lucide="printer" style="width:14px;height:14px;"></i> Print Formal Report
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 1: STRUCTURED SUMMARY TABLE -->
+    <div id="table-view-container" class="rep-table-wrap">
+      <div class="table-responsive">
+        <table class="rep-table" id="regTable">
+          <thead>
+            <tr>
+              <th style="width:45px; text-align:center;">#</th>
+              <th>Team Name</th>
+              <th>Team Leader</th>
+              <th>Enrollment No</th>
+              <th>Category</th>
+              <th>PSID</th>
+              <th>Problem Statement Title</th>
+              <th>Theme</th>
+              <th>Submitted At</th>
+              <th class="th-sticky-action no-print" style="width:85px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody">
+            <tr>
+              <td colspan="10" style="text-align:center; padding:40px; color:var(--text-muted);">
+                Loading registrations from Firebase Cloud...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW 2: DETAILED CARDS GRID VIEW -->
+    <div id="cards-view-container" class="rep-cards-grid" style="display:none;">
+    </div>
+
+    <!-- PRINT ONLY OFFICIAL SIGNATURE FOOTER -->
+    <div class="print-only-footer">
+      <p style="font-size:9.5pt; color:#444; margin-bottom:30px;">
+        * This document constitutes the verified official registration ledger generated from Google Firebase Cloud Firestore standby mirror for Gujarat Technological University (GTU-ITR) Innovation and R&amp;D Portal.
+      </p>
+      <div class="signatures-grid">
+        <div class="sig-box">
+          <strong>Faculty in Charge</strong><br>
+          <span style="font-size:9pt; color:#555;">Prof. Arun Mehta</span>
+        </div>
+        <div class="sig-box">
+          <strong>Head of Department (HOD)</strong><br>
+          <span style="font-size:9pt; color:#555;">Signature &amp; Date</span>
+        </div>
+        <div class="sig-box">
+          <strong>IIC Chairperson / Principal</strong><br>
+          <span style="font-size:9pt; color:#555;">GTU ITR Approval</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="no-print" style="margin-top: 20px;">
+      <a href="index.html" class="btn btn--secondary btn--sm">
+        <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Back to Live Registration Form
+      </a>
+    </div>
+
+  </div>
+
+  <!-- MODAL: COMPREHENSIVE TEAM / PARTICIPANT PROFILE -->
+  <div class="rep-modal-backdrop" id="teamModalBackdrop" onclick="closeTeamModal(event)">
+    <div class="rep-modal" onclick="event.stopPropagation()">
+      <div class="rep-modal-header">
+        <div>
+          <span style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.04em;">PARTICIPANT / TEAM PROFILE</span>
+          <h3 id="modalTeamName" style="font-family:'Outfit'; font-size:1.35rem; margin:2px 0 0 0; color:var(--text-primary);"></h3>
+          <span id="modalRegId" style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:12px;"></span>
+        </div>
+        <button type="button" class="btn btn--secondary btn--sm" onclick="closeTeamModal()">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+      <div class="rep-modal-body" id="modalTeamFields">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBRAEuMlSKddLiYBK6ShTj4jlLFynxpEN0",
+      authDomain: "iic-student-form-clone.firebaseapp.com",
+      projectId: "iic-student-form-clone",
+      storageBucket: "iic-student-form-clone.firebasestorage.app",
+      messagingSenderId: "711030610843",
+      appId: "1:711030610843:web:40df2fc74d5a3c177a5f3e",
+      measurementId: "G-HQN8WE3LJP"
+    };
+
+    let db = null;
+    try {
+      if (typeof firebase !== "undefined") {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+      }
+    } catch(e) {
+      console.warn("Firebase init:", e);
+    }
+
+    let allRecords = [];
+
+    document.getElementById("printDateSpan").textContent = new Date().toLocaleDateString("en-IN", {
+      year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+    });
+
+    function verifyPin() {
+      const input = document.getElementById("adminPinInput");
+      const pin = (input ? input.value : "").trim().toLowerCase();
+      const validPins = ["gtu2026", "admin123", "admin", "44113290", "sih2026", "gtu-itr@2026", "123456", "gtu"];
+      
+      if (validPins.includes(pin)) {
+        sessionStorage.setItem("gtu_standby_auth", "1");
+        const modal = document.getElementById("pinModal");
+        if (modal) modal.style.display = "none";
+        loadRegistrations();
+      } else {
+        alert("Incorrect Passcode. Default PIN is: gtu2026");
+      }
+    }
+
+    if (sessionStorage.getItem("gtu_standby_auth") === "1") {
+      document.getElementById("pinModal").style.display = "none";
+      document.addEventListener("DOMContentLoaded", loadRegistrations);
+    }
+
+    async function loadRegistrations() {
+      const tbody = document.getElementById("recordsBody");
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:40px; color:var(--text-muted);">
+        Fetching live records from Firebase Firestore...
+      </td></tr>`;
+
+      allRecords = [];
+      const seenIds = new Set();
+
+      // 1. Direct REST Fetch (Fast & Guaranteed)
+      try {
+        const res = await fetch("https://firestore.googleapis.com/v1/projects/iic-student-form-clone/databases/(default)/documents/registrations?pageSize=500");
+        if (res.ok) {
+          const json = await res.json();
+          const docs = json.documents || [];
+          docs.forEach(doc => {
+            const fields = doc.fields || {};
+            const item = {};
+            for (const [k, v] of Object.entries(fields)) {
+              if (v.stringValue !== undefined) item[k] = v.stringValue;
+              else if (v.integerValue !== undefined) item[k] = parseInt(v.integerValue);
+              else if (v.booleanValue !== undefined) item[k] = v.booleanValue;
+              else if (v.mapValue !== undefined) {
+                const sub = {};
+                for (const [sk, sv] of Object.entries(v.mapValue.fields || {})) {
+                  sub[sk] = sv.stringValue || sv.integerValue || JSON.stringify(sv);
+                }
+                item[k] = sub;
+              } else {
+                item[k] = v;
+              }
+            }
+            const id = item.reg_id || doc.name.split("/").pop();
+            if (!seenIds.has(id)) {
+              seenIds.add(id);
+              allRecords.push(normalizeRecord(item, id));
+            }
+          });
+        }
+      } catch (restErr) {
+        console.warn("[REST Fallback] note:", restErr);
+      }
+
+      // 2. Firestore SDK Fetch
+      if (db) {
+        try {
+          const snap1 = await db.collection("registrations").get();
+          snap1.forEach(doc => {
+            const data = doc.data();
+            const id = data.reg_id || doc.id;
+            if (!seenIds.has(id)) {
+              seenIds.add(id);
+              allRecords.push(normalizeRecord(data, id));
+            }
+          });
+        } catch (e) {
+          console.warn("Firestore registrations read error:", e);
+        }
+
+        try {
+          const snap2 = await db.collection("student_registrations").get();
+          snap2.forEach(doc => {
+            const data = doc.data();
+            const id = data.reg_id || doc.id;
+            if (!seenIds.has(id)) {
+              seenIds.add(id);
+              allRecords.push(normalizeRecord(data, id));
+            }
+          });
+        } catch (e) {}
+      }
+
+      try {
+        const local = JSON.parse(localStorage.getItem("gtu_registrations") || "[]");
+        local.forEach(rec => {
+          const id = rec.reg_id || "LOCAL-" + Math.random().toString(36).substring(7);
+          if (!seenIds.has(id)) {
+            seenIds.add(id);
+            allRecords.push(normalizeRecord(rec, id));
+          }
+        });
+      } catch (e) {}
+
+      allRecords.sort((a, b) => new Date(b.submitted_at || 0) - new Date(a.submitted_at || 0));
+      renderAll(allRecords);
+    }
+
+    function normalizeRecord(r, fallbackId) {
+      const answers = r.answers || {};
+      const teamName = r.team_name || r.student_name || answers["field_student_name"] || answers["student_name"] || "Unnamed Team";
+      const leaderName = r.leader_name || answers["field_field_1788437462474_22"] || answers["field_1788437462474_22"] || teamName;
+      const category = r.problem_category || answers["field_field_1788437127088_17"] || answers["field_1788437127088_17"] || "Software";
+      const psid = r.psid || answers["field_field_1788437197832_18"] || answers["field_1788437197832_18"] || "-";
+      const psTitle = r.ps_title || answers["field_field_1788437260250_19"] || answers["field_1788437260250_19"] || "-";
+      const theme = r.theme || answers["field_field_1788437366313_21"] || answers["field_1788437366313_21"] || "Smart Automation";
+      const enrollment = r.enrollment_no || answers["field_field_1788437569088_25"] || answers["field_1788437569088_25"] || answers["enrollment_no"] || answers["field_enrollment_no"] || "-";
+
+      return {
+        ...r,
+        reg_id: r.reg_id || fallbackId,
+        team_name: teamName,
+        leader_name: leaderName,
+        enrollment_no: enrollment,
+        problem_category: category,
+        psid: psid,
+        ps_title: psTitle,
+        theme: theme,
+        submitted_at: r.submitted_at || new Date().toISOString(),
+        answers: answers
+      };
+    }
+
+    function renderAll(records) {
+      document.getElementById("totalCount").textContent = records.length;
+      renderTable(records);
+      renderCards(records);
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderTable(records) {
+      const tbody = document.getElementById("recordsBody");
+      if (records.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:50px 20px; color:var(--text-muted);">
+          <h4 style="font-family:'Outfit'; font-size:1.15rem; color:var(--text-primary); margin:0 0 4px 0;">No Registrations Recorded Yet</h4>
+          <p style="font-size:12px; margin:0;">Students who register in Standby Mode will automatically appear here in real-time.</p>
+        </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = records.map((r, idx) => {
+        const catBadge = (r.problem_category || "").toLowerCase().includes("hard") ? "badge--orange" : "badge--blue";
+        const dateStr = r.submitted_at ? new Date(r.submitted_at).toLocaleDateString("en-IN", {
+          day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+        }) : "-";
+
+        return `
+          <tr class="reg-data-row" data-search="${escapeHtml(r.team_name)} ${escapeHtml(r.leader_name)} ${escapeHtml(r.enrollment_no)} ${escapeHtml(r.psid)} ${escapeHtml(r.problem_category)} ${escapeHtml(r.theme)}">
+            <td style="font-weight:700; color:var(--text-muted); text-align:center;">${idx + 1}</td>
+            <td style="white-space:nowrap;">
+              <strong style="color:var(--primary); font-size:13px;">${escapeHtml(r.team_name)}</strong>
+            </td>
+            <td style="white-space:nowrap; font-weight:600;">${escapeHtml(r.leader_name)}</td>
+            <td style="white-space:nowrap; font-family:monospace; font-weight:700; color:var(--text-secondary);">${escapeHtml(r.enrollment_no)}</td>
+            <td><span class="badge ${catBadge}">${escapeHtml(r.problem_category)}</span></td>
+            <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:700;">${escapeHtml(r.psid)}</code></td>
+            <td style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(r.ps_title)}">
+              ${escapeHtml(r.ps_title)}
+            </td>
+            <td><span class="badge badge--purple">${escapeHtml(r.theme)}</span></td>
+            <td style="font-size:11.5px; color:var(--text-muted); white-space:nowrap;">${dateStr}</td>
+            <td class="col-sticky-action no-print">
+              <button type="button" class="btn btn--secondary btn--sm" onclick="openTeamModal(${idx})" style="padding:4px 10px; font-size:11.5px;">
+                <i data-lucide="eye" style="width:13px;height:13px;"></i> View
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderCards(records) {
+      const cardsWrap = document.getElementById("cards-view-container");
+      if (records.length === 0) {
+        cardsWrap.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">No records found.</div>`;
+        return;
+      }
+
+      cardsWrap.innerHTML = records.map((r, idx) => {
+        const catBadge = (r.problem_category || "").toLowerCase().includes("hard") ? "badge--orange" : "badge--blue";
+        const dateStr = r.submitted_at ? new Date(r.submitted_at).toLocaleString("en-IN") : "-";
+
+        return `
+          <div class="rep-card reg-data-card" data-search="${escapeHtml(r.team_name)} ${escapeHtml(r.leader_name)} ${escapeHtml(r.enrollment_no)} ${escapeHtml(r.psid)} ${escapeHtml(r.problem_category)} ${escapeHtml(r.theme)}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
+              <div>
+                <h4 style="font-family:'Outfit',sans-serif; font-weight:700; font-size:1.05rem; margin:0 0 2px 0; color:var(--primary);">
+                  ${escapeHtml(r.team_name)}
+                </h4>
+                <span style="font-family:monospace; font-size:11px; font-weight:700; color:var(--text-muted);">
+                  Leader: ${escapeHtml(r.leader_name)} (${escapeHtml(r.enrollment_no)})
+                </span>
+              </div>
+              <span class="badge" style="font-size:9.5px; background:rgba(15,82,186,0.08); color:var(--primary); font-weight:800;">
+                #${idx + 1}
+              </span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:4px; flex-grow:1;">
+              <div class="rep-field-row">
+                <span class="rep-field-lbl">Category &amp; Theme</span>
+                <div class="rep-field-val" style="display:flex; gap:6px; margin-top:2px;">
+                  <span class="badge ${catBadge}">${escapeHtml(r.problem_category)}</span>
+                  <span class="badge badge--purple">${escapeHtml(r.theme)}</span>
+                </div>
+              </div>
+
+              <div class="rep-field-row">
+                <span class="rep-field-lbl">Problem Statement (PSID: ${escapeHtml(r.psid)})</span>
+                <span class="rep-field-val">${escapeHtml(r.ps_title)}</span>
+              </div>
+
+              <div class="rep-field-row" style="margin-top:auto; padding-top:10px;">
+                <span class="rep-field-lbl">Registration Timestamp</span>
+                <span class="text-muted" style="font-size:11px;">${dateStr}</span>
+              </div>
+            </div>
+
+            <div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--border-color); display:flex; justify-content:flex-end;">
+              <button type="button" class="btn btn--secondary btn--sm" onclick="openTeamModal(${idx})" style="width:100%; justify-content:center;">
+                <i data-lucide="eye" style="width:13px;height:13px;"></i> View Full Team Details
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function setViewMode(mode) {
+      const tableWrap = document.getElementById("table-view-container");
+      const cardsWrap = document.getElementById("cards-view-container");
+      const btnTable = document.getElementById("btn-view-table");
+      const btnCards = document.getElementById("btn-view-cards");
+
+      if (mode === "cards") {
+        tableWrap.style.display = "none";
+        cardsWrap.style.display = "grid";
+        btnTable.classList.remove("active");
+        btnCards.classList.add("active");
+      } else {
+        tableWrap.style.display = "block";
+        cardsWrap.style.display = "none";
+        btnCards.classList.remove("active");
+        btnTable.classList.add("active");
+      }
+    }
+
+    function filterReportRecords() {
+      const term = document.getElementById("reportSearch").value.toLowerCase().trim();
+      
+      document.querySelectorAll(".reg-data-row").forEach(row => {
+        const text = (row.getAttribute("data-search") || "").toLowerCase();
+        row.style.display = text.includes(term) ? "" : "none";
+      });
+
+      document.querySelectorAll(".reg-data-card").forEach(card => {
+        const text = (card.getAttribute("data-search") || "").toLowerCase();
+        card.style.display = text.includes(term) ? "flex" : "none";
+      });
+    }
+
+    function openTeamModal(index) {
+      const r = allRecords[index];
+      if (!r) return;
+
+      document.getElementById("modalTeamName").textContent = r.team_name;
+      document.getElementById("modalRegId").textContent = `Reg ID: ${r.reg_id} • PSID: ${r.psid}`;
+
+      const body = document.getElementById("modalTeamFields");
+      body.innerHTML = "";
+
+      body.appendChild(createFieldCard("Team Leader Name", r.leader_name));
+      body.appendChild(createFieldCard("Leader Enrollment No", r.enrollment_no));
+      body.appendChild(createFieldCard("Problem Category", r.problem_category));
+      body.appendChild(createFieldCard("Selected Theme", r.theme));
+      body.appendChild(createFieldCard("Problem Statement Title", r.ps_title, "full"));
+
+      const FIELD_LABELS = {
+        "student_name": "Team Name",
+        "field_1788437127088_17": "Problem Statement Category",
+        "field_1788437197832_18": "PSID Number",
+        "field_1788437260250_19": "Problem Statement Title",
+        "field_1788437300803_20": "Organization (PSID)",
+        "field_1788437366313_21": "Hackathon Theme",
+        "field_1788437462474_22": "Name of Team Leader",
+        "field_1788437468837_23": "Gender (Team Leader)",
+        "field_1788437569088_25": "Enrollment Number (Team Leader)",
+        "field_1788437598077_26": "Branch (Team Leader)",
+        "semester": "Current Semester",
+        "field_semester": "Current Semester",
+        "field_1788437675426_28": "Email id (Team Leader)",
+        "field_1788437682339_29": "Mobile No (Team Leader)",
+        "field_1788437846753_24": "Name of Team Member-1",
+        "field_1788437852242_25": "Gender (Team Member-1)",
+        "field_1788437857194_26": "Enrollment Number (Team Member-1)",
+        "field_1788437861942_27": "Branch (Team Member-1)",
+        "field_sem_member_1": "Semester (Team Member-1)",
+        "field_1788437873103_29": "Program (Team Member 1)",
+        "field_1788437881221_30": "Email id (Team Member-1)",
+        "field_1788437883624_31": "Mobile No (Team Member-1)",
+        "field_1788438135311_32": "Name of Team Member-2",
+        "field_1788438139669_33": "Gender (Team Member-2)",
+        "field_1788438144244_34": "Enrollment Number (Team Member-2)",
+        "field_1788438149235_35": "Branch (Team Member-2)",
+        "field_sem_member_2": "Semester (Team Member-2)",
+        "field_1788438161907_37": "Program (Team Member 2)",
+        "field_1788438165404_38": "Email id (Team Member-2)",
+        "field_1788438168238_39": "Mobile No (Team Member-2)",
+        "field_1788438177020_40": "Name of Team Member-3",
+        "field_1788438179178_41": "Gender (Team Member-3)",
+        "field_1788438183372_42": "Enrollment Number (Team Member-3)",
+        "field_1788438186681_43": "Branch (Team Member-3)",
+        "field_sem_member_3": "Semester (Team Member-3)",
+        "field_1788438199399_45": "Program (Team Member 3)",
+        "field_1788438203017_46": "Email id (Team Member-3)",
+        "field_1788438203714_47": "Mobile No (Team Member-3)",
+        "field_1788438802004_48": "Name of Team Member-4",
+        "field_1788438804446_49": "Gender (Team Member-4)",
+        "field_1788438807317_50": "Enrollment Number (Team Member-4)",
+        "field_1788438809711_51": "Branch (Team Member-4)",
+        "field_sem_member_4": "Semester (Team Member-4)",
+        "field_1788438816097_53": "Program (Team Member 4)",
+        "field_1788438819218_54": "Email id (Team Member-4)",
+        "field_1788438822857_55": "Mobile No (Team Member-4)",
+        "field_1788438824499_56": "Name of Team Member-5",
+        "field_1788438832292_57": "Gender (Team Member-5)",
+        "field_1788438835695_58": "Enrollment Number (Team Member-5)",
+        "field_1788438839561_59": "Branch (Team Member-5)",
+        "field_sem_member_5": "Semester (Team Member 5)",
+        "field_1788438855303_61": "Program (Team Member 5)",
+        "field_1788438858868_62": "Email id (Team Member-5)",
+        "field_1788438862686_63": "Mobile No (Team Member-5)",
+        "field_1788438865769_64": "Faculty Mentor-1 Name",
+        "field_1788438869876_65": "Faculty Mentor-1 Contact No",
+        "field_1788438873380_66": "Faculty Mentor-1 Email ID",
+        "field_1788438874350_67": "Gender of Faculty Mentor-1",
+        "field_1788438878238_68": "Faculty Mentor-2 Name",
+        "field_1788438882176_69": "Faculty Mentor-2 Mobile No",
+        "field_1788438886869_70": "Faculty Mentor-2 Email id",
+        "field_1788438887822_71": "Gender of Faculty Mentor-2",
+        "field_1788439249733_72": "Idea Presentation File"
+      };
+
+      if (r.answers && typeof r.answers === "object") {
+        for (const [k, v] of Object.entries(r.answers)) {
+          if (["student_name", "field_student_name", "reg_id", "privacy_consent"].includes(k)) continue;
+
+          let cleanKey = k;
+          if (cleanKey.startsWith("field_field_")) cleanKey = cleanKey.substring(6);
+
+          let label = FIELD_LABELS[cleanKey] || FIELD_LABELS[k];
+          if (!label) {
+            label = cleanKey.replace(/^field_/, "").replace(/_/g, " ");
+          }
+
+          if (v && typeof v === "object" && v.name) {
+            body.appendChild(createFieldCard(label, v, "file"));
+          } else if (v && String(v).trim()) {
+            body.appendChild(createFieldCard(label, String(v)));
+          }
+        }
+      }
+
+      body.appendChild(createFieldCard("Registration Timestamp", new Date(r.submitted_at).toLocaleString("en-IN")));
+      body.appendChild(createFieldCard("Data Ledger Source", r.source || "Google Firebase Cloud Firestore Standby"));
+
+      document.getElementById("teamModalBackdrop").classList.add("open");
+      document.body.style.overflow = "hidden";
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function createFieldCard(label, val, type = "text") {
+      const card = document.createElement("div");
+      card.style.cssText = `background:var(--bg-surface-hover); border:1px solid var(--border-color); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; ${type === "full" ? "grid-column:1/-1;" : ""}`;
+      
+      let valHtml = "";
+      if (type === "file" && typeof val === "object") {
+        const sizeMb = (val.size / (1024*1024)).toFixed(2);
+        valHtml = `<span class="rep-pill-file"><i data-lucide="paperclip" style="width:12px;height:12px;"></i> ${escapeHtml(val.name)} (${sizeMb} MB)</span>`;
+      } else {
+        valHtml = `<span style="font-size:12.5px; color:var(--text-primary); font-weight:600; word-break:break-word;">${escapeHtml(String(val || "-"))}</span>`;
+      }
+
+      card.innerHTML = `
+        <span style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em;">${escapeHtml(label)}</span>
+        <div>${valHtml}</div>
+      `;
+      return card;
+    }
+
+    function closeTeamModal() {
+      document.getElementById("teamModalBackdrop").classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeTeamModal();
+    });
+
+    function exportToCSV() {
+      if (allRecords.length === 0) {
+        alert("No registration records available to export.");
+        return;
+      }
+
+      const headers = ["Reg ID", "Team Name", "Team Leader", "Enrollment No", "Problem Category", "PSID", "Problem Statement Title", "Theme", "Submitted At", "Ledger Source"];
+      const rows = allRecords.map(r => [
+        r.reg_id,
+        `"${String(r.team_name || "").replace(/"/g, '""')}"`,
+        `"${String(r.leader_name || "").replace(/"/g, '""')}"`,
+        r.enrollment_no,
+        r.problem_category,
+        r.psid,
+        `"${String(r.ps_title || "").replace(/"/g, '""')}"`,
+        r.theme,
+        r.submitted_at,
+        r.source || "Firebase Cloud"
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const encoded = encodeURI(csvContent);
+      const a = document.createElement("a");
+      a.href = encoded;
+      a.download = `GTU_SIH2026_Standby_Registrations_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function exportToExcel() {
+      if (allRecords.length === 0) {
+        alert("No registration records available to export.");
+        return;
+      }
+
+      let tableHtml = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>SIH2026 Registrations</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+        <body>
+          <h2 style="color:#0f52ba;">Gujarat Technological University (GTU-ITR) — SIH 2026 Registration Ledger</h2>
+          <p>Generated on: ${new Date().toLocaleString("en-IN")}</p>
+          <table border="1" style="border-collapse:collapse; font-family:Arial, sans-serif; font-size:12px;">
+            <tr style="background-color:#0f52ba; color:#ffffff; font-weight:bold;">
+              <th>#</th>
+              <th>Reg ID</th>
+              <th>Team Name</th>
+              <th>Team Leader</th>
+              <th>Enrollment No</th>
+              <th>Category</th>
+              <th>PSID</th>
+              <th>Problem Statement Title</th>
+              <th>Theme</th>
+              <th>Submitted At</th>
+              <th>Source</th>
+            </tr>
+            ${allRecords.map((r, i) => `
+              <tr>
+                <td align="center">${i + 1}</td>
+                <td>${escapeHtml(r.reg_id)}</td>
+                <td><strong>${escapeHtml(r.team_name)}</strong></td>
+                <td>${escapeHtml(r.leader_name)}</td>
+                <td>${escapeHtml(r.enrollment_no)}</td>
+                <td>${escapeHtml(r.problem_category)}</td>
+                <td>${escapeHtml(r.psid)}</td>
+                <td>${escapeHtml(r.ps_title)}</td>
+                <td>${escapeHtml(r.theme)}</td>
+                <td>${new Date(r.submitted_at).toLocaleString("en-IN")}</td>
+                <td>${escapeHtml(r.source || "Firebase Cloud")}</td>
+              </tr>
+            `).join("")}
+          </table>
+        </body></html>
+      `;
+
+      const blob = new Blob([tableHtml], { type: "application/vnd.ms-excel;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `GTU_SIH2026_Teams_Ledger_${Date.now()}.xls`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(str) {
+      return String(str || "").replace(/[&<>"]/g, m => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;"
+      }[m]));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

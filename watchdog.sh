@@ -9,7 +9,9 @@ mkdir -p "$PROJECT_DIR/logs"
 
 unset PYTHONPATH
 unset PYTHONHOME
-export PATH="/home/gtu-itr/iic-cell-gtu-itr-/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin"
+export LD_LIBRARY_PATH="/home/gtu-itr/pgsql/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}:/snap/antigravity-cli/19/usr/lib/x86_64-linux-gnu"
+export PYTHONPATH="$PROJECT_DIR"
+cd "$PROJECT_DIR"
 
 # Ensure single instance
 exec 200>/tmp/gtu_watchdog.lock
@@ -18,10 +20,11 @@ flock -n 200 || { echo "[$(date '+%Y-%m-%d %H:%M:%S')] Another Watchdog instance
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Watchdog guardian started (PID: $$)." >> "$LOG_FILE"
 
 while true; do
+    cd "$PROJECT_DIR"
     # 1. Check PostgreSQL Database
     if ! pgrep -f "/home/gtu-itr/pgsql/usr/lib/postgresql/16/bin/postgres" >/dev/null 2>&1; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] [RECOVERY] PostgreSQL down, restarting..." >> "$LOG_FILE"
-        export LD_LIBRARY_PATH="/home/gtu-itr/pgsql/usr/lib/x86_64-linux-gnu"
+        export LD_LIBRARY_PATH="/home/gtu-itr/pgsql/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}:/snap/antigravity-cli/19/usr/lib/x86_64-linux-gnu"
         /home/gtu-itr/pgsql/usr/lib/postgresql/16/bin/pg_ctl -D /home/gtu-itr/pgsql/data -l /home/gtu-itr/pgsql/postgres.log start >> "$LOG_FILE" 2>&1
         sleep 2
     fi
@@ -30,14 +33,13 @@ while true; do
     if ! pgrep -f "gunicorn.*wsgi:app" >/dev/null 2>&1; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] [RECOVERY] Portal Web App down, restarting..." >> "$LOG_FILE"
         export DATABASE_URL="postgresql+psycopg2://gtu_admin:44113290@localhost:5432/iic_cell_gtu"
-        export LD_LIBRARY_PATH="/home/gtu-itr/pgsql/usr/lib/x86_64-linux-gnu"
-        unset PYTHONPATH
-        unset PYTHONHOME
+        export LD_LIBRARY_PATH="/home/gtu-itr/pgsql/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}:/snap/antigravity-cli/19/usr/lib/x86_64-linux-gnu"
         GUNICORN_BIN="/usr/bin/gunicorn"
         if [ ! -x "$GUNICORN_BIN" ]; then
             GUNICORN_BIN="$PROJECT_DIR/venv/bin/gunicorn"
         fi
         $GUNICORN_BIN \
+            --chdir "$PROJECT_DIR" \
             --bind 0.0.0.0:5000 \
             --workers 3 \
             --timeout 120 \

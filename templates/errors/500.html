@@ -8,5 +8,18 @@
   <h2 class="mb-2">Internal Server Error</h2>
   <p class="text-secondary mb-6">Our backend server encountered an unexpected runtime exception. The technical incident has been logged for admin review.</p>
   <a href="{{ url_for('dashboard.index') }}" class="btn btn--primary">Return to Dashboard</a>
+
+  <div style="margin-top: 24px; padding: 18px; background: rgba(15, 82, 186, 0.06); border: 1px dashed rgba(15, 82, 186, 0.25); border-radius: 12px; text-align: left;">
+    <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--primary); font-size: 13.5px; margin-bottom: 6px;">
+      <i data-lucide="cloud" style="width: 16px; height: 16px;"></i>
+      <span>Trying to register for an Activity?</span>
+    </div>
+    <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+      Don't lose your registration spot! You can use our Cloud Standby Registration Form (saved directly into Google Firebase).
+    </p>
+    <a href="/static/standby_register.html" class="btn btn--secondary btn--sm" style="font-size: 12px; font-weight: 700;">
+      <i data-lucide="external-link" style="width: 14px; height: 14px;"></i> Open Cloud Standby Registration
+    </a>
+  </div>
 </div>
 {% endblock %}

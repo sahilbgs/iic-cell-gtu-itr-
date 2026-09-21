@@ -1,0 +1,2715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Internal Hackathon: GTU-ITR(SIH2026) — Student Registration</title>
+  
+  <!-- Modern Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Firebase v10 Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+
+  <style>
+    :root {
+      --primary: #0f52ba;
+      --primary-rgb: 15, 82, 186;
+      --primary-hover: #1e3a8a;
+      --primary-light: rgba(15, 82, 186, 0.08);
+      --success: #10b981;
+      --success-rgb: 16, 185, 129;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --border-focus: #0f52ba;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-md: 0 10px 25px -5px rgba(15, 82, 186, 0.08), 0 8px 10px -6px rgba(15, 82, 186, 0.04);
+      --shadow-lg: 0 20px 35px -10px rgba(15, 82, 186, 0.12), 0 10px 15px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(at 10% 15%, rgba(15, 82, 186, 0.06) 0px, transparent 50%),
+                  radial-gradient(at 90% 85%, rgba(99, 102, 241, 0.06) 0px, transparent 50%),
+                  radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.04) 0px, transparent 60%),
+                  var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 680px;
+      width: 100%;
+    }
+
+    /* Brand Header */
+    .brand-header {
+      text-align: center;
+      margin-bottom: 24px;
+      animation: fadeInDown 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      background: rgba(15, 82, 186, 0.08);
+      border: 1px solid rgba(15, 82, 186, 0.2);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse 1.8s infinite;
+    }
+
+    .pulse-dot--warning {
+      background: var(--warning);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    }
+
+    .pulse-dot--danger {
+      background: var(--danger);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+
+    .brand-header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      color: var(--primary);
+      font-size: 1.75rem;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    .brand-header p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    /* Main Form Card */
+    .reg-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(8px);
+    }
+
+    .reg-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--primary) 0%, #6366f1 50%, var(--success) 100%);
+    }
+
+    /* Activity Information Box */
+    .activity-hero {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 22px;
+      margin-bottom: 24px;
+    }
+
+    .activity-badges {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge--source {
+      background: rgba(16, 185, 129, 0.1);
+      color: #047857;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .badge--primary {
+      background: rgba(15, 82, 186, 0.08);
+      color: var(--primary);
+      border: 1px solid rgba(15, 82, 186, 0.2);
+    }
+
+    .activity-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.45rem;
+      line-height: 1.3;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+
+    .activity-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: 16px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       LIVE COUNTDOWN TIMER MODULE
+       ══════════════════════════════════════════════════════════ */
+    .countdown-banner {
+      background: linear-gradient(135deg, rgba(15, 82, 186, 0.05) 0%, rgba(99, 102, 241, 0.07) 100%);
+      border: 1px solid rgba(15, 82, 186, 0.18);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      animation: pulseGlow 4s infinite alternate;
+    }
+
+    .countdown-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .countdown-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .countdown-deadline-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      text-align: center;
+    }
+
+    .countdown-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .countdown-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--primary);
+    }
+
+    .countdown-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+      display: block;
+    }
+
+    .countdown-unit {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* Real-Time Form Completion Meter */
+    .progress-wrap {
+      margin-bottom: 24px;
+      background: var(--bg-body);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
+
+    .progress-text-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar-bg {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%);
+      border-radius: 9999px;
+      transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Form Fields & Controls */
+    .form-group {
+      margin-bottom: 22px;
+      position: relative;
+      animation: fieldEntrance 0.5s ease backwards;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .req-star {
+      color: var(--danger);
+      font-weight: 800;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      width: 17px;
+      height: 17px;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    .form-control {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 16px;
+      font-size: 13.5px;
+      font-family: inherit;
+      color: var(--text-main);
+      background: var(--bg-body);
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .form-control--with-icon {
+      padding-left: 42px;
+    }
+
+    .form-control:focus {
+      outline: none;
+      background: #ffffff;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.12);
+      transform: translateY(-1px);
+    }
+
+    .form-control:focus + .input-icon,
+    .input-wrapper:focus-within .input-icon {
+      color: var(--primary);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.5;
+    }
+
+    select.form-control {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 40px;
+    }
+
+    /* Option Choice Card Groups (Radio & Checkbox) */
+    .choice-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .choice-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--bg-body);
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .choice-card:hover {
+      background: #ffffff;
+      border-color: rgba(var(--primary-rgb), 0.4);
+      transform: translateX(2px);
+    }
+
+    .choice-card input {
+      accent-color: var(--primary);
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+    }
+
+    /* File Dropzone Box */
+    .file-dropzone {
+      border: 2px dashed var(--border-color);
+      border-radius: 14px;
+      padding: 24px 20px;
+      text-align: center;
+      background: var(--bg-body);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .file-dropzone:hover {
+      background: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.08);
+      transform: translateY(-2px);
+    }
+
+    .file-dropzone-icon {
+      width: 36px;
+      height: 36px;
+      color: var(--primary);
+      margin: 0 auto 8px;
+      display: block;
+      transition: transform 0.2s ease;
+    }
+
+    .file-dropzone:hover .file-dropzone-icon {
+      transform: scale(1.1);
+    }
+
+    /* Submit Action Button */
+    .btn-submit {
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+      color: #ffffff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14.5px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 10px 20px -5px rgba(15, 82, 186, 0.35);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-submit::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.8s ease;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 25px -5px rgba(15, 82, 186, 0.45);
+    }
+
+    .btn-submit:hover::after {
+      left: 100%;
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Success Panel */
+    .success-box {
+      text-align: center;
+      padding: 30px 10px;
+      animation: scaleUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .success-icon-wrap {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 0 12px rgba(16, 185, 129, 0.06);
+      animation: pulse 2s infinite;
+    }
+
+    /* Keyframes */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fieldEntrance {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleUp {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      70% { box-shadow: 0 0 0 16px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    @keyframes pulseGlow {
+      from { border-color: rgba(15, 82, 186, 0.2); }
+      to { border-color: rgba(15, 82, 186, 0.45); box-shadow: 0 4px 16px rgba(15, 82, 186, 0.08); }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       MOBILE RESPONSIVENESS (Small screens & narrow phones)
+       ══════════════════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      body {
+        padding: 16px 10px;
+      }
+      .brand-header h1 {
+        font-size: 1.35rem;
+      }
+      .reg-card {
+        padding: 20px 14px;
+        border-radius: 16px;
+      }
+      .countdown-banner {
+        padding: 12px 10px;
+      }
+      .countdown-grid {
+        gap: 6px;
+      }
+      .countdown-box {
+        padding: 8px 4px;
+      }
+      .countdown-num {
+        font-size: 1.25rem;
+      }
+      .countdown-unit {
+        font-size: 8px;
+      }
+      .choice-group {
+        grid-template-columns: 1fr;
+      }
+      .form-actions {
+        flex-direction: column;
+      }
+      .btn-submit {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding: 12px 6px;
+      }
+      .reg-card {
+        padding: 16px 10px;
+      }
+      .brand-header h1 {
+        font-size: 1.2rem;
+      }
+      .countdown-num {
+        font-size: 1.1rem;
+      }
+      .countdown-unit {
+        font-size: 7.5px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Form Custom Header -->
+    
+
+    <div class="brand-header">
+      
+      <h1>Internal Hackathon: GTU-ITR(SIH2026)</h1>
+      
+    </div>
+
+    <!-- Main Registration Box -->
+    <div class="reg-card">
+
+      <!-- SUCCESS CONFIRMATION VIEW -->
+      <div class="success-box" id="successBox" style="display:none;">
+        <div class="success-icon-wrap">
+          <i data-lucide="check-circle-2" style="width:40px;height:40px;"></i>
+        </div>
+        <span class="badge badge--source" style="font-size:11px; padding:4px 12px; margin-bottom:12px; display:inline-block;">REGISTRATION CONFIRMED</span>
+        <h2 style="font-family:'Outfit'; font-size:1.6rem; font-weight:800; color:var(--text-main); margin-bottom:8px;">
+          You're Officially Registered!
+        </h2>
+        <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; max-width:480px; margin:0 auto 24px;">
+          Thank you, <strong id="successTeamName">Team</strong>. Your registration for <br>
+          <span style="color:var(--primary); font-weight:700;">Internal Hackathon: GTU-ITR(SIH2026)</span> has been securely stored in Firebase Cloud.
+        </p>
+
+        <div style="background:var(--bg-body); border:1px solid var(--border-color); border-radius:12px; padding:18px 22px; max-width:520px; margin:0 auto 24px; text-align:left; font-size:13px;" id="receiptSlip">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:10px; margin-bottom:12px;">
+            <strong style="font-family:'Outfit'; font-size:13.5px; color:var(--primary);">GTU-ITR OFFICIAL RECEIPT</strong>
+            <code style="font-family:monospace; font-size:11.5px; font-weight:700; color:var(--text-muted);" id="successRegId">REG-SIH-000000</code>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">
+            <span class="text-muted">Activity:</span>
+            <strong style="text-align:right;">Internal Hackathon: GTU-ITR(SIH2026)</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">
+            <span class="text-muted">Team Name:</span>
+            <strong id="slipTeamName">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">
+            <span class="text-muted">Team Leader:</span>
+            <strong id="slipLeaderName">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">
+            <span class="text-muted">Category &amp; PSID:</span>
+            <span id="slipCategoryPsid">-</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">
+            <span class="text-muted">Registered At:</span>
+            <span id="successTime">-</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="text-muted">Cloud Status:</span>
+            <strong style="color:var(--success); display:inline-flex; align-items:center; gap:4px;">
+              <i data-lucide="check" style="width:14px;height:14px;"></i> Verified &amp; Synced
+            </strong>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+          <button type="button" onclick="window.print()" class="btn-submit" style="width:auto; padding:10px 22px; font-size:13px; background:var(--bg-body); color:var(--text-main); border:1px solid var(--border-color); box-shadow:none; cursor:pointer;">
+            <i data-lucide="printer" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Print Slip
+          </button>
+          <button type="button" onclick="location.reload()" class="btn-submit" style="width:auto; padding:10px 22px; font-size:13px; background:var(--primary); color:#fff; border:none; cursor:pointer; border-radius:10px;">
+            Submit Another Team
+          </button>
+        </div>
+      </div>
+
+      <div id="formViewWrap">
+
+        <!-- SIH ATTENDANCE LIVE ANNOUNCEMENT BANNER -->
+        <div style="background:linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(15,82,186,0.08) 100%); border:1.5px solid rgba(16,185,129,0.3); border-radius:14px; padding:14px 18px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="width:38px; height:38px; border-radius:10px; background:#10b981; color:#fff; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 3px 8px rgba(16,185,129,0.3);">
+              <i data-lucide="camera" style="width:20px;height:20px;"></i>
+            </span>
+            <div>
+              <strong style="font-size:14px; color:#065f46; display:block;">SIH 2026 Hackathon Attendance Portal is Live!</strong>
+              <span style="font-size:12px; color:var(--text-muted);">Registered teams can now mark attendance &amp; upload group selfies.</span>
+            </div>
+          </div>
+          <a href="attendance.html" style="background:#10b981; color:#fff; padding:8px 16px; font-size:12.5px; border-radius:9px; text-decoration:none; font-weight:800; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 8px rgba(16,185,129,0.25);">
+            <i data-lucide="check-circle" style="width:14px;height:14px;"></i> Mark Attendance
+          </a>
+        </div>
+
+        <!-- ACTIVE REGISTRATION FORM VIEW -->
+
+        <!-- Activity Overview -->
+        <div class="activity-hero">
+          <div class="activity-badges">
+            <span class="badge badge--primary">University</span>
+            <span class="badge badge--source">APPROVED ACTIVITY</span>
+            
+              <span class="badge" style="background:rgba(245,158,11,0.1); color:#b45309; border:1px solid rgba(245,158,11,0.2);">
+                CE, IT, ME, CIV, EE, EC
+              </span>
+            
+          </div>
+          
+          <h2 class="activity-title">Internal Hackathon: GTU-ITR(SIH2026)</h2>
+          
+        </div>
+
+        <!-- LIVE DEADLINE COUNTDOWN TIMER -->
+        
+          <div class="countdown-banner" id="countdownBanner" data-deadline="2026-09-15T00:00:00">
+            <div class="countdown-header">
+              <span class="countdown-label">
+                <i data-lucide="timer" style="width:14px;height:14px;color:var(--primary);"></i>
+                Registration Closes In
+              </span>
+              <span class="countdown-deadline-text">
+                Deadline: Sep 15, 2026 at 12:00 AM
+              </span>
+            </div>
+            
+            <div class="countdown-grid">
+              <div class="countdown-box">
+                <span class="countdown-num" id="cdDays">00</span>
+                <span class="countdown-unit">Days</span>
+              </div>
+              <div class="countdown-box">
+                <span class="countdown-num" id="cdHours">00</span>
+                <span class="countdown-unit">Hours</span>
+              </div>
+              <div class="countdown-box">
+                <span class="countdown-num" id="cdMinutes">00</span>
+                <span class="countdown-unit">Mins</span>
+              </div>
+              <div class="countdown-box">
+                <span class="countdown-num" id="cdSeconds" style="color:#ef4444;">00</span>
+                <span class="countdown-unit">Secs</span>
+              </div>
+            </div>
+          </div>
+        
+
+        <!-- Real-Time Progress Tracker -->
+        <div class="progress-wrap">
+          <div class="progress-text-row">
+            <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.04em;">Form Completion</span>
+            <span id="progressText" style="color:var(--primary);">0 of 61 answered (0%)</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressBarFill"></div>
+          </div>
+        </div>
+
+        <!-- Flash messages -->
+        
+          
+        
+
+        <!-- REGISTRATION FORM -->
+        
+        <!-- Auto-Saved Draft Restored Banner -->
+        <div id="draftRestoredBanner" style="display:none; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:10px 14px; margin-bottom:18px; align-items:center; justify-content:space-between; font-size:12px; color:#166534; font-weight:600;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="check-circle" style="width:15px;height:15px;color:#16a34a;flex-shrink:0;"></i>
+            <span><strong>Draft Restored:</strong> Your previously entered details were automatically recovered!</span>
+          </div>
+          <button type="button" onclick="clearDraft()" style="border:none; background:#fee2e2; color:#b91c1c; font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:6px; cursor:pointer;">
+            Clear
+          </button>
+        </div>
+
+        <form id="studentRegForm" action="/posts/2/register" method="POST" enctype="multipart/form-data" onsubmit="return handleStandbySubmit(event, this)">
+          <input type="hidden" name="csrf_token" value="IjFlMTFhMzRhODNlNTA2MzE0YmE0NDM2MjczODk4MjRiODNjMGZkMzki.aqJByg.ESsU8BX37CHaitdaam2xhN219TI">
+
+          
+            <div class="form-group" style="animation-delay: 0.05s;">
+              <label class="form-label" for="field_student_name">
+                Team Name <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_student_name" name="field_student_name" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Team Name.........." 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.1s;">
+              <label class="form-label" for="field_field_1788437127088_17">
+                Problem Statement Category <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="choice-group">
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437127088_17" value="Software" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Software</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437127088_17" value="Hardware" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Hardware</span>
+                    </label>
+                  
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.15000000000000002s;">
+              <label class="form-label" for="field_field_1788437197832_18">
+                PSID Number <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="hash" class="input-icon"></i>
+                  <input type="number" step="any" id="field_field_1788437197832_18" name="field_field_1788437197832_18" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="PSID" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.2s;">
+              <label class="form-label" for="field_field_1788437260250_19">
+                Problem Statement Title <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788437260250_19" name="field_field_1788437260250_19" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="answer..." 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.25s;">
+              <label class="form-label" for="field_field_1788437300803_20">
+                Organization (Whose PSID your team has Chosen) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788437300803_20" name="field_field_1788437300803_20" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.30000000000000004s;">
+              <label class="form-label" for="field_field_1788437366313_21">
+                Theme <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="choice-group">
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Agriculture" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Agriculture</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="FoodTech &amp; Rural Development" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>FoodTech &amp; Rural Development</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Blockchain &amp; Cybersecurity" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Blockchain &amp; Cybersecurity</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Clean &amp; Green Technology" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Clean &amp; Green Technology</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Disaster Management" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Disaster Management</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Fitness &amp; Sports" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Fitness &amp; Sports</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Heritage &amp; Culture" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Heritage &amp; Culture</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="MedTech / BioTech / HealthTech" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>MedTech / BioTech / HealthTech</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Miscellaneous" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Miscellaneous</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Robotics and Drones" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Robotics and Drones</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Renewable / Sustainable Energy" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Renewable / Sustainable Energy</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Smart Automation" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Smart Automation</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Smart Education" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Smart Education</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Smart Resource Conservation" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Smart Resource Conservation</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Smart Vehicles" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Smart Vehicles</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Space Technology" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Space Technology</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Toys &amp; Games" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Toys &amp; Games</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Transportation &amp; Logistics" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Transportation &amp; Logistics</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437366313_21" value="Travel &amp; Tourism" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Travel &amp; Tourism</span>
+                    </label>
+                  
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.35000000000000003s;">
+              <label class="form-label" for="field_field_1788437462474_22">
+                Name of Team Leader <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788437462474_22" name="field_field_1788437462474_22" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.4s;">
+              <label class="form-label" for="field_field_1788437468837_23">
+                Gender (Team Leader) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="choice-group">
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437468837_23" value="Male" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Male</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437468837_23" value="Female" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Female</span>
+                    </label>
+                  
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.45s;">
+              <label class="form-label" for="field_field_1788437569088_25">
+                Enrollment Number (Team Leader) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="hash" class="input-icon"></i>
+                  <input type="number" step="any" id="field_field_1788437569088_25" name="field_field_1788437569088_25" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter numeric value…" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.5s;">
+              <label class="form-label" for="field_field_1788437598077_26">
+                Branch (Team Leader) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788437598077_26" name="field_field_1788437598077_26" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.55s;">
+              <label class="form-label" for="field_semester">
+                Current Semester <span class="req-star">*</span>
+              </label>
+
+              
+                <select id="field_semester" name="field_semester" 
+                        class="form-control" 
+                        required 
+                        onchange="updateProgress()">
+                  <option value="">Select option…</option>
+                  
+                    <option value="1">1</option>
+                  
+                    <option value="2">2</option>
+                  
+                    <option value="3">3</option>
+                  
+                    <option value="4">4</option>
+                  
+                    <option value="5">5</option>
+                  
+                    <option value="6">6</option>
+                  
+                    <option value="7">7</option>
+                  
+                    <option value="8">8</option>
+                  
+                </select>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.6000000000000001s;">
+              <label class="form-label" for="field_field_1788437675426_28">
+                Email id (Team Leader) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="mail" class="input-icon"></i>
+                  <input type="email" id="field_field_1788437675426_28" name="field_field_1788437675426_28" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. yourname@gtu.ac.in" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.65s;">
+              <label class="form-label" for="field_field_1788437682339_29">
+                Mobile No (Team Leader) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="phone" class="input-icon"></i>
+                  <input type="tel" id="field_field_1788437682339_29" name="field_field_1788437682339_29" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. +91 98765 43210" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.7000000000000001s;">
+              <label class="form-label" for="field_field_1788437846753_24">
+                Name of Team Member-1 <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788437846753_24" name="field_field_1788437846753_24" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.75s;">
+              <label class="form-label" for="field_field_1788437852242_25">
+                Gender (Team Member-1) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="choice-group">
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437852242_25" value="Male" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Male</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788437852242_25" value="Female" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Female</span>
+                    </label>
+                  
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.8s;">
+              <label class="form-label" for="field_field_1788437857194_26">
+                Enrollment Number (Team Member-1) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="hash" class="input-icon"></i>
+                  <input type="number" step="any" id="field_field_1788437857194_26" name="field_field_1788437857194_26" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter numeric value…" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.8500000000000001s;">
+              <label class="form-label" for="field_field_1788437861942_27">
+                Branch (Team Member-1) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788437861942_27" name="field_field_1788437861942_27" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.9s;">
+              <label class="form-label" for="field_field_sem_member_1">
+                Semester (Team Member-1) <span class="req-star">*</span>
+              </label>
+
+              
+                <select id="field_field_sem_member_1" name="field_field_sem_member_1" 
+                        class="form-control" 
+                        required 
+                        onchange="updateProgress()">
+                  <option value="">Select option…</option>
+                  
+                    <option value="1">1</option>
+                  
+                    <option value="2">2</option>
+                  
+                    <option value="3">3</option>
+                  
+                    <option value="4">4</option>
+                  
+                    <option value="5">5</option>
+                  
+                    <option value="6">6</option>
+                  
+                    <option value="7">7</option>
+                  
+                    <option value="8">8</option>
+                  
+                </select>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 0.9500000000000001s;">
+              <label class="form-label" for="field_field_1788437873103_29">
+                Program (Diploma/BE/ME/MCA/MBA/Diploma Pharmacy/Pharmacy/M.Pharm, etc.) (Team Member 1) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788437873103_29" name="field_field_1788437873103_29" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.0s;">
+              <label class="form-label" for="field_field_1788437881221_30">
+                Email id (Team Member-1) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="mail" class="input-icon"></i>
+                  <input type="email" id="field_field_1788437881221_30" name="field_field_1788437881221_30" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. yourname@gtu.ac.in" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.05s;">
+              <label class="form-label" for="field_field_1788437883624_31">
+                Mobile No (Team Member-1) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="phone" class="input-icon"></i>
+                  <input type="tel" id="field_field_1788437883624_31" name="field_field_1788437883624_31" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. +91 98765 43210" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.1s;">
+              <label class="form-label" for="field_field_1788438135311_32">
+                Name of Team Member-2 <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438135311_32" name="field_field_1788438135311_32" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.1500000000000001s;">
+              <label class="form-label" for="field_field_1788438139669_33">
+                Gender (Team Member-2) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="choice-group">
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438139669_33" value="Male" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Male</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438139669_33" value="Female" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Female</span>
+                    </label>
+                  
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.2000000000000002s;">
+              <label class="form-label" for="field_field_1788438144244_34">
+                Enrollment Number (Team Member-2) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="hash" class="input-icon"></i>
+                  <input type="number" step="any" id="field_field_1788438144244_34" name="field_field_1788438144244_34" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter numeric value…" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.25s;">
+              <label class="form-label" for="field_field_1788438149235_35">
+                Branch (Team Member-2) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438149235_35" name="field_field_1788438149235_35" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.3s;">
+              <label class="form-label" for="field_field_sem_member_2">
+                Semester (Team Member-2) <span class="req-star">*</span>
+              </label>
+
+              
+                <select id="field_field_sem_member_2" name="field_field_sem_member_2" 
+                        class="form-control" 
+                        required 
+                        onchange="updateProgress()">
+                  <option value="">Select option…</option>
+                  
+                    <option value="1">1</option>
+                  
+                    <option value="2">2</option>
+                  
+                    <option value="3">3</option>
+                  
+                    <option value="4">4</option>
+                  
+                    <option value="5">5</option>
+                  
+                    <option value="6">6</option>
+                  
+                    <option value="7">7</option>
+                  
+                    <option value="8">8</option>
+                  
+                </select>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.35s;">
+              <label class="form-label" for="field_field_1788438161907_37">
+                Program (Diploma/BE/ME/MCA/MBA/Diploma Pharmacy/Pharmacy/M.Pharm, etc.) (Team Member 2) * <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438161907_37" name="field_field_1788438161907_37" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.4000000000000001s;">
+              <label class="form-label" for="field_field_1788438165404_38">
+                Email id (Team Member-2) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="mail" class="input-icon"></i>
+                  <input type="email" id="field_field_1788438165404_38" name="field_field_1788438165404_38" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. yourname@gtu.ac.in" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.4500000000000002s;">
+              <label class="form-label" for="field_field_1788438168238_39">
+                Mobile No (Team Member-2) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="phone" class="input-icon"></i>
+                  <input type="tel" id="field_field_1788438168238_39" name="field_field_1788438168238_39" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. +91 98765 43210" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.5s;">
+              <label class="form-label" for="field_field_1788438177020_40">
+                Name of Team Member-3 <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438177020_40" name="field_field_1788438177020_40" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.55s;">
+              <label class="form-label" for="field_field_1788438179178_41">
+                Gender (Team Member-3) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="choice-group">
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438179178_41" value="Male" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Male</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438179178_41" value="Female" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Female</span>
+                    </label>
+                  
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.6s;">
+              <label class="form-label" for="field_field_1788438183372_42">
+                Enrollment Number (Team Member-3) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="hash" class="input-icon"></i>
+                  <input type="number" step="any" id="field_field_1788438183372_42" name="field_field_1788438183372_42" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter numeric value…" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.6500000000000001s;">
+              <label class="form-label" for="field_field_1788438186681_43">
+                Branch (Team Member-3) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438186681_43" name="field_field_1788438186681_43" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.7000000000000002s;">
+              <label class="form-label" for="field_field_sem_member_3">
+                Semester (Team Member-3) <span class="req-star">*</span>
+              </label>
+
+              
+                <select id="field_field_sem_member_3" name="field_field_sem_member_3" 
+                        class="form-control" 
+                        required 
+                        onchange="updateProgress()">
+                  <option value="">Select option…</option>
+                  
+                    <option value="1">1</option>
+                  
+                    <option value="2">2</option>
+                  
+                    <option value="3">3</option>
+                  
+                    <option value="4">4</option>
+                  
+                    <option value="5">5</option>
+                  
+                    <option value="6">6</option>
+                  
+                    <option value="7">7</option>
+                  
+                    <option value="8">8</option>
+                  
+                </select>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.75s;">
+              <label class="form-label" for="field_field_1788438199399_45">
+                Program (Diploma/BE/ME/MCA/MBA/Diploma Pharmacy/Pharmacy/M.Pharm, etc.) (Team Member 3) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438199399_45" name="field_field_1788438199399_45" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.8s;">
+              <label class="form-label" for="field_field_1788438203017_46">
+                Email id (Team Member-3) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="mail" class="input-icon"></i>
+                  <input type="email" id="field_field_1788438203017_46" name="field_field_1788438203017_46" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. yourname@gtu.ac.in" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.85s;">
+              <label class="form-label" for="field_field_1788438203714_47">
+                Mobile No (Team Member-3) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="phone" class="input-icon"></i>
+                  <input type="tel" id="field_field_1788438203714_47" name="field_field_1788438203714_47" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. +91 98765 43210" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.9000000000000001s;">
+              <label class="form-label" for="field_field_1788438802004_48">
+                Name of Team Member-4 <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438802004_48" name="field_field_1788438802004_48" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 1.9500000000000002s;">
+              <label class="form-label" for="field_field_1788438804446_49">
+                Gender (Team Member-4) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="choice-group">
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438804446_49" value="Male" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Male</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438804446_49" value="Female" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Female</span>
+                    </label>
+                  
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.0s;">
+              <label class="form-label" for="field_field_1788438807317_50">
+                Enrollment Number (Team Member-4) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="hash" class="input-icon"></i>
+                  <input type="number" step="any" id="field_field_1788438807317_50" name="field_field_1788438807317_50" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter numeric value…" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.0500000000000003s;">
+              <label class="form-label" for="field_field_1788438809711_51">
+                Branch (Team Member-4) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438809711_51" name="field_field_1788438809711_51" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.1s;">
+              <label class="form-label" for="field_field_sem_member_4">
+                Semester (Team Member-4) <span class="req-star">*</span>
+              </label>
+
+              
+                <select id="field_field_sem_member_4" name="field_field_sem_member_4" 
+                        class="form-control" 
+                        required 
+                        onchange="updateProgress()">
+                  <option value="">Select option…</option>
+                  
+                    <option value="1">1</option>
+                  
+                    <option value="2">2</option>
+                  
+                    <option value="3">3</option>
+                  
+                    <option value="4">4</option>
+                  
+                    <option value="5">5</option>
+                  
+                    <option value="6">6</option>
+                  
+                    <option value="7">7</option>
+                  
+                    <option value="8">8</option>
+                  
+                </select>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.15s;">
+              <label class="form-label" for="field_field_1788438816097_53">
+                Program (Diploma/BE/ME/MCA/MBA/Diploma Pharmacy/Pharmacy/M.Pharm, etc.) (Team Member 4) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438816097_53" name="field_field_1788438816097_53" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.2s;">
+              <label class="form-label" for="field_field_1788438819218_54">
+                Email id (Team Member-4) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="mail" class="input-icon"></i>
+                  <input type="email" id="field_field_1788438819218_54" name="field_field_1788438819218_54" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. yourname@gtu.ac.in" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.25s;">
+              <label class="form-label" for="field_field_1788438822857_55">
+                Mobile No (Team Member-4) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="phone" class="input-icon"></i>
+                  <input type="tel" id="field_field_1788438822857_55" name="field_field_1788438822857_55" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. +91 98765 43210" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.3000000000000003s;">
+              <label class="form-label" for="field_field_1788438824499_56">
+                Name of Team Member-5 <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438824499_56" name="field_field_1788438824499_56" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.35s;">
+              <label class="form-label" for="field_field_1788438832292_57">
+                Gender (Team Member-5) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="choice-group">
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438832292_57" value="Male" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Male</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438832292_57" value="Female" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Female</span>
+                    </label>
+                  
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.4000000000000004s;">
+              <label class="form-label" for="field_field_1788438835695_58">
+                Enrollment Number (Team Member-5) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="hash" class="input-icon"></i>
+                  <input type="number" step="any" id="field_field_1788438835695_58" name="field_field_1788438835695_58" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter numeric value…" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.45s;">
+              <label class="form-label" for="field_field_1788438839561_59">
+                Branch (Team Member-5) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438839561_59" name="field_field_1788438839561_59" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.5s;">
+              <label class="form-label" for="field_field_sem_member_5">
+                Semester (Team-Member 5) <span class="req-star">*</span>
+              </label>
+
+              
+                <select id="field_field_sem_member_5" name="field_field_sem_member_5" 
+                        class="form-control" 
+                        required 
+                        onchange="updateProgress()">
+                  <option value="">Select option…</option>
+                  
+                    <option value="1">1</option>
+                  
+                    <option value="2">2</option>
+                  
+                    <option value="3">3</option>
+                  
+                    <option value="4">4</option>
+                  
+                    <option value="5">5</option>
+                  
+                    <option value="6">6</option>
+                  
+                    <option value="7">7</option>
+                  
+                    <option value="8">8</option>
+                  
+                </select>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.5500000000000003s;">
+              <label class="form-label" for="field_field_1788438855303_61">
+                Program (Diploma/BE/ME/MCA/MBA/Diploma Pharmacy/Pharmacy/M.Pharm, etc.) (Team Member 5)  <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438855303_61" name="field_field_1788438855303_61" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.6s;">
+              <label class="form-label" for="field_field_1788438858868_62">
+                Email id (Team Member-5) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="mail" class="input-icon"></i>
+                  <input type="email" id="field_field_1788438858868_62" name="field_field_1788438858868_62" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. yourname@gtu.ac.in" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.6500000000000004s;">
+              <label class="form-label" for="field_field_1788438862686_63">
+                Mobile No. (Team Member-5) <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="phone" class="input-icon"></i>
+                  <input type="tel" id="field_field_1788438862686_63" name="field_field_1788438862686_63" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. +91 98765 43210" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.7s;">
+              <label class="form-label" for="field_field_1788438865769_64">
+                Faculty Mentor-1 Name <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438865769_64" name="field_field_1788438865769_64" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.75s;">
+              <label class="form-label" for="field_field_1788438869876_65">
+                Faculty Mentor-1 Contact No <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="phone" class="input-icon"></i>
+                  <input type="tel" id="field_field_1788438869876_65" name="field_field_1788438869876_65" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. +91 98765 43210" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.8000000000000003s;">
+              <label class="form-label" for="field_field_1788438873380_66">
+                Faculty Mentor-1 Email ID <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="mail" class="input-icon"></i>
+                  <input type="email" id="field_field_1788438873380_66" name="field_field_1788438873380_66" 
+                         class="form-control form-control--with-icon" 
+                         required 
+                         placeholder="e.g. yourname@gtu.ac.in" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.85s;">
+              <label class="form-label" for="field_field_1788438874350_67">
+                Gender of Faculty Mentor-1 <span class="req-star">*</span>
+              </label>
+
+              
+                <div class="choice-group">
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438874350_67" value="Male" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Male</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438874350_67" value="Female" 
+                             required 
+                             onchange="updateProgress()">
+                      <span>Female</span>
+                    </label>
+                  
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.9000000000000004s;">
+              <label class="form-label" for="field_field_1788438878238_68">
+                Faculty Mentor-2 Name 
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="edit-3" class="input-icon"></i>
+                  <input type="text" id="field_field_1788438878238_68" name="field_field_1788438878238_68" 
+                         class="form-control form-control--with-icon" 
+                          
+                         placeholder="Enter your answer…" 
+                         oninput="updateProgress()">
+                </div>
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 2.95s;">
+              <label class="form-label" for="field_field_1788438882176_69">
+                Faculty Mentor-2 Mobile No 
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="phone" class="input-icon"></i>
+                  <input type="tel" id="field_field_1788438882176_69" name="field_field_1788438882176_69" 
+                         class="form-control form-control--with-icon" 
+                          
+                         placeholder="e.g. +91 98765 43210" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 3.0s;">
+              <label class="form-label" for="field_field_1788438886869_70">
+                Faculty Mentor-2 Email id 
+              </label>
+
+              
+                <div class="input-wrapper">
+                  <i data-lucide="mail" class="input-icon"></i>
+                  <input type="email" id="field_field_1788438886869_70" name="field_field_1788438886869_70" 
+                         class="form-control form-control--with-icon" 
+                          
+                         placeholder="e.g. yourname@gtu.ac.in" 
+                         oninput="updateProgress()">
+                </div>
+
+              
+            </div>
+          
+            <div class="form-group" style="animation-delay: 3.0500000000000003s;">
+              <label class="form-label" for="field_field_1788438887822_71">
+                Gender of Faculty Mentor-2  
+              </label>
+
+              
+                <div class="choice-group">
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438887822_71" value="Male" 
+                              
+                             onchange="updateProgress()">
+                      <span>Male</span>
+                    </label>
+                  
+                    <label class="choice-card">
+                      <input type="radio" name="field_field_1788438887822_71" value="Female" 
+                              
+                             onchange="updateProgress()">
+                      <span>Female</span>
+                    </label>
+                  
+                </div>
+
+              
+            </div>
+          
+          
+
+          <!-- Privacy Consent -->
+          <div style="margin: 24px 0;">
+            <label style="display:flex; align-items:flex-start; gap:10px; font-size:12px; color:var(--text-muted); cursor:pointer; font-weight:500; line-height:1.5;">
+              <input type="checkbox" id="privacy_consent" name="privacy_consent" required style="width:17px; height:17px; margin-top:2px; flex-shrink:0; accent-color:var(--primary);">
+              <span>
+                I hereby declare that all provided details are accurate and consent to GTU-ITR holding and processing my registration for organizing this activity under the 
+                <a href="/privacy" target="_blank" style="color:var(--primary); text-decoration:underline; font-weight:700;">Privacy Policy</a>.
+              </span>
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="btnSubmitForm" class="btn-submit">
+            <i data-lucide="send" style="width:16px;height:16px;"></i>
+            <span>Submit Registration Form</span>
+          </button>
+        </form>
+      </div><!-- end formViewWrap -->
+
+      
+
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align:center; margin-top:26px; font-size:11px; color:var(--text-muted); font-weight:500;">
+      ITR Activity Portal &copy; 2026. All rights reserved.
+    </div>
+
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════════════════
+    // 1. FIREBASE INITIALIZATION (FIRST - BEFORE ALL MODULES)
+    // ══════════════════════════════════════════════════════════
+    const firebaseConfig = {
+      apiKey: "AIzaSyBRAEuMlSKddLiYBK6ShTj4jlLFynxpEN0",
+      authDomain: "iic-student-form-clone.firebaseapp.com",
+      projectId: "iic-student-form-clone",
+      storageBucket: "iic-student-form-clone.firebasestorage.app",
+      messagingSenderId: "711030610843",
+      appId: "1:711030610843:web:40df2fc74d5a3c177a5f3e",
+      measurementId: "G-HQN8WE3LJP"
+    };
+
+    let db = null;
+    try {
+      if (typeof firebase !== 'undefined') {
+        if (!firebase.apps || !firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.firestore();
+        db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+          console.warn('[Firebase] Persistence note:', err.code);
+        });
+        console.log('[Firebase] Connected successfully to Firestore!');
+      }
+    } catch (err) {
+      console.error('[Firebase] Init error:', err);
+    }
+
+    if (window.lucide) lucide.createIcons();
+
+    // ══════════════════════════════════════════════════════════
+    // 2. LIVE COUNTDOWN TIMER ENGINE (WITH REAL-TIME FIREBASE SYNC)
+    // ══════════════════════════════════════════════════════════
+    const countdownEl = document.getElementById('countdownBanner');
+    if (countdownEl) {
+      const deadlineStr = countdownEl.getAttribute('data-deadline') || '2026-09-15T00:00:00';
+      let targetTime = new Date(deadlineStr).getTime();
+
+      function applyDeadlineData(sData) {
+        if (!sData || !sData.registration_deadline) return;
+
+        countdownEl.setAttribute('data-deadline', sData.registration_deadline);
+        targetTime = new Date(sData.registration_deadline).getTime();
+
+        const dlText = document.querySelector('.countdown-deadline-text');
+        if (dlText && sData.registration_deadline_formatted) {
+          dlText.textContent = `Deadline: ${sData.registration_deadline_formatted}`;
+        }
+
+        // If deadline was extended into the future, re-enable button if disabled
+        if (targetTime > Date.now() && !sData.is_closed) {
+          const btn = document.getElementById('btnSubmitForm');
+          if (btn && btn.disabled) {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="send" style="width:16px;height:16px;"></i><span>Submit Registration Form</span>';
+            if (window.lucide) lucide.createIcons();
+          }
+          const dot = document.getElementById('headerStatusDot');
+          if (dot) dot.className = 'pulse-dot';
+          const text = document.getElementById('headerStatusText');
+          if (text) text.textContent = 'REGISTRATION ACTIVE';
+        }
+
+        tickCountdown();
+      }
+
+      // Fast Direct REST API Check (Instant load in < 100ms)
+      async function fetchDeadlineFast() {
+        try {
+          const res = await fetch('https://firestore.googleapis.com/v1/projects/iic-student-form-clone/databases/(default)/documents/activity_settings/post_2');
+          if (res.ok) {
+            const data = await res.json();
+            const fields = data.fields || {};
+            const dl = fields.registration_deadline ? fields.registration_deadline.stringValue : null;
+            const dlFmt = fields.registration_deadline_formatted ? fields.registration_deadline_formatted.stringValue : null;
+            const isClosed = fields.is_closed ? fields.is_closed.booleanValue : false;
+            applyDeadlineData({
+              registration_deadline: dl,
+              registration_deadline_formatted: dlFmt,
+              is_closed: isClosed
+            });
+          }
+        } catch (e) {
+          console.warn('[Deadline REST]', e);
+        }
+      }
+      fetchDeadlineFast();
+
+      // Real-time Cloud Firebase Snapshot Listener
+      function listenToDeadlineUpdates() {
+        if (db) {
+          try {
+            db.collection('activity_settings').doc('post_2').onSnapshot(doc => {
+              if (doc.exists) {
+                const sData = doc.data();
+                applyDeadlineData(sData);
+                console.log('[Firebase Sync] Real-time deadline updated to:', sData.registration_deadline_formatted);
+              }
+            }, err => {
+              console.warn('[Firebase] Snapshot error:', err);
+            });
+          } catch (err) {
+            console.warn('[Firebase] Settings listener error:', err);
+          }
+        } else {
+          setTimeout(listenToDeadlineUpdates, 400);
+        }
+      }
+      listenToDeadlineUpdates();
+
+      function tickCountdown() {
+        const now = new Date().getTime();
+        const diff = targetTime - now;
+
+        const daysEl = document.getElementById('cdDays');
+        const hoursEl = document.getElementById('cdHours');
+        const minsEl = document.getElementById('cdMinutes');
+        const secsEl = document.getElementById('cdSeconds');
+
+        if (!daysEl || !hoursEl || !minsEl || !secsEl) return;
+
+        if (diff <= 0) {
+          daysEl.textContent = '00';
+          hoursEl.textContent = '00';
+          minsEl.textContent = '00';
+          secsEl.textContent = '00';
+          
+          const dot = document.getElementById('headerStatusDot');
+          if (dot) dot.className = 'pulse-dot pulse-dot--danger';
+          const text = document.getElementById('headerStatusText');
+          if (text) text.textContent = 'REGISTRATION HAS CLOSED';
+
+          // Disable submit button if open
+          const btn = document.getElementById('btnSubmitForm');
+          if (btn && !btn.disabled) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="calendar-x"></i> Registration Window Has Closed';
+            if (window.lucide) lucide.createIcons();
+          }
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        daysEl.textContent = String(days).padStart(2, '0');
+        hoursEl.textContent = String(hours).padStart(2, '0');
+        minsEl.textContent = String(minutes).padStart(2, '0');
+        secsEl.textContent = String(seconds).padStart(2, '0');
+
+        const dot = document.getElementById('headerStatusDot');
+        if (dot && days === 0) {
+          dot.className = 'pulse-dot pulse-dot--warning';
+        } else if (dot && diff > 0) {
+          dot.className = 'pulse-dot';
+        }
+      }
+
+      tickCountdown();
+      setInterval(tickCountdown, 1000);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // DYNAMIC FORM PROGRESS METER
+    // ══════════════════════════════════════════════════════════
+    const fieldInputs = document.querySelectorAll('.form-group input, .form-group select, .form-group textarea');
+    const totalFields = 61;
+
+    function updateProgress() {
+      let answeredCount = 0;
+      const seenNames = new Set();
+
+      fieldInputs.forEach(input => {
+        const name = input.name;
+        if (!name || seenNames.has(name)) return;
+
+        if (input.type === 'radio' || input.type === 'checkbox') {
+          const checked = document.querySelector(`input[name="${name}"]:checked`);
+          if (checked) {
+            answeredCount++;
+            seenNames.add(name);
+          }
+        } else if (input.type === 'file') {
+          if (input.files && input.files.length > 0) {
+            answeredCount++;
+            seenNames.add(name);
+          }
+        } else {
+          if (input.value && input.value.trim().length > 0) {
+            answeredCount++;
+            seenNames.add(name);
+          }
+        }
+      });
+
+      const pct = totalFields > 0 ? Math.min(100, Math.round((answeredCount / totalFields) * 100)) : 100;
+      const progressBar = document.getElementById('progressBarFill');
+      const progressText = document.getElementById('progressText');
+
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (progressText) progressText.textContent = `${answeredCount} of ${totalFields} answered (${pct}%)`;
+    }
+
+    // File change handler
+    function handleFileChange(input, labelId, dropzoneId) {
+      const label = document.getElementById(labelId);
+      const dropzone = document.getElementById(dropzoneId);
+      if (input.files && input.files.length > 0) {
+        const file = input.files[0];
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+        label.innerHTML = `<span style="color:var(--success); font-weight:700;">✓ Attached: ${file.name} (${sizeMb} MB)</span>`;
+        if (dropzone) {
+          dropzone.style.borderColor = 'var(--success)';
+          dropzone.style.background = 'rgba(16, 185, 129, 0.05)';
+        }
+      } else {
+        label.textContent = 'No file chosen';
+        if (dropzone) {
+          dropzone.style.borderColor = '';
+          dropzone.style.background = '';
+        }
+      }
+      updateProgress();
+    }
+
+    // Submit handler with animation
+    function handleFormSubmit(form) {
+      const btn = document.getElementById('btnSubmitForm');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;margin-right:6px;"></span> Submitting Registration...';
+      }
+      return true;
+    }
+
+    // Drag and Drop visual feedback
+    document.querySelectorAll('.file-dropzone').forEach(dropzone => {
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropzone.style.borderColor = 'var(--primary)';
+          dropzone.style.background = 'rgba(15, 82, 186, 0.06)';
+        }, false);
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropzone.style.borderColor = '';
+          dropzone.style.background = '';
+        }, false);
+      });
+      dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        const input = dropzone.querySelector('input[type="file"]');
+        if (input && files.length > 0) {
+          input.files = files;
+          input.dispatchEvent(new Event('change'));
+        }
+      }, false);
+    });
+
+    // Run initial progress count
+    updateProgress();
+
+    // Register Zero-Downtime Standby Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').catch(function(err) {
+          console.warn('[Standby SW] Registration failed:', err);
+        });
+      });
+    }
+  
+    
+    // ══════════════════════════════════════════════════════════
+    // AUTO-SAVE DRAFT & ZERO DATA-LOSS RECOVERY
+    // ══════════════════════════════════════════════════════════
+    const DRAFT_KEY = 'gtu_sih_form_draft_v1';
+    let draftTimeout = null;
+
+    function saveDraft() {
+      clearTimeout(draftTimeout);
+      draftTimeout = setTimeout(() => {
+        const form = document.getElementById('studentRegForm');
+        if (!form) return;
+
+        const draft = {};
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+          const name = input.name;
+          if (!name || name === 'csrf_token' || input.type === 'file') return;
+
+          if (input.type === 'radio') {
+            if (input.checked) draft[name] = input.value;
+          } else if (input.type === 'checkbox') {
+            if (!draft[name]) draft[name] = [];
+            if (input.checked) draft[name].push(input.value);
+          } else {
+            draft[name] = input.value;
+          }
+        });
+
+        try {
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        } catch (e) {}
+      }, 250);
+    }
+
+    function restoreDraft() {
+      const form = document.getElementById('studentRegForm');
+      if (!form) return;
+
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+
+        const draft = JSON.parse(raw);
+        let restoredCount = 0;
+
+        for (const [name, val] of Object.entries(draft)) {
+          if (!val) continue;
+
+          const elements = form.querySelectorAll(`[name="${name}"]`);
+          elements.forEach(elem => {
+            if (elem.type === 'radio') {
+              if (elem.value === val) {
+                elem.checked = true;
+                restoredCount++;
+              }
+            } else if (elem.type === 'checkbox') {
+              if (Array.isArray(val) && val.includes(elem.value)) {
+                elem.checked = true;
+                restoredCount++;
+              }
+            } else {
+              if (val) {
+                elem.value = val;
+                restoredCount++;
+              }
+            }
+          });
+        }
+
+        if (restoredCount > 0) {
+          updateProgress();
+          const banner = document.getElementById('draftRestoredBanner');
+          if (banner) banner.style.display = 'flex';
+          if (window.lucide) lucide.createIcons();
+          console.log(`[Draft Recovery] Restored ${restoredCount} form fields!`);
+        }
+      } catch (e) {
+        console.warn('[Draft Recovery] Error:', e);
+      }
+    }
+
+    function clearDraft() {
+      localStorage.removeItem(DRAFT_KEY);
+      const banner = document.getElementById('draftRestoredBanner');
+      if (banner) banner.style.display = 'none';
+      const form = document.getElementById('studentRegForm');
+      if (form) {
+        form.reset();
+        updateProgress();
+      }
+    }
+
+    // Auto-save listeners & initial restore
+    window.addEventListener('DOMContentLoaded', () => {
+      restoreDraft();
+      const form = document.getElementById('studentRegForm');
+      if (form) {
+        form.addEventListener('input', saveDraft);
+        form.addEventListener('change', saveDraft);
+      }
+    });
+
+    // ══════════════════════════════════════════════════════════
+    // STANDBY CLONE SUBMISSION HANDLER
+    // ══════════════════════════════════════════════════════════
+
+    async function handleStandbySubmit(event, form) {
+      event.preventDefault();
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+      }
+
+      const btn = document.getElementById('btnSubmitForm');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;margin-right:6px;vertical-align:middle;"></span> Submitting to Cloud Firebase...';
+      }
+
+      try {
+        const formDataObj = {};
+        const inputs = form.querySelectorAll('input, select, textarea');
+        const filePromises = [];
+
+        inputs.forEach(input => {
+          const name = input.name;
+          if (!name || name === 'csrf_token') return;
+
+          if (input.type === 'radio') {
+            if (input.checked) formDataObj[name] = input.value;
+          } else if (input.type === 'checkbox') {
+            if (!formDataObj[name]) formDataObj[name] = [];
+            if (input.checked) formDataObj[name].push(input.value);
+          } else if (input.type === 'file') {
+            if (input.files && input.files.length > 0) {
+              const file = input.files[0];
+              const fileMeta = {
+                name: file.name,
+                size: file.size,
+                type: file.type
+              };
+              formDataObj[name] = fileMeta;
+
+              // Read file as Base64 for zero loss if <= 1MB
+              if (file.size <= 1024 * 1024) {
+                const p = new Promise(resolve => {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    fileMeta.base64 = reader.result;
+                    resolve();
+                  };
+                  reader.onerror = () => resolve();
+                  reader.readAsDataURL(file);
+                });
+                filePromises.push(p);
+              }
+            }
+          } else {
+            formDataObj[name] = input.value.trim();
+          }
+        });
+
+        await Promise.all(filePromises);
+
+        const regId = 'REG-SIH-' + Math.floor(100000 + Math.random() * 900000);
+        const teamName = formDataObj['field_student_name'] || 'Team';
+        const leaderName = formDataObj['field_field_1788437462474_22'] || teamName;
+        const category = formDataObj['field_field_1788437127088_17'] || '-';
+        const psid = formDataObj['field_field_1788437197832_18'] || '-';
+        const psTitle = formDataObj['field_field_1788437260250_19'] || '-';
+        const now = new Date();
+
+        const record = {
+          reg_id: regId,
+          post_id: 2,
+          post_title: 'Internal Hackathon: GTU-ITR(SIH2026)',
+          team_name: teamName,
+          leader_name: leaderName,
+          problem_category: category,
+          psid: psid,
+          ps_title: psTitle,
+          theme: formDataObj['field_field_1788437366313_21'] || '-',
+          submitted_at: now.toISOString(),
+          submitted_at_formatted: now.toLocaleString('en-IN'),
+          source: 'Cloud Standby Netlify Form',
+          answers: formDataObj
+        };
+
+        // 1. Save to Google Firestore
+        if (db) {
+          try {
+            await db.collection('registrations').add({
+              ...record,
+              server_timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log('[Firebase] Record written to Firestore!');
+          } catch (fireErr) {
+            console.error('[Firebase] Firestore write failed:', fireErr);
+          }
+        }
+
+        // 2. Save to local storage backup
+        try {
+          const localRecords = JSON.parse(localStorage.getItem('gtu_registrations') || '[]');
+          localRecords.push(record);
+          localStorage.setItem('gtu_registrations', JSON.stringify(localRecords));
+        localStorage.removeItem(DRAFT_KEY);
+        } catch (storageErr) {
+          console.warn('[LocalStorage] Note:', storageErr);
+        }
+
+        // 3. Render Success View
+        document.getElementById('formViewWrap').style.display = 'none';
+        document.getElementById('successTeamName').textContent = teamName;
+        document.getElementById('slipTeamName').textContent = teamName;
+        document.getElementById('slipLeaderName').textContent = leaderName;
+        document.getElementById('slipCategoryPsid').textContent = `${category} (PSID: ${psid})`;
+        document.getElementById('successRegId').textContent = regId;
+        document.getElementById('successTime').textContent = now.toLocaleString('en-IN');
+        document.getElementById('successBox').style.display = 'block';
+
+        if (window.lucide) lucide.createIcons();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      } catch (err) {
+        console.error('Submission processing error:', err);
+        alert('Notice: Form saved with local backup. Details: ' + err.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="send" style="width:16px;height:16px;"></i><span>Submit Registration Form</span>';
+          if (window.lucide) lucide.createIcons();
+        }
+      }
+
+      return false;
+    }
+
+  </script>
+</body>
+</html>

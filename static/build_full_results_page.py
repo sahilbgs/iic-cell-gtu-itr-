@@ -1086,6 +1086,71 @@ html_code = """<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- Direct Photo Upload Modal -->
+  <div class="modal-overlay" id="uploadPhotoModal" onclick="if(event.target===this) closeUploadModal()">
+    <div class="modal-box" style="max-width: 500px; width: 95%;">
+      <div class="modal-header">
+        <div>
+          <h3 id="uploadModalTitle" style="font-family:'Outfit'; font-size:1.15rem; color:#38bdf8; font-weight:800; display:flex; align-items:center; gap:8px;">
+            <i data-lucide="camera" style="width:18px;height:18px;"></i>
+            <span>Upload Team Hackathon Photo</span>
+          </h3>
+          <p id="uploadModalSub" style="font-size:12px; color:#94a3b8;">Attach official group photo or selfie for Results &amp; Social Poster</p>
+        </div>
+        <button onclick="closeUploadModal()" style="background:none; border:none; color:#94a3b8; cursor:pointer;">
+          <i data-lucide="x" style="width:20px;height:20px;"></i>
+        </button>
+      </div>
+
+      <div style="padding: 18px; background: #0f172a; display: flex; flex-direction: column; gap: 14px;">
+        <div style="background: rgba(15, 82, 186, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 10px 14px;">
+          <div style="font-size: 14px; font-weight: 800; color: #f8fafc;" id="uploadModalTeamName"></div>
+          <div style="font-size: 12px; color: #94a3b8; margin-top: 3px;" id="uploadModalDetails"></div>
+        </div>
+
+        <div id="uploadPreviewArea" style="width: 100%; height: 210px; border: 2px dashed rgba(56, 189, 248, 0.4); border-radius: 12px; background: rgba(30, 41, 59, 0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+          <img id="uploadPreviewImg" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+          <div id="uploadPrompt" style="text-align: center; padding: 16px;">
+            <i data-lucide="image-plus" style="width: 40px; height: 40px; color: #38bdf8; margin: 0 auto 8px; display: block;"></i>
+            <span style="font-size: 13px; color: #cbd5e1; font-weight: 600;">Choose Photo or Take Selfie</span>
+            <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Supports JPG, PNG, WEBP</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <label class="btn btn--secondary" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; padding: 9px 12px; font-size: 12.5px;">
+            <i data-lucide="camera" style="width: 15px; height: 15px;"></i>
+            <span>Take Selfie</span>
+            <input type="file" id="cameraUploadInput" accept="image/*" capture="user" style="display: none;" onchange="handleDirectPhotoSelect(this)">
+          </label>
+          <label class="btn btn--secondary" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; padding: 9px 12px; font-size: 12.5px;">
+            <i data-lucide="upload" style="width: 15px; height: 15px;"></i>
+            <span>Gallery / File</span>
+            <input type="file" id="fileUploadInput" accept="image/*" style="display: none;" onchange="handleDirectPhotoSelect(this)">
+          </label>
+        </div>
+
+        <div id="uploadProgressBox" style="display: none; align-items: center; gap: 10px; padding: 10px; background: rgba(56, 189, 248, 0.15); border-radius: 8px; color: #38bdf8; font-size: 12.5px; font-weight: 600;">
+          <div class="spinner"></div>
+          <span>Uploading and updating live results...</span>
+        </div>
+
+        <div id="uploadAlertBox" style="display: none; padding: 10px; border-radius: 8px; font-size: 12.5px;"></div>
+
+        <button id="btnSubmitPhotoUpload" onclick="submitDirectPhotoUpload()" class="btn btn--primary" style="width: 100%; padding: 11px; font-weight: 800; font-size: 13.5px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;" disabled>
+          <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+          <span>Save &amp; Update Photo</span>
+        </button>
+
+        <div style="text-align: center; margin-top: -2px;">
+          <a id="uploadAttendanceLink" href="/attendance" target="_blank" style="font-size: 11.5px; color: #94a3b8; text-decoration: underline;">
+            Or open Team Attendance Portal &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Social Achievement Poster Generator Modal -->
   <div class="modal-overlay" id="posterModal" onclick="if(event.target===this) closePosterModal()">
     <div class="poster-modal-dialog">
@@ -1367,9 +1432,9 @@ html_code = """<!DOCTYPE html>
                 <span style="font-size:11.5px;color:#94a3b8;display:inline-flex;align-items:center;gap:4px;">
                   <i data-lucide="camera-off" style="width:13px;height:13px;"></i> Photo Pending
                 </span>
-                <a href="/attendance" target="_blank" style="margin-top:8px; font-size:11px; font-weight:700; color:#38bdf8; text-decoration:none; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; background:rgba(56,189,248,0.12); border-radius:6px; border:1px solid rgba(56,189,248,0.3);" title="Upload Team Group Photo">
+                <button onclick="openUploadModal('${escapeHtml(t.team_name)}', '${t.reg_id || ''}', ${t.team_no || 'null'})" style="margin-top:8px; font-size:11px; font-weight:700; color:#38bdf8; background:rgba(56,189,248,0.14); border-radius:6px; border:1px solid rgba(56,189,248,0.35); padding:4px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Upload Team Group Photo">
                   <i data-lucide="camera" style="width:12px;height:12px;"></i> Upload Photo
-                </a>
+                </button>
               </div>
             </div>
           `;
@@ -1437,7 +1502,11 @@ html_code = """<!DOCTYPE html>
                 <button onclick="openPhotoModal('${escapeHtml(t.team_name)}', '${t.photo_url}', '${escapeHtml(t.leader_name)}', '${t.score_str}', '${t.rank}')" class="btn-photo-action" title="View Full Selfie">
                   <i data-lucide="eye" style="width:14px;height:14px;"></i>
                 </button>
-                ` : ''}
+                ` : `
+                <button onclick="openUploadModal('${escapeHtml(t.team_name)}', '${t.reg_id || ''}', ${t.team_no || 'null'})" class="btn-photo-action" style="border-color:rgba(56,189,248,0.4); color:#38bdf8;" title="Upload Team Photo">
+                  <i data-lucide="upload" style="width:14px;height:14px;"></i>
+                </button>
+                `}
               </div>
 
             </div>
@@ -1472,7 +1541,7 @@ html_code = """<!DOCTYPE html>
               const hasPhoto = Boolean(t.has_photo || t.photo_url);
               let thumbHtml = hasPhoto && t.photo_url 
                 ? `<img src="${t.photo_url}" class="table-thumb" alt="Selfie" onclick="openPhotoModal('${escapeHtml(t.team_name)}', '${t.photo_url}', '${escapeHtml(t.leader_name)}', '${t.score_str}', '${t.rank}')">`
-                : `<a href="/attendance" target="_blank" style="font-size:10.5px; color:#38bdf8; text-decoration:none; padding:2px 7px; background:rgba(56,189,248,0.12); border-radius:5px; border:1px solid rgba(56,189,248,0.25);" title="Upload Team Group Photo">📸 Upload</a>`;
+                : `<button onclick="openUploadModal('${escapeHtml(t.team_name)}', '${t.reg_id || ''}', ${t.team_no || 'null'})" style="font-size:10.5px; color:#38bdf8; background:rgba(56,189,248,0.14); border-radius:5px; border:1px solid rgba(56,189,248,0.3); padding:3px 8px; cursor:pointer;" title="Upload Team Group Photo">📸 Upload</button>`;
 
               let rankBadge = `<strong style="font-size:14px;color:#f8fafc;">#${t.rank}</strong>`;
               if (t.rank === 1) rankBadge = '🥇 #1';
@@ -1516,6 +1585,162 @@ html_code = """<!DOCTYPE html>
           </tbody>
         </table>
       `;
+    }
+
+    // =========================================================================
+    // DIRECT PHOTO UPLOAD & REAL-TIME SYNC ENGINE
+    // =========================================================================
+    let currentUploadTeam = null;
+    let selectedPhotoBase64 = null;
+
+    function openUploadModal(teamName, regId, teamNo) {
+      const team = ALL_TEAMS.find(t => t.team_name.toLowerCase().trim() === teamName.toLowerCase().trim()) || { team_name: teamName, reg_id: regId, team_no: teamNo };
+      currentUploadTeam = team;
+      selectedPhotoBase64 = null;
+
+      document.getElementById('uploadModalTeamName').textContent = `${team.team_name} (Rank #${team.rank || '-'})`;
+      document.getElementById('uploadModalDetails').textContent = `Leader: ${team.leader_name || '-'} • Category: ${team.category || '-'} • Score: ${team.score_str || '-'}`;
+      
+      const previewImg = document.getElementById('uploadPreviewImg');
+      const promptArea = document.getElementById('uploadPrompt');
+      const submitBtn = document.getElementById('btnSubmitPhotoUpload');
+      const alertBox = document.getElementById('uploadAlertBox');
+      const progressBox = document.getElementById('uploadProgressBox');
+      const attLink = document.getElementById('uploadAttendanceLink');
+
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+      promptArea.style.display = 'block';
+      submitBtn.disabled = true;
+      alertBox.style.display = 'none';
+      progressBox.style.display = 'none';
+
+      const tNo = team.team_no || teamNo;
+      if (tNo) {
+        attLink.href = `/static/attendance.html?team=${tNo}`;
+        attLink.style.display = 'inline-block';
+      } else {
+        attLink.href = '/attendance';
+        attLink.style.display = 'inline-block';
+      }
+
+      document.getElementById('uploadPhotoModal').classList.add('open');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeUploadModal() {
+      document.getElementById('uploadPhotoModal').classList.remove('open');
+    }
+
+    function handleDirectPhotoSelect(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const maxDim = 1280;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+
+          selectedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+          const previewImg = document.getElementById('uploadPreviewImg');
+          const promptArea = document.getElementById('uploadPrompt');
+          const submitBtn = document.getElementById('btnSubmitPhotoUpload');
+
+          previewImg.src = selectedPhotoBase64;
+          previewImg.style.display = 'block';
+          promptArea.style.display = 'none';
+          submitBtn.disabled = false;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function submitDirectPhotoUpload() {
+      if (!currentUploadTeam || !selectedPhotoBase64) return;
+
+      const submitBtn = document.getElementById('btnSubmitPhotoUpload');
+      const progressBox = document.getElementById('uploadProgressBox');
+      const alertBox = document.getElementById('uploadAlertBox');
+
+      submitBtn.disabled = true;
+      progressBox.style.display = 'flex';
+      alertBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/sih-results/upload-photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            team_name: currentUploadTeam.team_name,
+            reg_id: currentUploadTeam.reg_id,
+            photo: selectedPhotoBase64
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          progressBox.style.display = 'none';
+          alertBox.style.display = 'block';
+          alertBox.style.background = 'rgba(16, 185, 129, 0.2)';
+          alertBox.style.border = '1px solid #10b981';
+          alertBox.style.color = '#34d399';
+          alertBox.innerHTML = `✅ Photo updated successfully! Refreshing view...`;
+
+          // Update local dataset
+          const teamInAll = ALL_TEAMS.find(t => t.team_name.toLowerCase().trim() === currentUploadTeam.team_name.toLowerCase().trim());
+          if (teamInAll) {
+            teamInAll.photo_url = selectedPhotoBase64;
+            teamInAll.has_photo = true;
+          }
+
+          // Update header metric count
+          const photoCount = ALL_TEAMS.filter(t => t.photo_url).length;
+          const metricPhotos = document.getElementById('metricPhotos');
+          if (metricPhotos) metricPhotos.textContent = photoCount;
+
+          setTimeout(() => {
+            closeUploadModal();
+            renderCards(filterTeams(), document.getElementById('cardsView'));
+            if (window.confetti) {
+              confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+            }
+            openPosterModal(currentUploadTeam.team_name);
+          }, 1000);
+
+        } else {
+          throw new Error(data.error || 'Failed to upload photo.');
+        }
+
+      } catch (err) {
+        progressBox.style.display = 'none';
+        submitBtn.disabled = false;
+        alertBox.style.display = 'block';
+        alertBox.style.background = 'rgba(239, 68, 68, 0.2)';
+        alertBox.style.border = '1px solid #ef4444';
+        alertBox.style.color = '#f87171';
+        alertBox.innerHTML = `❌ Error: ${escapeHtml(err.message)}`;
+      }
     }
 
     function openPhotoModal(teamName, photoUrl, leaderName, score, rank) {

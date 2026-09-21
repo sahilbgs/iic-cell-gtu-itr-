@@ -316,6 +316,19 @@
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script>lucide.createIcons();</script>
 
+  <!-- Zero-Downtime Standby Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          console.log('[GTU Standby] Service worker registered successfully.');
+        }).catch(function(err) {
+          console.warn('[GTU Standby] SW registration failed:', err);
+        });
+      });
+    }
+  </script>
+
   {% block scripts %}{% endblock %}
 </body>
 </html>

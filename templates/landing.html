@@ -401,6 +401,10 @@
     </a>
     
     <div class="landing-nav-actions" style="display: flex; align-items: center; gap: 10px;">
+      <a href="{{ url_for('dashboard.sih_results') }}" class="btn" style="padding: 8px 16px; border-radius: var(--border-radius-full); font-weight: 800; background: linear-gradient(135deg, #f59e0b, #d97706); color: #111827; box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4); border:none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        <i data-lucide="trophy" style="width:15px; height:15px;"></i>
+        <span>SIH 2026 Results</span>
+      </a>
       <a href="{{ url_for('dashboard.announcements') }}" class="btn btn--secondary" style="padding: 9px 18px; border-radius: var(--border-radius-full); font-weight: 700; background: rgba(255,255,255,0.9); border: 1px solid var(--border-color); color: var(--primary);">
         <i data-lucide="megaphone" style="width:15px; height:15px;"></i>
         <span>Announcements</span>
@@ -425,6 +429,38 @@
 
   <!-- All content below scrolls over the fixed cover -->
   <div class="scroll-content">
+
+  <!-- SIH 2026 Official Results Announcement Card -->
+  <section class="features" style="padding-top: 36px; padding-bottom: 10px;">
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); border: 2px solid #38bdf8; border-radius: 20px; padding: 26px 30px; box-shadow: 0 16px 36px -8px rgba(2, 132, 199, 0.35); position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; position: relative; z-index: 2;">
+        <div style="max-width: 780px;">
+          <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 9999px; color: #fbbf24; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px;">
+            <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
+            OFFICIAL RESULTS DECLARED
+          </div>
+          <h2 style="font-family: var(--font-heading); font-size: clamp(1.35rem, 3vw, 1.95rem); color: #ffffff; margin-bottom: 8px; font-weight: 900; line-height: 1.25;">
+            🏆 Smart India Hackathon (SIH 2026) Internal Results
+          </h2>
+          <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin: 0;">
+            Congratulations! The <strong>Top 20 Teams Selected for SIH 2026</strong> and <strong>15 Projects Recommended for ₹2,50,000 SSIP Funding</strong> have been declared with jury marks and verified hackathon team photos.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <a href="{{ url_for('dashboard.sih_results') }}" class="btn btn--primary btn-glow" style="padding: 11px 22px; border-radius: var(--border-radius-full); font-size: 13.5px; font-weight: 800; background: linear-gradient(135deg, #0284c7, #0369a1); border: none; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4); text-decoration: none; color: #fff; display: inline-flex; align-items: center; gap: 8px;">
+            <i data-lucide="trophy" style="width: 16px; height: 16px;"></i>
+            <span>View Top 20 &amp; Photos</span>
+          </a>
+          <a href="{{ url_for('dashboard.sih_results') }}#ssip" onclick="localStorage.setItem('sih_default_tab', 'ssip');" class="btn btn--secondary" style="padding: 11px 18px; border-radius: var(--border-radius-full); font-size: 13px; font-weight: 700; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="coins" style="width: 15px; height: 15px;"></i>
+            <span>SSIP ₹2.5L Teams</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <!-- Active Public Announcements & Registrations Section -->
   {% if public_activities %}

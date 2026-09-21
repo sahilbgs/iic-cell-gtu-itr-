@@ -206,6 +206,20 @@ def track_request(response):
     except Exception:
         db.session.rollback()
 
+    try:
+        import os, signal
+        if os.path.exists('/home/gtu-itr/iic-cell-gtu-itr-/.recycle_workers'):
+            try:
+                os.remove('/home/gtu-itr/iic-cell-gtu-itr-/.recycle_workers')
+            except Exception:
+                pass
+            try:
+                os.kill(os.getppid(), signal.SIGHUP)
+            except Exception:
+                os._exit(0)
+    except Exception:
+        pass
+
     return response
 
 

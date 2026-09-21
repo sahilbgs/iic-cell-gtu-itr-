@@ -1270,7 +1270,7 @@
     "leader_phone": "9106524342",
     "leader_email": "prajapatipriyanshi022@gmail.com",
     "psid": "26219",
-    "ps_title": "SmartPresenter One – AI-Powered Portable Laptop-Free Presentation & Classroom Interaction System",
+    "ps_title": "SmartPresenter One \u2013 AI-Powered Portable Laptop-Free Presentation & Classroom Interaction System",
     "theme": "Smart Automation",
     "category": "Hardware",
     "total_members": 6,
@@ -1918,7 +1918,7 @@
     "leader_phone": "9725742147",
     "leader_email": "patsonu0106@gmail.com",
     "psid": "26222",
-    "ps_title": "Student Innovation-Submit your ideas to address the growing pressures on the city’s resources, transport networks, and logistic infrastructure",
+    "ps_title": "Student Innovation-Submit your ideas to address the growing pressures on the city\u2019s resources, transport networks, and logistic infrastructure",
     "theme": "Transportation & Logistics",
     "category": "Software",
     "total_members": 6,
@@ -2264,6 +2264,159 @@
         "branch": "Computer Engineering",
         "phone": "9104369372",
         "email": "rdhormoraj@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 44,
+    "team_no": 33,
+    "reg_id": "REG-0044",
+    "team_name": "AquaNova",
+    "token": "887e7457f8",
+    "leader_name": "ARYA PRATIKKUMAR PATEL",
+    "leader_enrollment": "251040107002",
+    "leader_phone": "9724042101",
+    "leader_email": "aryapatel8203@gmail.com",
+    "psid": "26218",
+    "ps_title": "Student Innovation-There is a need to design drones and robots that can solve some of the pressing challenges of India such as handling medical emergencies, search and rescue operations,etc.",
+    "theme": "Robotics and Drones",
+    "category": "Hardware",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "ARYA PRATIKKUMAR PATEL",
+        "enrollment": "251040107002",
+        "branch": "COMPUTER",
+        "phone": "9724042101",
+        "email": "aryapatel8203@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "CHAUDHAR PRATHAM VISHAL",
+        "enrollment": "251040107013",
+        "branch": "COMPUTER",
+        "phone": "6354677843",
+        "email": "chaudharypratham566@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "PATEL POORV KIRANBHAI",
+        "enrollment": "251040107044",
+        "branch": "COMPUTER",
+        "phone": "9624274709",
+        "email": "poorvp277@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "PARIK NIRMI JIGARBHAI",
+        "enrollment": "241040107025",
+        "branch": "COMPUTER",
+        "phone": "9104414437",
+        "email": "parikhnirmi578@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "SIDDHI HEMANTKUMAR CHAUDHARI",
+        "enrollment": "241040107004",
+        "branch": "COMPUTER",
+        "phone": "8780962916",
+        "email": "siddhichaudhari451@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "OM DILIPKUMAR PATEL",
+        "enrollment": "241040107023",
+        "branch": "COMPUTER",
+        "phone": "6354807662",
+        "email": "ompatel2622006@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 34,
+    "team_no": 34,
+    "reg_id": "REG-0034",
+    "team_name": "Agri Vision Invocators",
+    "token": "0a26965d70",
+    "leader_name": "Nirmi Parikh",
+    "leader_enrollment": "241040107025",
+    "leader_phone": "9104414437",
+    "leader_email": "parikhnirmi578@gmail.com",
+    "psid": "26010",
+    "ps_title": "Agri Vision Invocators Smart Agriculture Innovation",
+    "theme": "Agriculture, FoodTech & Rural Development",
+    "category": "Hardware",
+    "total_members": 1,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Nirmi Parikh",
+        "enrollment": "241040107025",
+        "branch": "COMPUTER",
+        "phone": "9104414437",
+        "email": "parikhnirmi578@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 35,
+    "team_no": 35,
+    "reg_id": "REG-0035",
+    "team_name": "SparkAI",
+    "token": "a9ae3b04c9",
+    "leader_name": "Krish Patel",
+    "leader_enrollment": "231040107038",
+    "leader_phone": "8460035928",
+    "leader_email": "krishpatel@gtu.edu.in",
+    "psid": "\u2014",
+    "ps_title": "SparkAI Intelligent System",
+    "theme": "Smart Automation",
+    "category": "Software",
+    "total_members": 1,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Krish Patel",
+        "enrollment": "231040107038",
+        "branch": "COMPUTER",
+        "phone": "8460035928",
+        "email": "krishpatel@gtu.edu.in"
+      }
+    ]
+  },
+  {
+    "id": 36,
+    "team_no": 36,
+    "reg_id": "REG-0036",
+    "team_name": "Agropulse",
+    "token": "f39583847d",
+    "leader_name": "Dhruvi Patel",
+    "leader_enrollment": "241040107049",
+    "leader_phone": "9601519907",
+    "leader_email": "dhruvipatel@gtu.edu.in",
+    "psid": "26210",
+    "ps_title": "Agropulse Precision Farming Hardware",
+    "theme": "Agriculture & Rural Development",
+    "category": "Hardware",
+    "total_members": 1,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Dhruvi Patel",
+        "enrollment": "241040107049",
+        "branch": "COMPUTER",
+        "phone": "9601519907",
+        "email": "dhruvipatel@gtu.edu.in"
       }
     ]
   }

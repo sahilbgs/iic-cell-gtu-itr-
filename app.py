@@ -113,14 +113,14 @@ def create_app(config_name=None):
         except Exception:
             pass
 
-        # Content Security Policy (CSP): Allow self, Google Fonts, Lucide icons (unpkg.com), Chart.js (jsdelivr)
+        # Content Security Policy (CSP): Allow self, Google Fonts, Lucide, Chart.js, Firebase
         csp_policies = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' unpkg.com cdn.jsdelivr.net blob:",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' unpkg.com cdn.jsdelivr.net https://www.gstatic.com blob:",
             "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
             "font-src 'self' fonts.gstatic.com unpkg.com",
-            "img-src 'self' data: blob:",
-            "connect-src 'self'",
+            "img-src 'self' data: blob: https:",
+            "connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.firebase.com https://firestore.googleapis.com",
             "frame-ancestors 'self'"
         ]
         response.headers['Content-Security-Policy'] = "; ".join(csp_policies)
@@ -142,6 +142,22 @@ def create_app(config_name=None):
             role_labels=ROLE_LABELS,
             current_year=date.today().year,
         )
+
+    # Service Worker Route for Zero-Downtime Standby Registration
+    @app.route('/sw.js')
+    def service_worker():
+        from flask import send_from_directory
+        res = send_from_directory(os.path.join(app.root_path, 'static'), 'sw.js', mimetype='application/javascript')
+        res.headers['Service-Worker-Allowed'] = '/'
+        res.headers['Cache-Control'] = 'no-cache'
+        return res
+
+    # Auto-Sync Firebase registrations to local PostgreSQL database
+    try:
+        from utils.firebase_sync import start_firebase_sync_scheduler
+        start_firebase_sync_scheduler(app)
+    except Exception as e:
+        app.logger.warning(f"Could not start Firebase sync scheduler: {e}")
 
     # CLI Commands
     register_cli(app)
@@ -209,6 +225,13 @@ def register_cli(app):
         # No additional seeding required
 
         click.echo('\n[SUCCESS] All sample data seeded successfully!')
+
+    @app.cli.command('sync-firebase')
+    def sync_firebase_cli():
+        """Sync registrations from Cloud Firebase to PostgreSQL."""
+        from utils.firebase_sync import sync_firebase_to_database
+        synced, total = sync_firebase_to_database()
+        click.echo(f'[OK] Firebase Sync Complete: {synced} new registrations synced to database (Total in cloud: {total}).')
 
 
 # Create the app instance

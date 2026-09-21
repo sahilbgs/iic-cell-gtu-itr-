@@ -11,9 +11,11 @@ def register_blueprints(app):
     from routes.posts import posts_bp
     from routes.admin import admin_bp
     from routes.analytics import analytics_bp
+    from routes.attendance import attendance_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(posts_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(analytics_bp)
+    app.register_blueprint(attendance_bp)

@@ -501,6 +501,14 @@
       </button>
     </div>
 
+    <!-- Sync from Cloud Firebase -->
+    <form action="{{ url_for('posts.sync_firebase_manual', post_id=post.id) }}" method="POST" style="display:inline; margin:0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn--secondary btn--sm flex items-center gap-1" style="border-color:rgba(15,82,186,0.3); background:rgba(15,82,186,0.06); color:var(--primary); font-weight:700;" title="Sync new registrations from Cloud Firebase">
+        <i data-lucide="cloud-download" style="width:14px;height:14px;color:var(--primary);"></i> Sync from Firebase
+      </button>
+    </form>
+
     <!-- Export Excel (.xlsx) -->
     <a href="{{ url_for('posts.export_registrations_excel', post_id=post.id) }}" class="btn btn--secondary btn--sm flex items-center gap-1" style="border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.06); color:#047857; font-weight:700;" title="Download styled Microsoft Excel workbook">
       <i data-lucide="file-spreadsheet" style="width:14px;height:14px;color:#10b981;"></i> Export Excel (.xlsx)
@@ -776,8 +784,8 @@
     // Render questions from configured form fields
     if (fieldConfigs && fieldConfigs.length > 0) {
       fieldConfigs.forEach(f => {
-        let val = reg.answers ? reg.answers[f.id] : '';
-        if ((val === undefined || val === '') && ['student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'].includes(f.id)) {
+        let val = reg.answers ? (reg.answers[f.id] || reg.answers['field_' + f.id]) : '';
+        if ((val === undefined || val === '' || val === null) && ['student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'].includes(f.id)) {
           val = reg[f.id];
         }
         body.appendChild(createFieldCard(f.label || f.id, val || '', f.type));

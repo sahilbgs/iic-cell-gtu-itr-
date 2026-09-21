@@ -30,8 +30,12 @@ fi
 # Permanently enforce PostgreSQL database URL for all portal processes
 export DATABASE_URL="postgresql+psycopg2://gtu_admin:44113290@localhost:5432/iic_cell_gtu"
 
+GUNICORN_BIN="/usr/bin/gunicorn"
+if [ ! -x "$GUNICORN_BIN" ]; then
+    GUNICORN_BIN="$PROJECT_DIR/venv/bin/gunicorn"
+fi
 echo "Starting GTU-ITR Portal (Gunicorn on 5000)..."
-"$PROJECT_DIR/venv/bin/gunicorn" \
+"$GUNICORN_BIN" \
     --bind 0.0.0.0:5000 \
     --workers 3 \
     --timeout 120 \

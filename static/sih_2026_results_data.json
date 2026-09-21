@@ -15,7 +15,8 @@
     "photo_url": "/static/sih_photos/reg_8.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 8
   },
   {
     "rank": 2,
@@ -33,7 +34,8 @@
     "photo_url": "/static/sih_photos/reg_23.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 13
   },
   {
     "rank": 3,
@@ -51,7 +53,8 @@
     "photo_url": "/static/sih_photos/reg_43.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 32
   },
   {
     "rank": 4,
@@ -69,7 +72,8 @@
     "photo_url": "/static/sih_photos/reg_29.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 19
   },
   {
     "rank": 5,
@@ -87,7 +91,8 @@
     "photo_url": "/static/sih_photos/reg_42.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 31
   },
   {
     "rank": 6,
@@ -105,7 +110,8 @@
     "photo_url": "/static/sih_photos/reg_31.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 21
   },
   {
     "rank": 7,
@@ -123,7 +129,8 @@
     "photo_url": "/static/sih_photos/reg_40.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 30
   },
   {
     "rank": 8,
@@ -141,7 +148,8 @@
     "photo_url": "/static/sih_photos/reg_30.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "Top 20 Nominated",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 20
   },
   {
     "rank": 9,
@@ -159,7 +167,8 @@
     "photo_url": "/static/sih_photos/reg_24.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 14
   },
   {
     "rank": 10,
@@ -177,7 +186,8 @@
     "photo_url": "/static/sih_photos/reg_27.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 17
   },
   {
     "rank": 11,
@@ -195,7 +205,8 @@
     "photo_url": null,
     "status": "SELECTED_TOP_20",
     "remarks": "Top 20 Nominated",
-    "has_photo": false
+    "has_photo": false,
+    "team_no": 26
   },
   {
     "rank": 12,
@@ -213,7 +224,8 @@
     "photo_url": "/static/sih_photos/reg_7.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "Top 20 Nominated",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 7
   },
   {
     "rank": 13,
@@ -231,7 +243,8 @@
     "photo_url": "/static/sih_photos/reg_35.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "Top 20 Nominated",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 25
   },
   {
     "rank": 14,
@@ -249,7 +262,8 @@
     "photo_url": "/static/sih_photos/reg_25.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 15
   },
   {
     "rank": 15,
@@ -267,7 +281,8 @@
     "photo_url": "/static/sih_photos/reg_38.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "Top 20 Nominated",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 28
   },
   {
     "rank": 16,
@@ -285,7 +300,8 @@
     "photo_url": "/static/sih_photos/reg_9.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 9
   },
   {
     "rank": 17,
@@ -303,7 +319,8 @@
     "photo_url": "/static/sih_photos/reg_5.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 5
   },
   {
     "rank": 18,
@@ -339,7 +356,8 @@
     "photo_url": "/static/sih_photos/reg_2.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 2
   },
   {
     "rank": 20,
@@ -357,7 +375,8 @@
     "photo_url": "/static/sih_photos/reg_3.jpg",
     "status": "SELECTED_TOP_20",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 3
   },
   {
     "rank": 21,
@@ -393,7 +412,8 @@
     "photo_url": "/static/sih_photos/reg_4.jpg",
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 4
   },
   {
     "rank": 23,
@@ -411,7 +431,8 @@
     "photo_url": "/static/sih_photos/reg_15.jpg",
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 10
   },
   {
     "rank": 24,
@@ -429,7 +450,8 @@
     "photo_url": "/static/sih_photos/reg_22.jpg",
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 12
   },
   {
     "rank": 25,
@@ -447,7 +469,8 @@
     "photo_url": "/static/sih_photos/reg_39.jpg",
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 29
   },
   {
     "rank": 26,
@@ -465,7 +488,8 @@
     "photo_url": "/static/sih_photos/reg_26.jpg",
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 16
   },
   {
     "rank": 27,
@@ -483,7 +507,8 @@
     "photo_url": "/static/sih_photos/reg_37.jpg",
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 27
   },
   {
     "rank": 28,
@@ -501,7 +526,8 @@
     "photo_url": "/static/sih_photos/reg_32.jpg",
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": true
+    "has_photo": true,
+    "team_no": 22
   },
   {
     "rank": 29,
@@ -519,7 +545,8 @@
     "photo_url": null,
     "status": "EVALUATED",
     "remarks": "SSIP \u20b92,50,000 Recommended",
-    "has_photo": false
+    "has_photo": false,
+    "team_no": 33
   },
   {
     "rank": 30,
@@ -527,17 +554,18 @@
     "category": "Hardware",
     "psid": "26010",
     "leader_name": "Nirmi Parikh",
-    "leader_phone": "-",
-    "leader_enrollment": "-",
+    "leader_phone": "9104414437",
+    "leader_enrollment": "241040107025",
     "score_str": "60/100",
     "score_num": 60,
     "is_top_20": false,
     "is_ssip": false,
-    "reg_id": "-",
+    "reg_id": "REG-0034",
     "photo_url": null,
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": false
+    "has_photo": false,
+    "team_no": 34
   },
   {
     "rank": 31,
@@ -555,7 +583,8 @@
     "photo_url": null,
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": false
+    "has_photo": false,
+    "team_no": 1
   },
   {
     "rank": 32,
@@ -563,17 +592,18 @@
     "category": "Software",
     "psid": "\u2014",
     "leader_name": "Krishpatel",
-    "leader_phone": "-",
-    "leader_enrollment": "-",
+    "leader_phone": "8460035928",
+    "leader_enrollment": "231040107038",
     "score_str": "57/100",
     "score_num": 57,
     "is_top_20": false,
     "is_ssip": false,
-    "reg_id": "-",
+    "reg_id": "REG-0035",
     "photo_url": null,
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": false
+    "has_photo": false,
+    "team_no": 35
   },
   {
     "rank": 33,
@@ -591,7 +621,8 @@
     "photo_url": null,
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": false
+    "has_photo": false,
+    "team_no": 24
   },
   {
     "rank": 34,
@@ -599,17 +630,18 @@
     "category": "Hardware",
     "psid": "26210",
     "leader_name": "Dhruvipatel",
-    "leader_phone": "-",
-    "leader_enrollment": "-",
+    "leader_phone": "9601519907",
+    "leader_enrollment": "241040107049",
     "score_str": "55/100",
     "score_num": 55,
     "is_top_20": false,
     "is_ssip": false,
-    "reg_id": "-",
+    "reg_id": "REG-0036",
     "photo_url": null,
     "status": "EVALUATED",
     "remarks": "",
-    "has_photo": false
+    "has_photo": false,
+    "team_no": 36
   },
   {
     "rank": 35,
@@ -627,7 +659,8 @@
     "photo_url": null,
     "status": "ABSENT",
     "remarks": "Did not attend jury presentation",
-    "has_photo": false
+    "has_photo": false,
+    "team_no": 18
   },
   {
     "rank": 36,
@@ -645,6 +678,7 @@
     "photo_url": null,
     "status": "ABSENT",
     "remarks": "Did not attend jury presentation",
-    "has_photo": false
+    "has_photo": false,
+    "team_no": 23
   }
 ]

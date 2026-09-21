@@ -770,6 +770,18 @@
         {% endwith %}
 
         <!-- REGISTRATION FORM -->
+        
+        <!-- Auto-Saved Draft Restored Banner -->
+        <div id="draftRestoredBanner" style="display:none; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:10px 14px; margin-bottom:18px; align-items:center; justify-content:space-between; font-size:12px; color:#166534; font-weight:600;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="check-circle" style="width:15px;height:15px;color:#16a34a;flex-shrink:0;"></i>
+            <span><strong>Draft Restored:</strong> Your previously entered details were automatically recovered!</span>
+          </div>
+          <button type="button" onclick="clearDraft()" style="border:none; background:#fee2e2; color:#b91c1c; font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:6px; cursor:pointer;">
+            Clear
+          </button>
+        </div>
+
         <form id="studentRegForm" action="{{ url_for('posts.register', post_id=post.id) }}" method="POST" enctype="multipart/form-data" onsubmit="return handleFormSubmit(this)">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
@@ -1044,7 +1056,111 @@
     }
 
     // Submit handler with animation
+    
+    // ══════════════════════════════════════════════════════════
+    // AUTO-SAVE DRAFT & ZERO DATA-LOSS RECOVERY
+    // ══════════════════════════════════════════════════════════
+    const DRAFT_KEY = 'gtu_sih_form_draft_v1';
+    let draftTimeout = null;
+
+    function saveDraft() {
+      clearTimeout(draftTimeout);
+      draftTimeout = setTimeout(() => {
+        const form = document.getElementById('studentRegForm');
+        if (!form) return;
+
+        const draft = {};
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+          const name = input.name;
+          if (!name || name === 'csrf_token' || input.type === 'file') return;
+
+          if (input.type === 'radio') {
+            if (input.checked) draft[name] = input.value;
+          } else if (input.type === 'checkbox') {
+            if (!draft[name]) draft[name] = [];
+            if (input.checked) draft[name].push(input.value);
+          } else {
+            draft[name] = input.value;
+          }
+        });
+
+        try {
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        } catch (e) {}
+      }, 250);
+    }
+
+    function restoreDraft() {
+      const form = document.getElementById('studentRegForm');
+      if (!form) return;
+
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+
+        const draft = JSON.parse(raw);
+        let restoredCount = 0;
+
+        for (const [name, val] of Object.entries(draft)) {
+          if (!val) continue;
+
+          const elements = form.querySelectorAll(`[name="${name}"]`);
+          elements.forEach(elem => {
+            if (elem.type === 'radio') {
+              if (elem.value === val) {
+                elem.checked = true;
+                restoredCount++;
+              }
+            } else if (elem.type === 'checkbox') {
+              if (Array.isArray(val) && val.includes(elem.value)) {
+                elem.checked = true;
+                restoredCount++;
+              }
+            } else {
+              if (val) {
+                elem.value = val;
+                restoredCount++;
+              }
+            }
+          });
+        }
+
+        if (restoredCount > 0) {
+          updateProgress();
+          const banner = document.getElementById('draftRestoredBanner');
+          if (banner) banner.style.display = 'flex';
+          if (window.lucide) lucide.createIcons();
+          console.log(`[Draft Recovery] Restored ${restoredCount} form fields!`);
+        }
+      } catch (e) {
+        console.warn('[Draft Recovery] Error:', e);
+      }
+    }
+
+    function clearDraft() {
+      localStorage.removeItem(DRAFT_KEY);
+      const banner = document.getElementById('draftRestoredBanner');
+      if (banner) banner.style.display = 'none';
+      const form = document.getElementById('studentRegForm');
+      if (form) {
+        form.reset();
+        updateProgress();
+      }
+    }
+
+    // Auto-save listeners & initial restore
+    window.addEventListener('DOMContentLoaded', () => {
+      restoreDraft();
+      const form = document.getElementById('studentRegForm');
+      if (form) {
+        form.addEventListener('input', saveDraft);
+        form.addEventListener('change', saveDraft);
+      }
+    });
+
     function handleFormSubmit(form) {
+      localStorage.removeItem(DRAFT_KEY);
       const btn = document.getElementById('btnSubmitForm');
       if (btn) {
         btn.disabled = true;
@@ -1082,6 +1198,15 @@
 
     // Run initial progress count
     updateProgress();
+
+    // Register Zero-Downtime Standby Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').catch(function(err) {
+          console.warn('[Standby SW] Registration failed:', err);
+        });
+      });
+    }
   </script>
 </body>
 </html>
