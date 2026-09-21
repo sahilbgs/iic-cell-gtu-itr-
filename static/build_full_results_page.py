@@ -1,10 +1,14 @@
 import json
 import base64
+import os
 
-with open('/home/gtu-itr/iic-cell-gtu-itr-/static/sih_2026_results_data.json') as f:
+JSON_PATH = '/home/gtu-itr/iic-cell-gtu-itr-/static/sih_2026_results_data.json'
+with open(JSON_PATH) as f:
     teams_data = json.load(f)
 
+# Ensure no phone numbers exist in the data and determine photo flags
 for t in teams_data:
+    t.pop('leader_phone', None)
     t['has_photo'] = bool(t.get('photo_url'))
 
 photo_count_str = str(sum(1 for t in teams_data if t.get('has_photo')))
@@ -20,10 +24,12 @@ gtu_uni_uri = 'data:image/png;base64,' + gtu_uni_b64
 # Load GTU-ITR R&D Seal Base64
 with open('/home/gtu-itr/iic-cell-gtu-itr-/static/gtu_rnd_seal_300.png', 'rb') as f:
     gtu_rnd_b64 = base64.b64encode(f.read()).decode('utf-8')
-gtu_rnd_uri = 'data:image/png;base64,' + gtu_rnd_b64
+gtu_rnd_seal_uri = 'data:image/png;base64,' + gtu_rnd_b64
+gtu_rnd_uri = gtu_rnd_seal_uri
+
 
 html_code = """<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
@@ -37,8 +43,12 @@ html_code = """<!DOCTYPE html>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
+    /* ============================================================
+       GTU-ITR IIC & R&D Portal Design System — SIH 2026 Results
+       Matches official portal color palette (Sapphire, Crimson, Trophy Gold)
+       ============================================================ */
     :root {
-      /* GTU-ITR IIC Brand Primary Colors */
+      /* Brand Primary Colors (Aligned with IIC Portal style.css) */
       --primary: #0f52ba;
       --primary-light: #2563eb;
       --primary-dark: #1e3a8a;
@@ -62,7 +72,29 @@ html_code = """<!DOCTYPE html>
       --warning: #f59e0b;
       --danger: #ef4444;
 
-      /* Neutrals & Surfaces - Aligned with GTU-ITR IIC Portal Dark Theme */
+      /* Neutrals & Surfaces - Official GTU-ITR IIC Light Theme */
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-hover: #ffffff;
+      --bg-surface-elevated: #f1f5f9;
+      --bg-topbar: rgba(255, 255, 255, 0.94);
+
+      --border-color: #e2e8f0;
+      --border-card: rgba(15, 82, 186, 0.12);
+      --border-subtle: #f1f5f9;
+
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #64748b;
+
+      --shadow-sm: 0 2px 8px rgba(15, 82, 186, 0.05);
+      --shadow-md: 0 6px 20px -2px rgba(15, 82, 186, 0.08);
+      --shadow-lg: 0 16px 36px -6px rgba(15, 82, 186, 0.12);
+      --shadow-card: 0 4px 18px -2px rgba(15, 82, 186, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+      --shadow-glow: 0 0 18px rgba(15, 82, 186, 0.25);
+    }
+
+    [data-theme="dark"] {
       --bg-body: #0b1528;
       --bg-card: #111d33;
       --bg-card-hover: #172642;
@@ -80,6 +112,8 @@ html_code = """<!DOCTYPE html>
       --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
       --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
       --shadow-lg: 0 16px 36px -6px rgba(0, 0, 0, 0.6);
+      --shadow-card: 0 10px 30px -8px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(56, 189, 248, 0.2);
+      --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.3);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -88,9 +122,9 @@ html_code = """<!DOCTYPE html>
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg-body);
       background-image: 
-        radial-gradient(circle at 10% 12%, rgba(15, 82, 186, 0.25) 0%, transparent 45%),
-        radial-gradient(circle at 90% 20%, rgba(214, 40, 40, 0.14) 0%, transparent 40%),
-        radial-gradient(circle at 50% 85%, rgba(15, 82, 186, 0.15) 0%, transparent 55%);
+        radial-gradient(circle at 10% 12%, rgba(15, 82, 186, 0.06) 0%, transparent 45%),
+        radial-gradient(circle at 90% 20%, rgba(214, 40, 40, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 50% 85%, rgba(15, 82, 186, 0.04) 0%, transparent 55%);
       background-attachment: fixed;
       color: var(--text-main);
       min-height: 100vh;
@@ -98,6 +132,14 @@ html_code = """<!DOCTYPE html>
       flex-direction: column;
       padding-bottom: 60px;
       overflow-x: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    [data-theme="dark"] body {
+      background-image: 
+        radial-gradient(circle at 10% 12%, rgba(15, 82, 186, 0.25) 0%, transparent 45%),
+        radial-gradient(circle at 90% 20%, rgba(214, 40, 40, 0.14) 0%, transparent 40%),
+        radial-gradient(circle at 50% 85%, rgba(15, 82, 186, 0.15) 0%, transparent 55%);
     }
 
     /* Top Institutional Header */
@@ -109,6 +151,7 @@ html_code = """<!DOCTYPE html>
       position: sticky;
       top: 0;
       z-index: 100;
+      transition: background 0.25s ease, border-color 0.25s ease;
     }
     .topbar__inner {
       max-width: 1320px;
@@ -131,7 +174,7 @@ html_code = """<!DOCTYPE html>
       width: 44px;
       height: 44px;
       object-fit: contain;
-      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
       flex-shrink: 0;
     }
     .brand-text {
@@ -141,85 +184,87 @@ html_code = """<!DOCTYPE html>
       font-family: 'Outfit', sans-serif;
       font-size: 1.15rem;
       font-weight: 800;
-      color: #38bdf8;
+      color: var(--primary-dark);
       line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    [data-theme="dark"] .brand-text h1 {
+      color: #38bdf8;
+    }
     .brand-text p {
-      font-size: 11px;
-      color: var(--text-muted);
+      font-size: 12px;
+      color: var(--text-dim);
       font-weight: 500;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
     .nav-actions {
       display: flex;
       align-items: center;
       gap: 10px;
       flex-shrink: 0;
     }
+
+    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 16px;
-      border-radius: 9px;
+      padding: 9px 18px;
+      border-radius: 10px;
       font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
+      font-weight: 700;
       text-decoration: none;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
       border: 1px solid transparent;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
       user-select: none;
     }
     .btn--primary {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      color: #fff;
-      border-color: rgba(56, 189, 248, 0.3);
-      box-shadow: 0 2px 8px rgba(15, 82, 186, 0.35);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(15, 82, 186, 0.3);
     }
     .btn--primary:hover {
-      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
       transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(15, 82, 186, 0.45);
-    }
-    .btn--outline {
-      background: rgba(255,255,255,0.05);
-      border-color: var(--border-color);
-      color: var(--text-main);
-    }
-    .btn--outline:hover {
-      background: rgba(255,255,255,0.1);
-      border-color: #64748b;
+      box-shadow: 0 6px 18px rgba(15, 82, 186, 0.4);
     }
     .btn--gold {
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: #0b1528;
-      font-weight: 700;
-      border-color: rgba(251, 191, 36, 0.4);
-      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
     }
     .btn--gold:hover {
-      filter: brightness(1.1);
       transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
+      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.45);
     }
     .btn--secondary {
-      background: rgba(255,255,255,0.06);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
+      background: var(--bg-surface-elevated);
+      color: var(--text-muted);
+      border-color: var(--border-color);
     }
     .btn--secondary:hover {
-      background: rgba(255,255,255,0.12);
+      background: rgba(15, 82, 186, 0.08);
+      color: var(--primary);
+      border-color: var(--primary-light);
+    }
+    .btn--outline {
+      background: transparent;
+      border-color: var(--border-color);
+      color: var(--text-muted);
+    }
+    .btn--outline:hover {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      border-color: var(--primary);
     }
 
-    /* Container */
+    /* Main Container */
     .container {
       max-width: 1320px;
       margin: 0 auto;
@@ -227,36 +272,25 @@ html_code = """<!DOCTYPE html>
       width: 100%;
     }
 
-    /* Hero Banner */
+    /* Hero Banner - Elegant Institutional Accent */
     .hero-banner {
-      background: linear-gradient(135deg, rgba(17, 29, 51, 0.95) 0%, rgba(11, 21, 40, 0.92) 100%);
-      border: 1.5px solid rgba(56, 189, 248, 0.28);
+      background: linear-gradient(135deg, #0a1628 0%, #1e3a8a 50%, #0f52ba 100%);
+      border: 2px solid rgba(15, 82, 186, 0.35);
       border-radius: 24px;
-      padding: 36px 32px;
-      margin-bottom: 24px;
-      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      padding: 30px 34px;
       position: relative;
       overflow: hidden;
-    }
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: -40%;
-      right: -15%;
-      width: 420px;
-      height: 420px;
-      background: radial-gradient(circle, rgba(15, 82, 186, 0.22) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
+      box-shadow: 0 16px 36px -8px rgba(15, 82, 186, 0.22);
+      margin-bottom: 24px;
     }
     .hero-banner::after {
       content: '';
       position: absolute;
-      bottom: -40%;
-      left: -15%;
-      width: 380px;
-      height: 380px;
-      background: radial-gradient(circle, rgba(214, 40, 40, 0.14) 0%, transparent 70%);
+      top: -40px;
+      right: -40px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%);
       border-radius: 50%;
       pointer-events: none;
     }
@@ -265,38 +299,38 @@ html_code = """<!DOCTYPE html>
       align-items: center;
       gap: 6px;
       padding: 5px 14px;
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.5);
       border-radius: 9999px;
       color: #fbbf24;
-      font-size: 11.5px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .hero-title {
       font-family: 'Outfit', sans-serif;
-      font-size: clamp(1.65rem, 3.8vw, 2.65rem);
+      font-size: clamp(1.6rem, 3.2vw, 2.3rem);
       font-weight: 900;
-      line-height: 1.18;
-      margin-bottom: 12px;
       color: #ffffff;
-    }
-    .hero-title span {
-      background: linear-gradient(135deg, #38bdf8 0%, #60a5fa 50%, #93c5fd 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      line-height: 1.2;
+      margin-bottom: 8px;
     }
     .hero-subtitle {
-      color: var(--text-muted);
-      font-size: 14.5px;
-      line-height: 1.6;
+      color: #e2e8f0;
+      font-size: 14px;
       max-width: 820px;
-      margin-bottom: 22px;
+      line-height: 1.55;
+      margin-bottom: 20px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
-    /* KPI Metrics Cards */
+    /* Metric Cards (KPIs) */
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -304,20 +338,20 @@ html_code = """<!DOCTYPE html>
       margin-top: 24px;
     }
     .metric-card {
-      background: rgba(11, 21, 40, 0.65);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-card);
       border-radius: 16px;
       padding: 16px 20px;
       display: flex;
       align-items: center;
       gap: 14px;
       transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
     }
     .metric-card:hover {
-      border-color: rgba(56, 189, 248, 0.35);
+      border-color: var(--primary);
       transform: translateY(-2px);
-      background: rgba(17, 29, 51, 0.85);
+      box-shadow: var(--shadow-md);
     }
     .metric-icon {
       width: 44px;
@@ -330,46 +364,46 @@ html_code = """<!DOCTYPE html>
     }
     .metric-val {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.55rem;
-      font-weight: 800;
-      color: #ffffff;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--text-main);
       line-height: 1;
     }
     .metric-label {
       font-size: 11.5px;
-      color: var(--text-muted);
+      color: var(--text-dim);
       margin-top: 4px;
-      font-weight: 500;
+      font-weight: 600;
       line-height: 1.25;
     }
 
     /* Tab Controls */
     .controls-panel {
-      background: rgba(17, 29, 51, 0.75);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-card);
       border-radius: 20px;
       padding: 16px 20px;
       margin-bottom: 24px;
       display: flex;
       flex-direction: column;
       gap: 14px;
+      box-shadow: var(--shadow-sm);
     }
     .tabs-row {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      border-bottom: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-color);
       padding-bottom: 12px;
     }
     .tab-btn {
-      background: transparent;
-      border: 1px solid transparent;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
       color: var(--text-muted);
       padding: 10px 18px;
       border-radius: 11px;
       font-size: 13.5px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -378,21 +412,26 @@ html_code = """<!DOCTYPE html>
       user-select: none;
     }
     .tab-btn:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-main);
+      background: rgba(15, 82, 186, 0.08);
+      color: var(--primary);
+      border-color: var(--primary-light);
     }
     .tab-btn.active {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
       color: #ffffff;
-      border-color: rgba(56, 189, 248, 0.4);
-      box-shadow: 0 4px 14px rgba(15, 82, 186, 0.4);
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(15, 82, 186, 0.35);
     }
     .tab-badge {
       font-size: 11px;
       padding: 2px 8px;
       border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.22);
-      font-weight: 700;
+      background: rgba(0, 0, 0, 0.15);
+      font-weight: 800;
+    }
+    .tab-btn.active .tab-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
     }
 
     /* Search and Filters */
@@ -410,25 +449,27 @@ html_code = """<!DOCTYPE html>
     }
     .search-box input {
       width: 100%;
-      background: #0b1528;
-      border: 1px solid var(--border-color);
+      background: var(--bg-surface-elevated);
+      border: 1.5px solid var(--border-color);
       border-radius: 10px;
       padding: 10px 14px 10px 38px;
       color: var(--text-main);
       font-size: 13px;
+      font-weight: 500;
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
     .search-box input:focus {
-      border-color: #38bdf8;
-      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(15, 82, 186, 0.15);
+      background: var(--bg-card);
     }
     .search-box i, .search-box svg {
       position: absolute;
       left: 12px;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--text-muted);
+      color: var(--text-dim);
       width: 16px;
       height: 16px;
     }
@@ -444,7 +485,7 @@ html_code = """<!DOCTYPE html>
       flex-wrap: wrap;
     }
     .pill-btn {
-      background: #0b1528;
+      background: var(--bg-surface-elevated);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
       padding: 7px 14px;
@@ -459,14 +500,14 @@ html_code = """<!DOCTYPE html>
       user-select: none;
     }
     .pill-btn:hover {
-      border-color: #64748b;
-      color: #fff;
+      border-color: var(--primary-light);
+      color: var(--primary);
     }
     .pill-btn.active {
-      background: rgba(15, 82, 186, 0.35);
-      border-color: #38bdf8;
-      color: #38bdf8;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(15, 82, 186, 0.25);
     }
 
     .view-toggles {
@@ -474,27 +515,29 @@ html_code = """<!DOCTYPE html>
       gap: 6px;
     }
     .icon-toggle {
-      background: #0b1528;
+      background: var(--bg-surface-elevated);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      width: 38px;
+      padding: 6px 10px;
       height: 38px;
       border-radius: 8px;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
     }
     .icon-toggle:hover {
-      border-color: #64748b;
-      color: #fff;
+      border-color: var(--primary-light);
+      color: var(--primary);
     }
     .icon-toggle.active {
       background: var(--primary);
-      border-color: #38bdf8;
+      border-color: var(--primary);
       color: #ffffff;
-      box-shadow: 0 2px 8px rgba(15, 82, 186, 0.4);
+      box-shadow: 0 2px 8px rgba(15, 82, 186, 0.3);
     }
 
     /* Card Grid System */
@@ -514,62 +557,66 @@ html_code = """<!DOCTYPE html>
       flex-direction: column;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow-card);
       min-width: 0;
     }
     .team-card:hover {
       transform: translateY(-4px);
-      border-color: #38bdf8;
-      box-shadow: 0 16px 36px -6px rgba(15, 82, 186, 0.4);
+      border-color: var(--primary);
+      box-shadow: 0 14px 30px -4px rgba(15, 82, 186, 0.16);
     }
     .team-card.gold-tier {
       border-color: rgba(245, 158, 11, 0.45);
     }
     .team-card.gold-tier:hover {
       border-color: #fbbf24;
-      box-shadow: 0 16px 36px -6px rgba(245, 158, 11, 0.4);
+      box-shadow: 0 14px 30px -4px rgba(245, 158, 11, 0.25);
     }
 
     /* Card Header / Rank Badge */
     .card-topbar {
-      padding: 11px 16px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(11, 21, 40, 0.85);
-      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-surface-elevated);
+      border-bottom: 1px solid var(--border-color);
     }
     .rank-pill {
       font-family: 'Outfit', sans-serif;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 800;
-      padding: 4px 10px;
+      padding: 3px 9px;
       border-radius: 6px;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
     .rank-pill.rank-1 {
       background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: #0b1528;
+      color: #ffffff;
       font-weight: 900;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
     }
     .rank-pill.rank-2 {
-      background: linear-gradient(135deg, #e2e8f0, #94a3b8);
-      color: #0b1528;
+      background: linear-gradient(135deg, #94a3b8, #64748b);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(100, 116, 139, 0.35);
     }
     .rank-pill.rank-3 {
       background: linear-gradient(135deg, #d97706, #b45309);
-      color: #fff;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
     }
     .rank-pill.rank-top {
-      background: rgba(15, 82, 186, 0.25);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      color: #38bdf8;
+      background: rgba(15, 82, 186, 0.12);
+      border: 1px solid rgba(15, 82, 186, 0.28);
+      color: var(--primary);
     }
     .rank-pill.rank-eval {
-      background: rgba(148, 163, 184, 0.12);
-      color: #94a3b8;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-dim);
     }
 
     .category-badge {
@@ -581,11 +628,21 @@ html_code = """<!DOCTYPE html>
       border-radius: 6px;
     }
     .category-badge.software {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .category-badge.hardware {
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #fed7aa;
+    }
+    [data-theme="dark"] .category-badge.software {
       background: rgba(15, 82, 186, 0.2);
       color: #60a5fa;
       border: 1px solid rgba(56, 189, 248, 0.35);
     }
-    .category-badge.hardware {
+    [data-theme="dark"] .category-badge.hardware {
       background: rgba(249, 115, 22, 0.15);
       color: #fb923c;
       border: 1px solid rgba(249, 115, 22, 0.3);
@@ -595,8 +652,8 @@ html_code = """<!DOCTYPE html>
     .card-photo-wrapper {
       position: relative;
       width: 100%;
-      height: 200px;
-      background: #0b1528;
+      height: 185px;
+      background: var(--bg-surface-elevated);
       overflow: hidden;
       cursor: pointer;
     }
@@ -612,14 +669,14 @@ html_code = """<!DOCTYPE html>
     }
     .photo-tag {
       position: absolute;
-      bottom: 10px;
-      left: 10px;
-      background: rgba(11, 21, 40, 0.88);
+      bottom: 8px;
+      left: 8px;
+      background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(6px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      padding: 4px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 3px 8px;
       border-radius: 6px;
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 700;
       color: #34d399;
       display: inline-flex;
@@ -628,13 +685,13 @@ html_code = """<!DOCTYPE html>
     }
     .photo-zoom-hint {
       position: absolute;
-      bottom: 10px;
-      right: 10px;
-      background: rgba(0,0,0,0.75);
-      color: #fff;
-      padding: 4px 8px;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #ffffff;
+      padding: 3px 7px;
       border-radius: 6px;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
@@ -650,55 +707,59 @@ html_code = """<!DOCTYPE html>
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle, #172642 0%, #0b1528 100%);
-      color: #64748b;
-      gap: 8px;
+      background: linear-gradient(135deg, var(--bg-surface-elevated) 0%, var(--bg-body) 100%);
+      color: var(--text-dim);
+      gap: 6px;
     }
     .placeholder-avatar {
-      width: 54px;
-      height: 54px;
+      width: 50px;
+      height: 50px;
       border-radius: 14px;
-      background: rgba(15, 82, 186, 0.2);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      color: #38bdf8;
+      background: rgba(15, 82, 186, 0.12);
+      border: 1.5px solid rgba(15, 82, 186, 0.25);
+      color: var(--primary);
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: 'Outfit', sans-serif;
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       font-weight: 800;
     }
 
     /* Card Content */
     .card-body {
-      padding: 16px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
       flex-grow: 1;
-      gap: 12px;
+      gap: 10px;
       min-width: 0;
     }
     .team-heading {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 10px;
+      gap: 8px;
       min-width: 0;
     }
     .team-name {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.22rem;
+      font-size: 1.12rem;
       font-weight: 800;
-      color: #f8fafc;
+      color: var(--text-main);
       line-height: 1.25;
       word-break: break-word;
       overflow-wrap: break-word;
     }
     .team-reg {
       font-size: 11px;
-      color: var(--text-muted);
+      color: var(--primary);
       font-family: monospace;
       margin-top: 3px;
+      display: inline-block;
+      background: rgba(15, 82, 186, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
     }
 
     /* Score Badge */
@@ -710,32 +771,34 @@ html_code = """<!DOCTYPE html>
     }
     .score-num {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.35rem;
+      font-size: 1.28rem;
       font-weight: 900;
-      color: #38bdf8;
+      color: var(--primary);
       line-height: 1;
     }
-    .score-num.gold { color: #fbbf24; }
-    .score-num.emerald { color: #34d399; }
-    .score-num.muted { color: #94a3b8; font-size: 1rem; }
+    .score-num.gold { color: #d97706; }
+    .score-num.emerald { color: #059669; }
+    .score-num.muted { color: var(--text-dim); font-size: 1rem; }
+    [data-theme="dark"] .score-num.gold { color: #fbbf24; }
+    [data-theme="dark"] .score-num.emerald { color: #34d399; }
     .score-sub {
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 700;
-      color: var(--text-muted);
+      color: var(--text-dim);
       text-transform: uppercase;
       margin-top: 2px;
     }
 
-    /* PSID & Leader */
+    /* Details Info List (No phone numbers shown) */
     .info-list {
       display: flex;
       flex-direction: column;
-      gap: 7px;
-      background: rgba(11, 21, 40, 0.65);
-      border: 1px solid var(--border-subtle);
+      gap: 6px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
       border-radius: 10px;
-      padding: 9px 12px;
-      font-size: 12px;
+      padding: 8px 11px;
+      font-size: 11.5px;
     }
     .info-row {
       display: flex;
@@ -744,16 +807,17 @@ html_code = """<!DOCTYPE html>
       gap: 8px;
     }
     .info-label {
-      color: #94a3b8;
+      color: var(--text-dim);
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      font-size: 11.5px;
+      font-size: 11px;
+      font-weight: 500;
       flex-shrink: 0;
     }
     .info-val {
-      color: #f8fafc;
-      font-weight: 600;
+      color: var(--text-main);
+      font-weight: 700;
       text-align: right;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -762,16 +826,21 @@ html_code = """<!DOCTYPE html>
 
     /* SSIP Tag */
     .ssip-ribbon {
-      background: linear-gradient(135deg, rgba(217, 119, 6, 0.22), rgba(245, 158, 11, 0.12));
-      border: 1px solid rgba(245, 158, 11, 0.45);
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      border: 1px solid #fde68a;
       border-radius: 8px;
-      padding: 7px 11px;
-      font-size: 11.5px;
+      padding: 6px 10px;
+      font-size: 11px;
       font-weight: 700;
-      color: #fbbf24;
+      color: #b45309;
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
+    }
+    [data-theme="dark"] .ssip-ribbon {
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.22), rgba(245, 158, 11, 0.12));
+      border-color: rgba(245, 158, 11, 0.45);
+      color: #fbbf24;
     }
 
     /* Card Footer Action Buttons */
@@ -780,15 +849,15 @@ html_code = """<!DOCTYPE html>
       gap: 8px;
       margin-top: auto;
       padding-top: 10px;
-      border-top: 1px solid var(--border-subtle);
+      border-top: 1px solid var(--border-color);
     }
     .btn-poster-action {
       flex: 1;
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(217, 119, 6, 0.12));
-      border: 1px solid rgba(245, 158, 11, 0.45);
-      color: #fbbf24;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border: none;
+      color: #ffffff;
       border-radius: 8px;
-      padding: 9px 12px;
+      padding: 8px 12px;
       font-size: 12px;
       font-weight: 700;
       cursor: pointer;
@@ -798,157 +867,31 @@ html_code = """<!DOCTYPE html>
       gap: 6px;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
     }
     .btn-poster-action:hover {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.38), rgba(217, 119, 6, 0.28));
-      border-color: #fbbf24;
-      color: #fff;
       transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
     }
     .btn-photo-action {
-      padding: 9px 12px;
+      padding: 8px 12px;
       border-radius: 8px;
       font-size: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-color);
-      color: #94a3b8;
+      background: var(--bg-surface-elevated);
+      border: 1.5px solid var(--border-color);
+      color: var(--primary);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s;
       user-select: none;
+      font-weight: 600;
     }
     .btn-photo-action:hover {
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
-      border-color: #64748b;
-    }
-
-    /* Dedicated Compact 2-Column Grid Layout */
-    .cards-grid.compact-view {
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-      gap: 14px;
-    }
-    .cards-grid.compact-view .team-card {
-      border-radius: 14px;
-    }
-    .cards-grid.compact-view .card-topbar {
-      padding: 7px 10px;
-    }
-    .cards-grid.compact-view .rank-pill {
-      font-size: 11px;
-      padding: 2px 7px;
-      gap: 4px;
-    }
-    .cards-grid.compact-view .category-badge {
-      font-size: 9.5px;
-      padding: 2px 5px;
-    }
-    .cards-grid.compact-view .card-photo-wrapper {
-      height: 125px;
-    }
-    .cards-grid.compact-view .placeholder-avatar {
-      width: 40px;
-      height: 40px;
-      font-size: 1.15rem;
-      border-radius: 10px;
-    }
-    .cards-grid.compact-view .photo-tag {
-      font-size: 9px;
-      padding: 2px 6px;
-      bottom: 6px;
-      left: 6px;
-    }
-    .cards-grid.compact-view .photo-zoom-hint {
-      display: none;
-    }
-    .cards-grid.compact-view .card-body {
-      padding: 10px;
-      gap: 8px;
-    }
-    .cards-grid.compact-view .team-heading {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
-    }
-    .cards-grid.compact-view .team-name {
-      font-size: 0.94rem;
-      line-height: 1.25;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      min-height: 2.3em;
-    }
-    .cards-grid.compact-view .team-reg {
-      display: none;
-    }
-    .cards-grid.compact-view .score-badge {
-      flex-direction: row;
-      align-items: center;
-      gap: 5px;
-    }
-    .cards-grid.compact-view .score-num {
-      font-size: 1.15rem;
-    }
-    .cards-grid.compact-view .score-sub {
-      font-size: 9px;
-      margin-top: 0;
-    }
-    .cards-grid.compact-view .ssip-ribbon {
-      padding: 4px 6px;
-      font-size: 9.5px;
-      border-radius: 6px;
-      gap: 4px;
-    }
-    .cards-grid.compact-view .ssip-ribbon i, .cards-grid.compact-view .ssip-ribbon svg {
-      width: 12px;
-      height: 12px;
-    }
-    .cards-grid.compact-view .info-list {
-      padding: 6px 8px;
-      font-size: 10.5px;
-      gap: 4px;
-      border-radius: 6px;
-    }
-    .cards-grid.compact-view .info-row {
-      font-size: 10.5px;
-    }
-    .cards-grid.compact-view .info-label {
-      font-size: 10px;
-      gap: 3px;
-    }
-    .cards-grid.compact-view .info-label i, .cards-grid.compact-view .info-label svg {
-      width: 11px;
-      height: 11px;
-    }
-    .cards-grid.compact-view .info-val {
-      font-size: 10.5px;
-    }
-    .cards-grid.compact-view .card-footer-actions {
-      padding-top: 6px;
-      gap: 4px;
-    }
-    .cards-grid.compact-view .btn-poster-action {
-      padding: 6px 4px;
-      font-size: 10.5px;
-      gap: 4px;
-      border-radius: 6px;
-    }
-    .cards-grid.compact-view .btn-poster-action i, .cards-grid.compact-view .btn-poster-action svg {
-      width: 12px;
-      height: 12px;
-    }
-    .cards-grid.compact-view .btn-photo-action {
-      padding: 6px 7px;
-      font-size: 10.5px;
-      border-radius: 6px;
-    }
-    .cards-grid.compact-view .btn-photo-action i, .cards-grid.compact-view .btn-photo-action svg {
-      width: 12px;
-      height: 12px;
+      background: rgba(15, 82, 186, 0.1);
+      border-color: var(--primary);
+      color: var(--primary-dark);
     }
 
     /* Table View */
@@ -957,7 +900,7 @@ html_code = """<!DOCTYPE html>
       border: 1.5px solid var(--border-card);
       border-radius: 16px;
       overflow-x: auto;
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-card);
       -webkit-overflow-scrolling: touch;
     }
     .results-table {
@@ -967,28 +910,28 @@ html_code = """<!DOCTYPE html>
       font-size: 13px;
     }
     .results-table th {
-      background: #0b1528;
-      color: #94a3b8;
+      background: var(--bg-surface-elevated);
+      color: var(--text-dim);
       font-weight: 700;
       font-size: 11.5px;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       padding: 14px 16px;
       text-align: left;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 2px solid var(--border-color);
     }
     .results-table td {
       padding: 12px 16px;
-      border-bottom: 1px solid var(--border-subtle);
-      color: #cbd5e1;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
       vertical-align: middle;
     }
     .results-table tr:hover td {
-      background: rgba(15, 82, 186, 0.1);
+      background: rgba(15, 82, 186, 0.04);
     }
     .table-thumb {
-      width: 52px;
-      height: 40px;
+      width: 48px;
+      height: 38px;
       border-radius: 6px;
       object-fit: cover;
       cursor: pointer;
@@ -996,35 +939,35 @@ html_code = """<!DOCTYPE html>
       transition: transform 0.2s;
     }
     .table-thumb:hover {
-      transform: scale(1.15);
-      border-color: #38bdf8;
+      transform: scale(1.12);
+      border-color: var(--primary);
     }
 
     /* Lightbox & Poster Modals */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.88);
+      background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(8px);
       z-index: 1000;
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
     }
     .modal-overlay.open { display: flex; }
     .modal-box {
-      background: #111d33;
+      background: var(--bg-card);
       border: 1.5px solid var(--border-card);
       border-radius: 20px;
       max-width: 720px;
       width: 100%;
       overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
       animation: zoomIn 0.2s ease-out;
     }
     @keyframes zoomIn {
-      from { opacity: 0; transform: scale(0.95); }
+      from { opacity: 0; transform: scale(0.96); }
       to { opacity: 1; transform: scale(1); }
     }
     .modal-header {
@@ -1033,7 +976,7 @@ html_code = """<!DOCTYPE html>
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid var(--border-color);
-      background: rgba(11, 21, 40, 0.85);
+      background: var(--bg-surface-elevated);
     }
     .modal-img-wrap {
       width: 100%;
@@ -1054,13 +997,13 @@ html_code = """<!DOCTYPE html>
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #0b1528;
-      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-surface-elevated);
+      border-top: 1px solid var(--border-color);
     }
 
     /* Poster Specific Modal Elements */
     .poster-modal-dialog {
-      background: #111d33;
+      background: var(--bg-card);
       border: 1.5px solid var(--border-card);
       border-radius: 20px;
       max-width: 860px;
@@ -1069,16 +1012,16 @@ html_code = """<!DOCTYPE html>
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
       animation: zoomIn 0.2s ease-out;
     }
     .poster-canvas-box {
       max-width: 440px;
       width: 100%;
-      box-shadow: 0 20px 45px rgba(0,0,0,0.65);
+      box-shadow: 0 16px 36px rgba(0,0,0,0.4);
       border-radius: 14px;
       overflow: hidden;
-      border: 1.5px solid rgba(56, 189, 248, 0.35);
+      border: 1.5px solid var(--border-color);
       background: #060a12;
       position: relative;
     }
@@ -1122,7 +1065,7 @@ html_code = """<!DOCTYPE html>
 
     @media (max-width: 768px) {
       .hero-banner {
-        padding: 24px 18px;
+        padding: 22px 18px;
       }
       .controls-panel {
         padding: 14px 12px;
@@ -1135,11 +1078,9 @@ html_code = """<!DOCTYPE html>
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
         gap: 8px;
-        padding-bottom: 8px;
+        padding-bottom: 6px;
       }
-      .tabs-row::-webkit-scrollbar {
-        display: none;
-      }
+      .tabs-row::-webkit-scrollbar { display: none; }
       .tab-btn {
         flex-shrink: 0;
         white-space: nowrap;
@@ -1149,52 +1090,33 @@ html_code = """<!DOCTYPE html>
       .filter-row {
         flex-direction: column;
         align-items: stretch;
-        gap: 10px;
-      }
-      .search-box {
-        min-width: 100%;
-        width: 100%;
       }
       .filter-actions-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
         width: 100%;
+        justify-content: space-between;
       }
       .filter-pills {
         flex-wrap: nowrap;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
-        flex: 1;
-        min-width: 0;
-        padding-bottom: 2px;
+        padding-bottom: 4px;
       }
-      .filter-pills::-webkit-scrollbar {
-        display: none;
-      }
+      .filter-pills::-webkit-scrollbar { display: none; }
       .pill-btn {
         flex-shrink: 0;
         white-space: nowrap;
-        padding: 6px 11px;
-        font-size: 11.5px;
-      }
-      .view-toggles {
-        flex-shrink: 0;
-      }
-      .brand-text p {
-        display: none;
       }
     }
 
+    /* SMARTPHONE ORIENTED RESPONSIVE GRID (<= 640px) */
     @media (max-width: 640px) {
       .container {
-        padding: 14px 10px 0;
+        padding: 12px 10px 0;
       }
       .topbar__inner {
         padding: 10px 12px;
-        gap: 10px;
+        gap: 8px;
       }
       .brand-logo {
         width: 36px;
@@ -1207,7 +1129,7 @@ html_code = """<!DOCTYPE html>
         gap: 6px;
       }
       .nav-actions .btn {
-        padding: 6px 10px;
+        padding: 6px 9px;
         font-size: 11.5px;
         border-radius: 8px;
       }
@@ -1217,20 +1139,20 @@ html_code = """<!DOCTYPE html>
       .hero-banner {
         padding: 18px 14px;
         border-radius: 18px;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
       .hero-title {
-        font-size: 1.4rem;
+        font-size: 1.35rem;
       }
       .hero-subtitle {
-        font-size: 12.5px;
+        font-size: 12px;
         line-height: 1.5;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
       .metrics-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
-        margin-top: 16px;
+        margin-top: 14px;
       }
       .metric-card {
         padding: 10px 12px;
@@ -1250,58 +1172,151 @@ html_code = """<!DOCTYPE html>
         font-size: 1.35rem;
       }
       .metric-label {
-        font-size: 10.5px;
+        font-size: 10px;
         line-height: 1.2;
       }
       
-      /* Standard Cards View on Mobile */
+      /* TRUE 2-COLUMN GRID ON MOBILE BY DEFAULT ("properly grid me dikhe") */
       .cards-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
       }
       .team-card {
-        border-radius: 16px;
+        border-radius: 14px;
+      }
+      .card-topbar {
+        padding: 6px 8px;
+      }
+      .rank-pill {
+        font-size: 10.5px;
+        padding: 2px 6px;
+      }
+      .category-badge {
+        font-size: 9px;
+        padding: 2px 5px;
       }
       .card-photo-wrapper {
-        height: 185px;
+        height: 112px;
+      }
+      .photo-tag {
+        font-size: 8.5px;
+        padding: 2px 5px;
+        bottom: 5px;
+        left: 5px;
+      }
+      .photo-zoom-hint {
+        display: none;
+      }
+      .placeholder-avatar {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
       }
       .card-body {
+        padding: 10px 8px;
+        gap: 6px;
+      }
+      .team-heading {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+      }
+      .team-name {
+        font-size: 0.88rem;
+        line-height: 1.25;
+        min-height: 2.5em;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .team-reg {
+        font-size: 9.5px;
+        padding: 1px 4px;
+      }
+      .score-badge {
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+      }
+      .score-num {
+        font-size: 1.1rem;
+      }
+      .score-sub {
+        font-size: 8.5px;
+      }
+      .ssip-ribbon {
+        font-size: 9px;
+        padding: 4px 6px;
+        gap: 4px;
+        border-radius: 6px;
+      }
+      .ssip-ribbon i, .ssip-ribbon svg {
+        width: 11px;
+        height: 11px;
+      }
+      .info-list {
+        padding: 6px 8px;
+        font-size: 10.5px;
+        gap: 4px;
+        border-radius: 6px;
+      }
+      .info-row {
+        font-size: 10.5px;
+      }
+      .info-label {
+        font-size: 10px;
+        gap: 3px;
+      }
+      .info-label i, .info-label svg {
+        width: 10px;
+        height: 10px;
+      }
+      .info-val {
+        font-size: 10.5px;
+      }
+      .card-footer-actions {
+        padding-top: 6px;
+        gap: 4px;
+      }
+      .btn-poster-action {
+        padding: 6px 4px;
+        font-size: 10px;
+        gap: 3px;
+        border-radius: 6px;
+      }
+      .btn-poster-action i, .btn-poster-action svg {
+        width: 11px;
+        height: 11px;
+      }
+      .btn-photo-action {
+        padding: 6px 6px;
+        font-size: 10px;
+        border-radius: 6px;
+      }
+      .btn-photo-action i, .btn-photo-action svg {
+        width: 11px;
+        height: 11px;
+      }
+
+      /* 1-COLUMN FULL WIDTH LIST VIEW (When chosen by user) */
+      .cards-grid.list-view {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+      }
+      .cards-grid.list-view .card-photo-wrapper {
+        height: 185px;
+      }
+      .cards-grid.list-view .team-name {
+        font-size: 1.15rem;
+      }
+      .cards-grid.list-view .card-body {
         padding: 14px;
         gap: 10px;
       }
-      .team-name {
-        font-size: 1.15rem;
-      }
-      .card-footer-actions .btn-poster-action {
-        padding: 10px 14px;
-        font-size: 12.5px;
-      }
-
-      /* Compact 2-Column Grid View on Mobile */
-      .cards-grid.compact-view {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-      }
-      .cards-grid.compact-view .card-photo-wrapper {
-        height: 110px;
-      }
-      .cards-grid.compact-view .card-body {
-        padding: 8px 6px;
-        gap: 5px;
-      }
-      .cards-grid.compact-view .team-name {
-        font-size: 0.84rem;
-      }
-      .cards-grid.compact-view .score-num {
-        font-size: 1.05rem;
-      }
-      .cards-grid.compact-view .btn-poster-action {
-        padding: 5px 3px;
-        font-size: 9.5px;
-      }
-      .cards-grid.compact-view .btn-photo-action {
-        padding: 5px 5px;
-        font-size: 9.5px;
+      .cards-grid.list-view .btn-poster-action {
+        padding: 9px 14px;
+        font-size: 12px;
       }
     }
 
@@ -1323,7 +1338,7 @@ html_code = """<!DOCTYPE html>
 </head>
 <body>
 
-  <!-- Hidden DOM Preload for GTU Logos (Guarantees instant availability) -->
+  <!-- Hidden DOM Preload for GTU Logos -->
   <img id="domGtuUniSeal" src="/static/gtu_uni_seal_300.png" style="display:none;" alt="GTU Seal">
   <img id="domGtuRndSeal" src="/static/gtu_rnd_seal_300.png" style="display:none;" alt="GTU R&D Seal">
 
@@ -1334,10 +1349,15 @@ html_code = """<!DOCTYPE html>
         <img src="/static/gtu_uni_seal_300.png" alt="GTU Logo" class="brand-logo" onerror="this.src='/static/gtu_logo.png'">
         <div class="brand-text">
           <h1>GTU-ITR IIC &amp; R&amp;D Cell</h1>
-          <p>Smart India Hackathon (SIH 2026) Internal Results</p>
+          <p>Smart India Hackathon (SIH 2026) Official Results</p>
         </div>
       </a>
       <div class="nav-actions">
+        <!-- Light / Dark Theme Switcher -->
+        <button onclick="toggleTheme()" class="btn btn--outline" id="themeToggleBtn" title="Toggle Light / Dark Theme">
+          <i id="themeIcon" data-lucide="moon" style="width:15px;height:15px;"></i>
+          <span id="themeLabel">Dark</span>
+        </button>
         <button onclick="triggerConfetti()" class="btn btn--gold" title="Celebrate Winners">
           <i data-lucide="sparkles" style="width:15px;height:15px;"></i>
           <span>Celebrate</span>
@@ -1354,60 +1374,60 @@ html_code = """<!DOCTYPE html>
     </div>
   </header>
 
-  <!-- Main Container -->
   <main class="container">
-    
-    <!-- Hero Banner -->
-    <section class="hero-banner">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-        <div>
-          <div class="hero-badge">
-            <i data-lucide="award" style="width:13px;height:13px;"></i>
-            Official Result Declaration • SIH 2026
-          </div>
-          <h2 class="hero-title">
-            Smart India Hackathon 2026<br>
-            <span>Internal Hackathon Results &amp; Nominations</span>
-          </h2>
-          <p class="hero-subtitle">
-            Heartiest congratulations to all 36 participating innovator teams of Gujarat Technological University - ITR!
-            Below is the officially ratified evaluation roster comprising the <strong>Top 20 Teams Selected for SIH 2026</strong>, 
-            along with <strong>15 Projects Recommended for SSIP ₹2,50,000/- Grant Support</strong>.
-          </p>
-        </div>
 
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <button onclick="openPosterModal(ALL_TEAMS[0].team_name)" class="btn btn--gold" style="padding: 10px 18px; border-radius: 12px; font-weight: 800;">
-            <i data-lucide="sparkles" style="width:16px;height:16px;"></i>
-            <span>Create Team Posters</span>
-          </button>
-        </div>
+    <!-- Hero Announcement Banner -->
+    <section class="hero-banner">
+      <div class="hero-badge">
+        <i data-lucide="award" style="width:14px;height:14px;"></i>
+        <span>Official Internal Results Declared</span>
+      </div>
+      <h2 class="hero-title">
+        Smart India Hackathon (SIH 2026) Results
+      </h2>
+      <p class="hero-subtitle">
+        Hearty congratulations to all participants! The <strong>Top 20 Teams Selected for SIH 2026 Nationals</strong> and <strong>15 Projects Recommended for ₹2,50,000 SSIP Funding</strong> have been declared with official jury rankings and verified hackathon photos.
+      </p>
+
+      <div class="hero-actions">
+        <button onclick="openPosterModal(ALL_TEAMS[0].team_name)" class="btn btn--gold" style="padding: 10px 18px; border-radius: 12px; font-weight: 800;">
+          <i data-lucide="sparkles" style="width:16px;height:16px;"></i>
+          <span>Create Team Posters</span>
+        </button>
+        <button onclick="switchTab('top20')" class="btn btn--primary" style="padding: 10px 18px; border-radius: 12px;">
+          <i data-lucide="trophy" style="width:16px;height:16px;"></i>
+          <span>Top 20 Winners</span>
+        </button>
+        <button onclick="switchTab('ssip')" class="btn btn--secondary" style="padding: 10px 18px; border-radius: 12px;">
+          <i data-lucide="coins" style="width:16px;height:16px;"></i>
+          <span>SSIP ₹2.5L Grant Teams</span>
+        </button>
       </div>
 
       <!-- KPI Metrics -->
       <div class="metrics-grid">
         <div class="metric-card">
-          <div class="metric-icon" style="background:rgba(56, 189, 248, 0.15); color:#38bdf8;">
+          <div class="metric-icon" style="background:rgba(15, 82, 186, 0.12); color:#0f52ba;">
             <i data-lucide="trophy" style="width:24px;height:24px;"></i>
           </div>
           <div>
             <div class="metric-val" id="metricTop20">20</div>
-            <div class="metric-label">Teams Selected for SIH 2026</div>
+            <div class="metric-label">Top 20 Teams (Selected)</div>
           </div>
         </div>
 
         <div class="metric-card">
-          <div class="metric-icon" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24;">
+          <div class="metric-icon" style="background:rgba(245, 158, 11, 0.15); color:#d97706;">
             <i data-lucide="coins" style="width:24px;height:24px;"></i>
           </div>
           <div>
             <div class="metric-val" id="metricSsip">15</div>
-            <div class="metric-label">SSIP Recommended (₹2.5L Grant)</div>
+            <div class="metric-label">SSIP Recommended (₹2.5L)</div>
           </div>
         </div>
 
         <div class="metric-card">
-          <div class="metric-icon" style="background:rgba(168, 85, 247, 0.15); color:#c084fc;">
+          <div class="metric-icon" style="background:rgba(168, 85, 247, 0.15); color:#9333ea;">
             <i data-lucide="camera" style="width:24px;height:24px;"></i>
           </div>
           <div>
@@ -1417,7 +1437,7 @@ html_code = """<!DOCTYPE html>
         </div>
 
         <div class="metric-card">
-          <div class="metric-icon" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">
+          <div class="metric-icon" style="background:rgba(16, 185, 129, 0.15); color:#059669;">
             <i data-lucide="layers" style="width:24px;height:24px;"></i>
           </div>
           <div>
@@ -1467,14 +1487,17 @@ html_code = """<!DOCTYPE html>
           </div>
 
           <div class="view-toggles">
-            <button class="icon-toggle active" id="btnViewGrid" onclick="setViewMode('grid')" title="Detailed Cards View">
-              <i data-lucide="layout-grid" style="width:17px;height:17px;"></i>
+            <button class="icon-toggle active" id="btnViewGrid" onclick="setViewMode('grid')" title="Grid View (2-Column on Mobile, 3-Column on Desktop)">
+              <i data-lucide="layout-grid" style="width:16px;height:16px;"></i>
+              <span style="font-size:11.5px;">Grid</span>
             </button>
-            <button class="icon-toggle" id="btnViewCompact" onclick="setViewMode('compact')" title="Compact 2-Column Grid View">
-              <i data-lucide="grid-2x2" style="width:17px;height:17px;"></i>
+            <button class="icon-toggle" id="btnViewList" onclick="setViewMode('list')" title="1-Column Full Card List">
+              <i data-lucide="rows" style="width:16px;height:16px;"></i>
+              <span style="font-size:11.5px;">List</span>
             </button>
             <button class="icon-toggle" id="btnViewTable" onclick="setViewMode('table')" title="Table Sheet View">
-              <i data-lucide="table" style="width:17px;height:17px;"></i>
+              <i data-lucide="table" style="width:16px;height:16px;"></i>
+              <span style="font-size:11.5px;">Table</span>
             </button>
           </div>
         </div>
@@ -1494,10 +1517,10 @@ html_code = """<!DOCTYPE html>
     <div class="modal-box">
       <div class="modal-header">
         <div>
-          <h3 id="modalTeamName" style="font-family:'Outfit'; font-size:1.15rem; color:#38bdf8; font-weight:800;">Team Selfie</h3>
-          <p id="modalSub" style="font-size:12px; color:#94a3b8;">GTU-ITR Internal Hackathon Venue Capture</p>
+          <h3 id="modalTeamName" style="font-family:'Outfit'; font-size:1.15rem; color:var(--primary); font-weight:800;">Team Selfie</h3>
+          <p id="modalSub" style="font-size:12px; color:var(--text-dim);">GTU-ITR Internal Hackathon Venue Capture</p>
         </div>
-        <button onclick="closePhotoModal()" style="background:none; border:none; color:#94a3b8; cursor:pointer;">
+        <button onclick="closePhotoModal()" style="background:none; border:none; color:var(--text-dim); cursor:pointer;">
           <i data-lucide="x" style="width:20px;height:20px;"></i>
         </button>
       </div>
@@ -1505,7 +1528,7 @@ html_code = """<!DOCTYPE html>
         <img id="modalImg" src="" alt="Team Group Selfie" class="modal-img">
       </div>
       <div class="modal-footer">
-        <span id="modalMeta" style="font-size:12px; color:#cbd5e1; font-weight:600;"></span>
+        <span id="modalMeta" style="font-size:12px; color:var(--text-muted); font-weight:600;"></span>
         <div style="display: flex; gap: 8px;">
           <button onclick="openPosterModalFromCurrentPhoto()" class="btn btn--gold" style="padding:6px 14px; font-size:12px;">
             <i data-lucide="sparkles" style="width:13px;height:13px;"></i>
@@ -1525,29 +1548,29 @@ html_code = """<!DOCTYPE html>
     <div class="modal-box" style="max-width: 500px; width: 95%;">
       <div class="modal-header">
         <div>
-          <h3 id="uploadModalTitle" style="font-family:'Outfit'; font-size:1.15rem; color:#38bdf8; font-weight:800; display:flex; align-items:center; gap:8px;">
+          <h3 id="uploadModalTitle" style="font-family:'Outfit'; font-size:1.15rem; color:var(--primary); font-weight:800; display:flex; align-items:center; gap:8px;">
             <i data-lucide="camera" style="width:18px;height:18px;"></i>
             <span>Upload Team Hackathon Photo</span>
           </h3>
-          <p id="uploadModalSub" style="font-size:12px; color:#94a3b8;">Attach official group photo or selfie for Results &amp; Social Poster</p>
+          <p id="uploadModalSub" style="font-size:12px; color:var(--text-dim);">Attach official group photo or selfie for Results &amp; Social Poster</p>
         </div>
-        <button onclick="closeUploadModal()" style="background:none; border:none; color:#94a3b8; cursor:pointer;">
+        <button onclick="closeUploadModal()" style="background:none; border:none; color:var(--text-dim); cursor:pointer;">
           <i data-lucide="x" style="width:20px;height:20px;"></i>
         </button>
       </div>
 
-      <div style="padding: 18px; background: #0f172a; display: flex; flex-direction: column; gap: 14px;">
-        <div style="background: rgba(15, 82, 186, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 10px 14px;">
-          <div style="font-size: 14px; font-weight: 800; color: #f8fafc;" id="uploadModalTeamName"></div>
-          <div style="font-size: 12px; color: #94a3b8; margin-top: 3px;" id="uploadModalDetails"></div>
+      <div style="padding: 18px; background: var(--bg-card); display: flex; flex-direction: column; gap: 14px;">
+        <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 14px;">
+          <div style="font-size: 14px; font-weight: 800; color: var(--text-main);" id="uploadModalTeamName"></div>
+          <div style="font-size: 12px; color: var(--text-dim); margin-top: 3px;" id="uploadModalDetails"></div>
         </div>
 
-        <div id="uploadPreviewArea" style="width: 100%; height: 210px; border: 2px dashed rgba(56, 189, 248, 0.4); border-radius: 12px; background: rgba(30, 41, 59, 0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+        <div id="uploadPreviewArea" style="width: 100%; height: 210px; border: 2px dashed var(--primary-light); border-radius: 12px; background: var(--bg-surface-elevated); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; position: relative;">
           <img id="uploadPreviewImg" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
           <div id="uploadPrompt" style="text-align: center; padding: 16px;">
-            <i data-lucide="image-plus" style="width: 40px; height: 40px; color: #38bdf8; margin: 0 auto 8px; display: block;"></i>
-            <span style="font-size: 13px; color: #cbd5e1; font-weight: 600;">Choose Photo or Take Selfie</span>
-            <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Supports JPG, PNG, WEBP</p>
+            <i data-lucide="image-plus" style="width: 40px; height: 40px; color: var(--primary); margin: 0 auto 8px; display: block;"></i>
+            <span style="font-size: 13px; color: var(--text-main); font-weight: 600;">Choose Photo or Take Selfie</span>
+            <p style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Supports JPG, PNG, WEBP</p>
           </div>
         </div>
 
@@ -1564,7 +1587,7 @@ html_code = """<!DOCTYPE html>
           </label>
         </div>
 
-        <div id="uploadProgressBox" style="display: none; align-items: center; gap: 10px; padding: 10px; background: rgba(56, 189, 248, 0.15); border-radius: 8px; color: #38bdf8; font-size: 12.5px; font-weight: 600;">
+        <div id="uploadProgressBox" style="display: none; align-items: center; gap: 10px; padding: 10px; background: rgba(15, 82, 186, 0.1); border-radius: 8px; color: var(--primary); font-size: 12.5px; font-weight: 600;">
           <div class="spinner"></div>
           <span>Uploading and updating live results...</span>
         </div>
@@ -1577,7 +1600,7 @@ html_code = """<!DOCTYPE html>
         </button>
 
         <div style="text-align: center; margin-top: -2px;">
-          <a id="uploadAttendanceLink" href="/attendance" target="_blank" style="font-size: 11.5px; color: #94a3b8; text-decoration: underline;">
+          <a id="uploadAttendanceLink" href="/attendance" target="_blank" style="font-size: 11.5px; color: var(--text-dim); text-decoration: underline;">
             Or open Team Attendance Portal &rarr;
           </a>
         </div>
@@ -1590,69 +1613,66 @@ html_code = """<!DOCTYPE html>
     <div class="poster-modal-dialog">
       <div class="modal-header" style="padding: 14px 20px;">
         <div>
-          <h3 id="posterModalTitle" style="font-family:'Outfit'; font-size:1.2rem; color:#fbbf24; font-weight:800; display:flex; align-items:center; gap:8px;">
+          <h3 id="posterModalTitle" style="font-family:'Outfit'; font-size:1.2rem; color:var(--primary); font-weight:800; display:flex; align-items:center; gap:8px;">
             <i data-lucide="sparkles" style="width:18px;height:18px;"></i>
             <span>Team Achievement Poster</span>
           </h3>
-          <p style="font-size:12px; color:#94a3b8;">Instagram Story / Post Ready • Tag <strong>@gtu_itr_official</strong></p>
+          <p style="font-size:12px; color:var(--text-dim);">Instagram Story / Post Ready • Tag <strong>@gtu_itr_official</strong></p>
         </div>
-        <button onclick="closePosterModal()" style="background:none; border:none; color:#94a3b8; cursor:pointer;">
+        <button onclick="closePosterModal()" style="background:none; border:none; color:var(--text-dim); cursor:pointer;">
           <i data-lucide="x" style="width:20px;height:20px;"></i>
         </button>
       </div>
 
-      <!-- Modal Body with Canvas & Controls -->
-      <div style="padding: 16px 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 14px; background: #0b1120;">
-        <!-- Format selector pills -->
-        <div style="display: flex; gap: 10px; align-items: center; justify-content: center; width: 100%;">
-          <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">Size:</span>
-          <button id="btnAspectPortrait" onclick="setPosterAspectRatio('portrait')" class="pill-btn active">
-            📱 4:5 Portrait (Insta Post &amp; Story)
-          </button>
-          <button id="btnAspectSquare" onclick="setPosterAspectRatio('square')" class="pill-btn">
-            🔲 1:1 Square (Feed)
-          </button>
-        </div>
-
-        <!-- Canvas preview container -->
-        <div class="poster-canvas-box">
-          <canvas id="posterCanvas"></canvas>
-          <div id="posterLoading" style="position: absolute; inset: 0; background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px; color: #38bdf8;">
-            <i data-lucide="loader-2" class="spin" style="width: 32px; height: 32px;"></i>
-            <span style="font-size: 13px; font-weight: 600;">Rendering HD Poster with GTU Seal...</span>
+      <div style="display: flex; flex-direction: column; md:flex-row; padding: 16px 20px; gap: 20px; overflow-y: auto; background: var(--bg-card);">
+        <!-- Aspect Ratio Switcher -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <span style="font-size: 12.5px; font-weight: 700; color: var(--text-main);">Poster Format:</span>
+          <div style="display: flex; gap: 8px;">
+            <button id="btnAspectPortrait" onclick="setPosterAspectRatio('portrait')" class="pill-btn active">
+              <i data-lucide="smartphone" style="width: 13px; height: 13px;"></i>
+              <span>Portrait 4:5 (Story / Reel)</span>
+            </button>
+            <button id="btnAspectSquare" onclick="setPosterAspectRatio('square')" class="pill-btn">
+              <i data-lucide="square" style="width: 13px; height: 13px;"></i>
+              <span>Square 1:1 (Post Feed)</span>
+            </button>
           </div>
         </div>
 
-        <!-- Caption Box with Copy Button -->
-        <div style="width: 100%; max-width: 500px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px;">
+        <!-- Canvas Area -->
+        <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
+          <div class="poster-canvas-box">
+            <canvas id="posterCanvas"></canvas>
+            <div id="posterLoading" style="position: absolute; inset: 0; background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px; color: #38bdf8;">
+              <i data-lucide="loader-2" class="spin" style="width: 32px; height: 32px;"></i>
+              <span style="font-size: 13px; font-weight: 600;">Rendering HD Poster with GTU Seal...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Social Caption Preview & Actions -->
+        <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-size: 11.5px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 5px;">
-              <i data-lucide="instagram" style="width: 13px; height: 13px;"></i> Ready-to-Post Instagram Caption:
-            </span>
+            <span style="font-size: 11.5px; font-weight: 800; color: var(--primary); text-transform: uppercase;">Instagram &amp; LinkedIn Caption</span>
             <button onclick="copyPosterCaption()" class="btn btn--secondary" style="padding: 4px 10px; font-size: 11px; border-radius: 6px;">
               <i data-lucide="copy" style="width: 12px; height: 12px;"></i>
               <span id="copyCaptionText">Copy Caption</span>
             </button>
           </div>
-          <p id="posterCaptionPreview" style="font-size: 12px; color: #cbd5e1; line-height: 1.5; margin: 0; white-space: pre-line; user-select: all; font-family: sans-serif;"></p>
+          <p id="posterCaptionPreview" style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0; white-space: pre-line; user-select: all; font-family: sans-serif;"></p>
         </div>
       </div>
 
-      <!-- Modal Footer -->
-      <div class="modal-footer" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: #0f172a;">
-        <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 12px;">
-          <span style="display: inline-flex; align-items: center; gap: 4px; color: #fbbf24; font-weight: 700;">
-            <i data-lucide="instagram" style="width: 14px; height: 14px;"></i> @gtu_itr_official
-          </span>
-          <span>• Official GTU Seal Verified</span>
-        </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <div class="modal-footer" style="padding: 12px 20px; background: var(--bg-surface-elevated);">
+        <button onclick="closePosterModal()" class="btn btn--secondary" style="padding: 8px 16px; font-size: 12.5px;">Close</button>
+        <div style="display: flex; gap: 10px;">
           <button onclick="sharePoster()" id="btnSharePoster" class="btn btn--secondary" style="padding: 8px 16px; font-size: 12.5px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
             <i data-lucide="share-2" style="width: 14px; height: 14px;"></i>
             <span>Share</span>
           </button>
           <button onclick="downloadPosterImage()" class="btn btn--gold" style="padding: 8px 18px; font-size: 12.5px; font-weight: 800; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-            <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+            <i data-lucide="download" style="width: 14px; height: 14px;"></i>
             <span>Download Poster (PNG)</span>
           </button>
         </div>
@@ -1660,87 +1680,115 @@ html_code = """<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- Application Logic -->
   <script>
-    // Embedded Official SIH 2026 Dataset & Logos
-    let ALL_TEAMS = """ + teams_json_str + """;
+    // Embedded Data with GTU University and R&D Seals (NO PHONE NUMBERS)
     const GTU_UNI_SEAL_URI = '""" + gtu_uni_uri + """';
-    const GTU_RND_SEAL_URI = '""" + gtu_rnd_uri + """';
+    const GTU_RND_SEAL_URI = '""" + gtu_rnd_seal_uri + """';
+    const ALL_TEAMS = """ + teams_json_str + """;
 
+    // Application State
     let currentTab = 'top20';
     let currentCategory = 'all';
     let filterWithPhotoOnly = false;
-    let currentView = 'grid';
+    let currentView = 'grid'; // 'grid' (2-col mobile, 3-col desktop), 'list' (1-col), 'table'
     let searchQuery = '';
-    let currentPhotoTeamName = '';
 
     // Poster Modal State
     let currentPosterTeam = null;
     let currentPosterAspect = 'portrait';
-    const photoCache = {};
+    let photoCache = {};
+
+    // Upload Modal State
+    let currentUploadTeam = null;
+    let selectedPhotoBase64 = null;
+    let currentPhotoTeamName = null;
+
+    // Theme Management (Light matching IIC Portal as default, optional Dark Mode)
+    function initTheme() {
+      const saved = localStorage.getItem('sih_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+      updateThemeUI(saved);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('sih_theme', next);
+      updateThemeUI(next);
+    }
+
+    function updateThemeUI(theme) {
+      const icon = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (icon) {
+        icon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+      }
+      if (label) {
+        label.textContent = theme === 'dark' ? 'Light' : 'Dark';
+      }
+      if (window.lucide) lucide.createIcons();
+    }
 
     function init() {
-      // Check URL Hash or localStorage for initial tab
-      const hash = (window.location.hash || '').replace('#', '');
-      if (hash === 'ssip' || hash === 'top20' || hash === 'all') {
-        switchTab(hash);
-      } else {
-        const savedTab = localStorage.getItem('sih_default_tab');
-        if (savedTab) {
-          localStorage.removeItem('sih_default_tab');
-          switchTab(savedTab);
-        }
+      initTheme();
+
+      // Check URL hash or localStorage for tab
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      const savedTab = localStorage.getItem('sih_default_tab');
+      if (hash === 'ssip' || savedTab === 'ssip') {
+        currentTab = 'ssip';
+        localStorage.removeItem('sih_default_tab');
+      } else if (hash === 'all') {
+        currentTab = 'all';
       }
 
-      // Preload GTU Logos into cache
-      loadImageAsync(GTU_UNI_SEAL_URI);
-      loadImageAsync(GTU_RND_SEAL_URI);
-
-      if (window.lucide) lucide.createIcons();
+      updateTabUI();
       render();
-      syncLiveResults();
+
+      // Background silent auto-poll for new attendance selfies
+      setInterval(syncLivePhotosSilently, 20000);
     }
 
-    async function syncLiveResults() {
+    async function syncLivePhotosSilently() {
       try {
         const res = await fetch('/api/sih-results?t=' + Date.now(), { cache: 'no-store' });
-        if (res.ok) {
-          const freshTeams = await res.json();
-          if (Array.isArray(freshTeams) && freshTeams.length > 0) {
-            let changed = false;
-            if (freshTeams.length !== ALL_TEAMS.length) {
+        if (!res.ok) return;
+        const freshTeams = await res.json();
+        if (!Array.isArray(freshTeams)) return;
+
+        let changed = false;
+        freshTeams.forEach(fresh => {
+          const local = ALL_TEAMS.find(t => t.team_name === fresh.team_name || t.reg_id === fresh.reg_id);
+          if (local) {
+            if (fresh.photo_url && fresh.photo_url !== local.photo_url) {
+              local.photo_url = fresh.photo_url;
+              local.has_photo = true;
               changed = true;
-            } else {
-              for (let i = 0; i < freshTeams.length; i++) {
-                if (freshTeams[i].photo_url !== ALL_TEAMS[i].photo_url || freshTeams[i].has_photo !== ALL_TEAMS[i].has_photo) {
-                  changed = true;
-                  break;
-                }
-              }
-            }
-            if (changed) {
-              ALL_TEAMS = freshTeams;
-              render();
-              console.log('[Live Sync] Results updated with newly uploaded photos.');
             }
           }
+        });
+
+        if (changed) {
+          render();
         }
-      } catch (e) {
-        console.debug('Live sync check:', e);
+      } catch (err) {
+        // silent fail
       }
     }
-
-    setInterval(syncLiveResults, 15000);
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') syncLiveResults();
-    });
 
     function switchTab(tab) {
       currentTab = tab;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      if (tab === 'top20') document.getElementById('tabBtnTop20').classList.add('active');
-      if (tab === 'ssip') document.getElementById('tabBtnSsip').classList.add('active');
-      if (tab === 'all') document.getElementById('tabBtnAll').classList.add('active');
+      updateTabUI();
       render();
+    }
+
+    function updateTabUI() {
+      document.querySelectorAll('.tabs-row .tab-btn').forEach(btn => btn.classList.remove('active'));
+      if (currentTab === 'top20') document.getElementById('tabBtnTop20').classList.add('active');
+      if (currentTab === 'ssip') document.getElementById('tabBtnSsip').classList.add('active');
+      if (currentTab === 'all') document.getElementById('tabBtnAll').classList.add('active');
     }
 
     function setCategoryFilter(cat, btn) {
@@ -1763,8 +1811,7 @@ html_code = """<!DOCTYPE html>
     function setViewMode(mode) {
       currentView = mode;
       document.getElementById('btnViewGrid').classList.toggle('active', mode === 'grid');
-      const btnCompact = document.getElementById('btnViewCompact');
-      if (btnCompact) btnCompact.classList.toggle('active', mode === 'compact');
+      document.getElementById('btnViewList').classList.toggle('active', mode === 'list');
       document.getElementById('btnViewTable').classList.toggle('active', mode === 'table');
       render();
     }
@@ -1812,122 +1859,108 @@ html_code = """<!DOCTYPE html>
       const cardsContainer = document.getElementById('cardsView');
       const tableContainer = document.getElementById('tableView');
 
-      if (currentView === 'grid' || currentView === 'compact') {
+      if (currentView === 'grid' || currentView === 'list') {
         cardsContainer.style.display = 'grid';
         tableContainer.style.display = 'none';
-        if (currentView === 'compact') {
-          cardsContainer.classList.add('compact-view');
+        if (currentView === 'list') {
+          cardsContainer.classList.add('list-view');
         } else {
-          cardsContainer.classList.remove('compact-view');
+          cardsContainer.classList.remove('list-view');
         }
-        renderGrid(teams, cardsContainer);
+        renderCards(teams, cardsContainer);
       } else {
         cardsContainer.style.display = 'none';
         tableContainer.style.display = 'block';
         renderTable(teams, tableContainer);
       }
 
-      if (window.lucide) lucide.createIcons();
+      if (window.lucide) {
+        lucide.createIcons();
+      }
     }
 
-    function renderGrid(teams, container) {
+    function renderCards(teams, container) {
       if (teams.length === 0) {
         container.innerHTML = `
-          <div style="grid-column: 1/-1; text-align:center; padding: 60px 20px; background:var(--bg-card); border-radius:16px; border:1px dashed var(--border-color);">
-            <i data-lucide="search-x" style="width:48px;height:48px;color:#64748b;margin-bottom:12px;"></i>
-            <h3 style="font-size:1.2rem;color:#f8fafc;margin-bottom:6px;">No Teams Found</h3>
-            <p style="color:#94a3b8;font-size:13px;">Try clearing filters or adjusting your search keyword.</p>
+          <div style="grid-column: 1/-1; padding: 60px 20px; text-align: center; color: var(--text-dim);">
+            <i data-lucide="search-x" style="width: 44px; height: 44px; margin: 0 auto 12px; display: block; opacity: 0.5;"></i>
+            <h3 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 6px;">No teams match the filter</h3>
+            <p style="font-size: 13px;">Try selecting another category or clearing your search term.</p>
           </div>
         `;
         return;
       }
 
       container.innerHTML = teams.map(t => {
-        const isGold = t.rank <= 3;
-        let rankClass = 'rank-top';
-        let rankLabel = `#${t.rank} Nominated`;
-        if (t.rank === 1) { rankClass = 'rank-1'; rankLabel = '🥇 Rank 1 (Top Winner)'; }
-        else if (t.rank === 2) { rankClass = 'rank-2'; rankLabel = '🥈 Rank 2 (1st Runner Up)'; }
-        else if (t.rank === 3) { rankClass = 'rank-3'; rankLabel = '🥉 Rank 3 (2nd Runner Up)'; }
-        else if (!t.is_top_20) { rankClass = 'rank-eval'; rankLabel = `Rank #${t.rank}`; }
+        let rankClass = 'rank-eval';
+        let rankBadge = `#${t.rank}`;
+        if (t.rank === 1) { rankClass = 'rank-1'; rankBadge = '🥇 #1 Winner'; }
+        else if (t.rank === 2) { rankClass = 'rank-2'; rankBadge = '🥈 #2 Runner'; }
+        else if (t.rank === 3) { rankClass = 'rank-3'; rankBadge = '🥉 #3'; }
+        else if (t.is_top_20) { rankClass = 'rank-top'; rankBadge = `⭐ Top 20 (#${t.rank})`; }
 
-        const catClass = (t.category || '').toLowerCase() === 'hardware' ? 'hardware' : 'software';
+        let scoreClass = 'muted';
+        if (t.rank <= 3) scoreClass = 'gold';
+        else if (t.is_top_20) scoreClass = 'emerald';
 
-        // Photo HTML
-        let photoHtml = '';
+        const isGoldCard = t.rank <= 3;
         const hasPhoto = Boolean(t.has_photo || t.photo_url);
-        if (hasPhoto && t.photo_url) {
-          photoHtml = `
-            <div class="card-photo-wrapper" onclick="openPhotoModal('${escapeHtml(t.team_name)}', '${t.photo_url}', '${escapeHtml(t.leader_name)}', '${t.score_str}', '${t.rank}')">
-              <img src="${t.photo_url}" alt="${escapeHtml(t.team_name)}" class="card-photo" loading="lazy">
-              <span class="photo-tag"><i data-lucide="camera" style="width:11px;height:11px;"></i> Verified Selfie</span>
-              <span class="photo-zoom-hint"><i data-lucide="maximize-2" style="width:10px;height:10px;"></i> View Photo</span>
-            </div>
-          `;
-        } else {
-          const initial = t.team_name.charAt(0).toUpperCase();
-          photoHtml = `
-            <div class="card-photo-wrapper">
-              <div class="photo-placeholder">
-                <div class="placeholder-avatar">${initial}</div>
-                <span style="font-size:11.5px;color:#94a3b8;display:inline-flex;align-items:center;gap:4px;">
-                  <i data-lucide="camera-off" style="width:13px;height:13px;"></i> Photo Pending
-                </span>
-                <button onclick="openUploadModal('${escapeHtml(t.team_name)}', '${t.reg_id || ''}', ${t.team_no || 'null'})" style="margin-top:8px; font-size:11px; font-weight:700; color:#38bdf8; background:rgba(56,189,248,0.14); border-radius:6px; border:1px solid rgba(56,189,248,0.35); padding:4px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Upload Team Group Photo">
-                  <i data-lucide="camera" style="width:12px;height:12px;"></i> Upload Photo
-                </button>
-              </div>
-            </div>
-          `;
-        }
-
-        // Score color
-        let scoreClass = 'emerald';
-        if (isGold) scoreClass = 'gold';
-        if (t.score_str === 'Absent') scoreClass = 'muted';
 
         return `
-          <div class="team-card ${isGold ? 'gold-tier' : ''}">
+          <div class="team-card ${isGoldCard ? 'gold-tier' : ''}" data-team="${escapeHtml(t.team_name)}">
+            
+            <!-- Card Top Bar: Rank & Category -->
             <div class="card-topbar">
-              <span class="rank-pill ${rankClass}">${rankLabel}</span>
-              <span class="category-badge ${catClass}">${t.category}</span>
+              <span class="rank-pill ${rankClass}">${rankBadge}</span>
+              <span class="category-badge ${t.category.toLowerCase()}">${t.category}</span>
             </div>
 
-            ${photoHtml}
+            <!-- Card Photo Wrapper -->
+            <div class="card-photo-wrapper" onclick="${hasPhoto && t.photo_url ? `openPhotoModal('${escapeHtml(t.team_name)}', '${t.photo_url}', '${escapeHtml(t.leader_name)}', '${t.score_str}', '${t.rank}')` : `openUploadModal('${escapeHtml(t.team_name)}', '${t.reg_id || ''}', ${t.team_no || 'null'})`}">
+              ${hasPhoto && t.photo_url ? `
+                <img src="${t.photo_url}" class="card-photo" alt="${escapeHtml(t.team_name)} Selfie" loading="lazy">
+                <span class="photo-tag"><i data-lucide="check-circle" style="width:11px;height:11px;"></i> Verified Selfie</span>
+                <span class="photo-zoom-hint"><i data-lucide="maximize-2" style="width:10px;height:10px;"></i> View</span>
+              ` : `
+                <div class="photo-placeholder">
+                  <div class="placeholder-avatar">${escapeHtml(t.team_name.charAt(0).toUpperCase())}</div>
+                  <span style="font-size:11px; font-weight:600; color:var(--primary); display:inline-flex; align-items:center; gap:4px;">
+                    <i data-lucide="camera" style="width:12px;height:12px;"></i> Upload Team Selfie
+                  </span>
+                </div>
+              `}
+            </div>
 
+            <!-- Card Body Content (NO CONTACT NUMBERS) -->
             <div class="card-body">
+              
               <div class="team-heading">
-                <div>
+                <div style="min-width:0;">
                   <h3 class="team-name">${escapeHtml(t.team_name)}</h3>
-                  <div class="team-reg">${t.reg_id !== '-' ? t.reg_id : 'Internal Entry'} • PSID: <strong>${t.psid}</strong></div>
+                  <div class="team-reg">${t.reg_id || 'GTU-SIH'} • PSID: #${t.psid}</div>
                 </div>
                 <div class="score-badge">
-                  <div class="score-num ${scoreClass}">${t.score_str}</div>
-                  <div class="score-sub">${t.score_str === 'Absent' ? 'Status' : 'Jury Score'}</div>
+                  <span class="score-num ${scoreClass}">${t.score_str}</span>
+                  <span class="score-sub">Jury Marks</span>
                 </div>
               </div>
 
               ${t.is_ssip ? `
                 <div class="ssip-ribbon">
-                  <i data-lucide="coins" style="width:15px;height:15px;flex-shrink:0;"></i>
-                  <span><strong>SSIP Recommended:</strong> ₹2,50,000/- Grant Support</span>
+                  <i data-lucide="coins" style="width:14px;height:14px;flex-shrink:0;"></i>
+                  <span><strong>SSIP Recommended:</strong> ₹2.5L Grant Support</span>
                 </div>
               ` : ''}
 
+              <!-- Team Info (Clean & Privacy Compliant) -->
               <div class="info-list">
                 <div class="info-row">
                   <span class="info-label"><i data-lucide="crown" style="width:12px;height:12px;"></i> Team Leader</span>
                   <span class="info-val">${escapeHtml(t.leader_name)}</span>
                 </div>
-                ${t.leader_phone && t.leader_phone !== '-' ? `
-                <div class="info-row">
-                  <span class="info-label"><i data-lucide="phone" style="width:12px;height:12px;"></i> Contact</span>
-                  <span class="info-val" style="font-family:monospace;">+${escapeHtml(t.leader_phone)}</span>
-                </div>
-                ` : ''}
                 <div class="info-row">
                   <span class="info-label"><i data-lucide="check-circle-2" style="width:12px;height:12px;"></i> SIH Status</span>
-                  <span class="info-val" style="color:${t.is_top_20 ? '#34d399' : '#94a3b8'}">
+                  <span class="info-val" style="color:${t.is_top_20 ? 'var(--success-dark)' : 'var(--text-dim)'}; font-weight:700;">
                     ${t.is_top_20 ? 'Selected for SIH 2026' : (t.status === 'HONORABLE_MENTION' ? 'Honorable Mention' : 'Evaluated')}
                   </span>
                 </div>
@@ -1935,16 +1968,16 @@ html_code = """<!DOCTYPE html>
 
               <!-- Card Action Buttons -->
               <div class="card-footer-actions">
-                <button onclick="openPosterModal('${escapeHtml(t.team_name)}')" class="btn-poster-action">
+                <button onclick="openPosterModal('${escapeHtml(t.team_name)}')" class="btn-poster-action" title="Create Achievement Poster">
                   <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
                   <span>Social Poster</span>
                 </button>
                 ${hasPhoto && t.photo_url ? `
-                <button onclick="openPhotoModal('${escapeHtml(t.team_name)}', '${t.photo_url}', '${escapeHtml(t.leader_name)}', '${t.score_str}', '${t.rank}')" class="btn-photo-action" title="View Full Selfie">
+                <button onclick="openPhotoModal('${escapeHtml(t.team_name)}', '${t.photo_url}', '${escapeHtml(t.leader_name)}', '${t.score_str}', '${t.rank}')" class="btn-photo-action" title="View Venue Selfie">
                   <i data-lucide="eye" style="width:14px;height:14px;"></i>
                 </button>
                 ` : `
-                <button onclick="openUploadModal('${escapeHtml(t.team_name)}', '${t.reg_id || ''}', ${t.team_no || 'null'})" class="btn-photo-action" style="border-color:rgba(56,189,248,0.4); color:#38bdf8;" title="Upload Team Photo">
+                <button onclick="openUploadModal('${escapeHtml(t.team_name)}', '${t.reg_id || ''}', ${t.team_no || 'null'})" class="btn-photo-action" style="border-color:var(--primary-light); color:var(--primary);" title="Upload Team Photo">
                   <i data-lucide="upload" style="width:14px;height:14px;"></i>
                 </button>
                 `}
@@ -1958,7 +1991,7 @@ html_code = """<!DOCTYPE html>
 
     function renderTable(teams, container) {
       if (teams.length === 0) {
-        container.innerHTML = '<div style="padding:40px;text-align:center;color:#94a3b8;">No teams match the filter.</div>';
+        container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-dim);">No teams match the filter.</div>';
         return;
       }
 
@@ -1982,9 +2015,9 @@ html_code = """<!DOCTYPE html>
               const hasPhoto = Boolean(t.has_photo || t.photo_url);
               let thumbHtml = hasPhoto && t.photo_url 
                 ? `<img src="${t.photo_url}" class="table-thumb" alt="Selfie" onclick="openPhotoModal('${escapeHtml(t.team_name)}', '${t.photo_url}', '${escapeHtml(t.leader_name)}', '${t.score_str}', '${t.rank}')">`
-                : `<button onclick="openUploadModal('${escapeHtml(t.team_name)}', '${t.reg_id || ''}', ${t.team_no || 'null'})" style="font-size:10.5px; color:#38bdf8; background:rgba(56,189,248,0.14); border-radius:5px; border:1px solid rgba(56,189,248,0.3); padding:3px 8px; cursor:pointer;" title="Upload Team Group Photo">📸 Upload</button>`;
+                : `<button onclick="openUploadModal('${escapeHtml(t.team_name)}', '${t.reg_id || ''}', ${t.team_no || 'null'})" style="font-size:10.5px; color:var(--primary); background:rgba(15,82,186,0.1); border-radius:5px; border:1px solid rgba(15,82,186,0.3); padding:3px 8px; cursor:pointer;" title="Upload Team Photo">📸 Upload</button>`;
 
-              let rankBadge = `<strong style="font-size:14px;color:#f8fafc;">#${t.rank}</strong>`;
+              let rankBadge = `<strong style="font-size:14px;color:var(--text-main);">#${t.rank}</strong>`;
               if (t.rank === 1) rankBadge = '🥇 #1';
               if (t.rank === 2) rankBadge = '🥈 #2';
               if (t.rank === 3) rankBadge = '🥉 #3';
@@ -1994,24 +2027,23 @@ html_code = """<!DOCTYPE html>
                   <td style="text-align:center; font-weight:700;">${rankBadge}</td>
                   <td style="text-align:center;">${thumbHtml}</td>
                   <td>
-                    <div style="font-weight:700; color:#f8fafc; font-size:14px;">${escapeHtml(t.team_name)}</div>
-                    <div style="font-size:11px; color:#64748b; font-family:monospace;">${t.reg_id}</div>
+                    <div style="font-weight:800; color:var(--text-main); font-size:14px;">${escapeHtml(t.team_name)}</div>
+                    <div style="font-size:11px; color:var(--primary); font-family:monospace;">${t.reg_id}</div>
                   </td>
                   <td>
                     <span class="category-badge ${t.category.toLowerCase()}">${t.category}</span>
                   </td>
-                  <td><code style="background:#0f172a; padding:2px 6px; border-radius:4px; color:#38bdf8;">${t.psid}</code></td>
+                  <td><code style="background:var(--bg-surface-elevated); padding:3px 7px; border-radius:5px; color:var(--primary); font-weight:700; border:1px solid var(--border-color);">${t.psid}</code></td>
                   <td>
-                    <div style="font-weight:600; color:#e2e8f0;">${escapeHtml(t.leader_name)}</div>
-                    <div style="font-size:11px; color:#64748b;">${t.leader_phone || '-'}</div>
+                    <div style="font-weight:700; color:var(--text-main); font-size:13.5px;">${escapeHtml(t.leader_name)}</div>
                   </td>
                   <td style="text-align:right;">
-                    <strong style="font-size:14px; color:${t.rank<=3 ? '#fbbf24' : '#34d399'};">${t.score_str}</strong>
+                    <strong style="font-size:14px; color:${t.rank<=3 ? 'var(--gold-dark)' : 'var(--success-dark)'};">${t.score_str}</strong>
                   </td>
                   <td>
                     <div style="display:flex; flex-direction:column; gap:4px;">
-                      ${t.is_top_20 ? '<span style="color:#34d399; font-size:11.5px; font-weight:700;">⭐ Selected for SIH 2026</span>' : ''}
-                      ${t.is_ssip ? '<span style="color:#fbbf24; font-size:11px; font-weight:700;">💰 SSIP ₹2,50,000/- Grant</span>' : ''}
+                      ${t.is_top_20 ? '<span style="color:var(--success-dark); font-size:11.5px; font-weight:700;">⭐ Selected for SIH 2026</span>' : ''}
+                      ${t.is_ssip ? '<span style="color:var(--gold-dark); font-size:11px; font-weight:700;">💰 SSIP ₹2,50,000/- Grant</span>' : ''}
                     </div>
                   </td>
                   <td style="text-align:center;">
@@ -2028,162 +2060,7 @@ html_code = """<!DOCTYPE html>
       `;
     }
 
-    // =========================================================================
-    // DIRECT PHOTO UPLOAD & REAL-TIME SYNC ENGINE
-    // =========================================================================
-    let currentUploadTeam = null;
-    let selectedPhotoBase64 = null;
-
-    function openUploadModal(teamName, regId, teamNo) {
-      const team = ALL_TEAMS.find(t => t.team_name.toLowerCase().trim() === teamName.toLowerCase().trim()) || { team_name: teamName, reg_id: regId, team_no: teamNo };
-      currentUploadTeam = team;
-      selectedPhotoBase64 = null;
-
-      document.getElementById('uploadModalTeamName').textContent = `${team.team_name} (Rank #${team.rank || '-'})`;
-      document.getElementById('uploadModalDetails').textContent = `Leader: ${team.leader_name || '-'} • Category: ${team.category || '-'} • Score: ${team.score_str || '-'}`;
-      
-      const previewImg = document.getElementById('uploadPreviewImg');
-      const promptArea = document.getElementById('uploadPrompt');
-      const submitBtn = document.getElementById('btnSubmitPhotoUpload');
-      const alertBox = document.getElementById('uploadAlertBox');
-      const progressBox = document.getElementById('uploadProgressBox');
-      const attLink = document.getElementById('uploadAttendanceLink');
-
-      previewImg.src = '';
-      previewImg.style.display = 'none';
-      promptArea.style.display = 'block';
-      submitBtn.disabled = true;
-      alertBox.style.display = 'none';
-      progressBox.style.display = 'none';
-
-      const tNo = team.team_no || teamNo;
-      if (tNo) {
-        attLink.href = `/static/attendance.html?team=${tNo}`;
-        attLink.style.display = 'inline-block';
-      } else {
-        attLink.href = '/attendance';
-        attLink.style.display = 'inline-block';
-      }
-
-      document.getElementById('uploadPhotoModal').classList.add('open');
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function closeUploadModal() {
-      document.getElementById('uploadPhotoModal').classList.remove('open');
-    }
-
-    function handleDirectPhotoSelect(input) {
-      if (!input.files || !input.files[0]) return;
-      const file = input.files[0];
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const maxDim = 1280;
-          let w = img.width;
-          let h = img.height;
-          if (w > maxDim || h > maxDim) {
-            if (w > h) {
-              h = Math.round((h * maxDim) / w);
-              w = maxDim;
-            } else {
-              w = Math.round((w * maxDim) / h);
-              h = maxDim;
-            }
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-
-          selectedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
-
-          const previewImg = document.getElementById('uploadPreviewImg');
-          const promptArea = document.getElementById('uploadPrompt');
-          const submitBtn = document.getElementById('btnSubmitPhotoUpload');
-
-          previewImg.src = selectedPhotoBase64;
-          previewImg.style.display = 'block';
-          promptArea.style.display = 'none';
-          submitBtn.disabled = false;
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    async function submitDirectPhotoUpload() {
-      if (!currentUploadTeam || !selectedPhotoBase64) return;
-
-      const submitBtn = document.getElementById('btnSubmitPhotoUpload');
-      const progressBox = document.getElementById('uploadProgressBox');
-      const alertBox = document.getElementById('uploadAlertBox');
-
-      submitBtn.disabled = true;
-      progressBox.style.display = 'flex';
-      alertBox.style.display = 'none';
-
-      try {
-        const res = await fetch('/api/sih-results/upload-photo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            team_name: currentUploadTeam.team_name,
-            reg_id: currentUploadTeam.reg_id,
-            photo: selectedPhotoBase64
-          })
-        });
-
-        const data = await res.json();
-
-        if (res.ok && data.success) {
-          progressBox.style.display = 'none';
-          alertBox.style.display = 'block';
-          alertBox.style.background = 'rgba(16, 185, 129, 0.2)';
-          alertBox.style.border = '1px solid #10b981';
-          alertBox.style.color = '#34d399';
-          alertBox.innerHTML = `✅ Photo updated successfully! Refreshing view...`;
-
-          // Update local dataset
-          const teamInAll = ALL_TEAMS.find(t => t.team_name.toLowerCase().trim() === currentUploadTeam.team_name.toLowerCase().trim());
-          if (teamInAll) {
-            teamInAll.photo_url = selectedPhotoBase64;
-            teamInAll.has_photo = true;
-          }
-
-          // Update header metric count
-          const photoCount = ALL_TEAMS.filter(t => t.photo_url).length;
-          const metricPhotos = document.getElementById('metricPhotos');
-          if (metricPhotos) metricPhotos.textContent = photoCount;
-
-          setTimeout(() => {
-            closeUploadModal();
-            renderCards(filterTeams(), document.getElementById('cardsView'));
-            if (window.confetti) {
-              confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
-            }
-            openPosterModal(currentUploadTeam.team_name);
-          }, 1000);
-
-        } else {
-          throw new Error(data.error || 'Failed to upload photo.');
-        }
-
-      } catch (err) {
-        progressBox.style.display = 'none';
-        submitBtn.disabled = false;
-        alertBox.style.display = 'block';
-        alertBox.style.background = 'rgba(239, 68, 68, 0.2)';
-        alertBox.style.border = '1px solid #ef4444';
-        alertBox.style.color = '#f87171';
-        alertBox.innerHTML = `❌ Error: ${escapeHtml(err.message)}`;
-      }
-    }
-
+    // Photo Lightbox Modal
     function openPhotoModal(teamName, photoUrl, leaderName, score, rank) {
       currentPhotoTeamName = teamName;
       document.getElementById('modalTeamName').textContent = `${teamName} (Rank #${rank})`;
@@ -2191,7 +2068,7 @@ html_code = """<!DOCTYPE html>
       document.getElementById('modalImg').src = photoUrl;
       document.getElementById('modalMeta').textContent = `Official Internal Hackathon Venue Selfie • ${teamName}`;
       document.getElementById('modalDownload').href = photoUrl;
-      document.getElementById('modalDownload').download = `SIH_${teamName.replace(/\\s+/g, '_')}_Selfie.jpg`;
+      document.getElementById('modalDownload').download = `SIH_${teamName.replace(/\s+/g, '_')}_Selfie.jpg`;
       document.getElementById('photoModal').classList.add('open');
       if (window.lucide) lucide.createIcons();
     }
@@ -2207,6 +2084,112 @@ html_code = """<!DOCTYPE html>
       }
     }
 
+    // Direct Upload Modal
+    function openUploadModal(teamName, regId, teamNo) {
+      currentUploadTeam = { team_name: teamName, reg_id: regId, team_no: teamNo };
+      selectedPhotoBase64 = null;
+      document.getElementById('uploadModalTeamName').textContent = teamName;
+      document.getElementById('uploadModalDetails').textContent = `${regId || 'GTU-ITR'} • Team #${teamNo || 'N/A'}`;
+      document.getElementById('uploadPreviewImg').style.display = 'none';
+      document.getElementById('uploadPrompt').style.display = 'block';
+      document.getElementById('btnSubmitPhotoUpload').disabled = true;
+      document.getElementById('uploadAlertBox').style.display = 'none';
+      document.getElementById('uploadProgressBox').style.display = 'none';
+
+      const attLink = document.getElementById('uploadAttendanceLink');
+      if (attLink && teamNo) {
+        attLink.href = `/static/attendance.html?team=${teamNo}`;
+      }
+
+      document.getElementById('uploadPhotoModal').classList.add('open');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeUploadModal() {
+      document.getElementById('uploadPhotoModal').classList.remove('open');
+    }
+
+    function handleDirectPhotoSelect(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        selectedPhotoBase64 = e.target.result;
+        const img = document.getElementById('uploadPreviewImg');
+        img.src = selectedPhotoBase64;
+        img.style.display = 'block';
+        document.getElementById('uploadPrompt').style.display = 'none';
+        document.getElementById('btnSubmitPhotoUpload').disabled = false;
+        document.getElementById('uploadAlertBox').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function submitDirectPhotoUpload() {
+      if (!currentUploadTeam || !selectedPhotoBase64) return;
+
+      const progressBox = document.getElementById('uploadProgressBox');
+      const alertBox = document.getElementById('uploadAlertBox');
+      const submitBtn = document.getElementById('btnSubmitPhotoUpload');
+
+      progressBox.style.display = 'flex';
+      submitBtn.disabled = true;
+      alertBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/sih-results/upload-photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            team_name: currentUploadTeam.team_name,
+            reg_id: currentUploadTeam.reg_id,
+            photo: selectedPhotoBase64
+          })
+        });
+
+        const data = await res.json();
+        progressBox.style.display = 'none';
+
+        if (data.success) {
+          alertBox.style.display = 'block';
+          alertBox.style.background = 'rgba(16, 185, 129, 0.15)';
+          alertBox.style.border = '1px solid #10b981';
+          alertBox.style.color = '#059669';
+          alertBox.innerHTML = `✅ Photo saved! Updated results live.`;
+
+          const local = ALL_TEAMS.find(t => t.team_name === currentUploadTeam.team_name);
+          if (local && data.photo_url) {
+            local.photo_url = data.photo_url;
+            local.has_photo = true;
+          }
+
+          render();
+          triggerConfetti();
+
+          setTimeout(() => {
+            closeUploadModal();
+            openPosterModal(currentUploadTeam.team_name);
+          }, 1200);
+        } else {
+          alertBox.style.display = 'block';
+          alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
+          alertBox.style.border = '1px solid #ef4444';
+          alertBox.style.color = '#dc2626';
+          alertBox.innerHTML = `❌ Upload failed: ${escapeHtml(data.error || 'Unknown error')}`;
+          submitBtn.disabled = false;
+        }
+      } catch (err) {
+        progressBox.style.display = 'none';
+        submitBtn.disabled = false;
+        alertBox.style.display = 'block';
+        alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
+        alertBox.style.border = '1px solid #ef4444';
+        alertBox.style.color = '#dc2626';
+        alertBox.innerHTML = `❌ Error: ${escapeHtml(err.message)}`;
+      }
+    }
+
     // =========================================================================
     // POSTER GENERATOR ENGINE (HTML5 CANVAS WITH DUAL OFFICIAL GTU LOGOS)
     // =========================================================================
@@ -2214,8 +2197,8 @@ html_code = """<!DOCTYPE html>
     function openPosterModal(teamName) {
       const team = ALL_TEAMS.find(t => t.team_name === teamName) || ALL_TEAMS[0];
       if (!team) return;
-      currentPosterTeam = team;
 
+      currentPosterTeam = team;
       document.getElementById('posterModalTitle').innerHTML = `
         <i data-lucide="sparkles" style="width:18px;height:18px;"></i>
         <span>${escapeHtml(team.team_name)} — Official Achievement Poster</span>
@@ -2268,7 +2251,7 @@ html_code = """<!DOCTYPE html>
       });
     }
 
-    // Bulletproof Image Loader (never hangs, handles cached, DOM & Data URI instantly)
+    // Bulletproof Image Loader
     function loadImageAsync(src) {
       return new Promise((resolve) => {
         if (!src) return resolve(null);
@@ -2286,12 +2269,9 @@ html_code = """<!DOCTYPE html>
 
         img.onload = () => finish(img);
         img.onerror = () => finish(null);
-
-        // Max 3.5 seconds timeout safety
         setTimeout(() => finish(null), 3500);
 
         img.src = src;
-
         if (img.complete && img.naturalWidth > 0) {
           finish(img);
         }
@@ -2347,152 +2327,108 @@ html_code = """<!DOCTYPE html>
                          (domRnd && domRnd.complete && domRnd.naturalWidth > 0) ? domRnd :
                          await loadImageAsync('/static/gtu_rnd_seal_300.png').catch(() => null);
 
-      // 1. Cosmic Dark Background
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-      bgGrad.addColorStop(0, '#040812');
-      bgGrad.addColorStop(0.3, '#0b162a');
-      bgGrad.addColorStop(0.7, '#07101e');
-      bgGrad.addColorStop(1, '#03060a');
+      // 1. Cosmic Dark Background for High-Contrast Institutional Poster
+      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+      bgGrad.addColorStop(0, '#040711');
+      bgGrad.addColorStop(0.35, '#0b162c');
+      bgGrad.addColorStop(0.7, '#071020');
+      bgGrad.addColorStop(1, '#020409');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
 
-      // Ambient Glows
-      const gGold = ctx.createRadialGradient(200, 160, 20, 200, 160, 480);
-      gGold.addColorStop(0, 'rgba(245, 158, 11, 0.22)');
-      gGold.addColorStop(1, 'transparent');
-      ctx.fillStyle = gGold;
-      ctx.fillRect(0, 0, W, 600);
+      // Radial Ambient Glows
+      const radial1 = ctx.createRadialGradient(W * 0.15, H * 0.15, 20, W * 0.15, H * 0.15, 520);
+      radial1.addColorStop(0, 'rgba(15, 82, 186, 0.35)');
+      radial1.addColorStop(1, 'transparent');
+      ctx.fillStyle = radial1;
+      ctx.fillRect(0, 0, W, H);
 
-      const gCyan = ctx.createRadialGradient(880, H - 220, 20, 880, H - 220, 480);
-      gCyan.addColorStop(0, 'rgba(14, 165, 233, 0.22)');
-      gCyan.addColorStop(1, 'transparent');
-      ctx.fillStyle = gCyan;
-      ctx.fillRect(0, H - 650, W, 650);
+      const radial2 = ctx.createRadialGradient(W * 0.85, H * 0.25, 20, W * 0.85, H * 0.25, 480);
+      radial2.addColorStop(0, 'rgba(214, 40, 40, 0.22)');
+      radial2.addColorStop(1, 'transparent');
+      ctx.fillStyle = radial2;
+      ctx.fillRect(0, 0, W, H);
 
-      // 2. High-tech Outer Border Frame
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
-      ctx.lineWidth = 2;
-      drawRoundedRect(ctx, 36, 36, W - 72, H - 72, 26);
-      ctx.stroke();
-
-      // Golden Corner Crosshairs
-      ctx.strokeStyle = '#f59e0b';
+      // Outer Decorative Border
+      ctx.strokeStyle = team.is_top_20 ? 'rgba(245, 158, 11, 0.45)' : 'rgba(56, 189, 248, 0.35)';
       ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(36, 95); ctx.lineTo(36, 36); ctx.lineTo(95, 36); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W - 95, 36); ctx.lineTo(W - 36, 36); ctx.lineTo(W - 36, 95); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(36, H - 95); ctx.lineTo(36, H - 36); ctx.lineTo(95, H - 36); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W - 95, H - 36); ctx.lineTo(W - 36, H - 36); ctx.lineTo(W - 36, H - 95); ctx.stroke();
+      drawRoundedRect(ctx, 24, 24, W - 48, H - 48, 28);
+      ctx.stroke();
 
       if (isPortrait) {
         // =====================================================================
-        // 4:5 PORTRAIT LAYOUT (1080 x 1350)
+        // PORTRAIT (4:5 STORY / POST)
         // =====================================================================
 
-        // 1. TOP-LEFT: OFFICIAL GTU UNIVERSITY EMBLEM MEDALLION
-        const uniLogoSize = 118;
-        const uniLogoX = 70;
-        const uniLogoY = 54;
+        const uniLogoSize = 110;
+        const uniLogoX = 65;
+        const uniLogoY = 56;
 
         if (uniLogoImg) {
           ctx.save();
-          ctx.shadowColor = 'rgba(245, 158, 11, 0.45)';
-          ctx.shadowBlur = 16;
+          ctx.shadowColor = 'rgba(245, 158, 11, 0.5)';
+          ctx.shadowBlur = 18;
           ctx.drawImage(uniLogoImg, uniLogoX, uniLogoY, uniLogoSize, uniLogoSize);
           ctx.restore();
         }
 
-        // 2. TOP-RIGHT: GTU-ITR R&D & INNOVATION COUNCIL LOGO
-        const rndLogoSize = 118;
-        const rndLogoX = W - 70 - rndLogoSize;
-        const rndLogoY = 54;
+        const rndLogoSize = 110;
+        const rndLogoX = W - 65 - rndLogoSize;
+        const rndLogoY = 56;
 
         if (rndLogoImg) {
           ctx.save();
-          ctx.shadowColor = 'rgba(56, 189, 248, 0.4)';
-          ctx.shadowBlur = 16;
+          ctx.shadowColor = 'rgba(56, 189, 248, 0.5)';
+          ctx.shadowBlur = 18;
           ctx.drawImage(rndLogoImg, rndLogoX, rndLogoY, rndLogoSize, rndLogoSize);
           ctx.restore();
         }
 
-        // 3. CENTER: INSTITUTIONAL TEXT TITLE HIERARCHY
         ctx.textAlign = 'center';
-        ctx.font = '800 19px Inter, sans-serif';
+        ctx.font = '800 20px Inter, sans-serif';
         ctx.fillStyle = '#f8fafc';
-        ctx.fillText('GUJARAT TECHNOLOGICAL UNIVERSITY', W / 2, 86);
+        ctx.letterSpacing = '1px';
+        ctx.fillText('GUJARAT TECHNOLOGICAL UNIVERSITY', W / 2, 82);
 
-        ctx.font = '900 27px Outfit, sans-serif';
+        ctx.font = '900 28px Outfit, sans-serif';
         ctx.fillStyle = '#ffffff';
-        ctx.fillText('INSTITUTE OF TECHNOLOGY & RESEARCH', W / 2, 118);
+        ctx.fillText('INSTITUTE OF TECHNOLOGY & RESEARCH', W / 2, 115);
 
         ctx.font = '800 15px Inter, sans-serif';
         ctx.fillStyle = '#38bdf8';
-        ctx.fillText("INSTITUTION'S INNOVATION COUNCIL (IIC) & R&D CELL", W / 2, 144);
+        ctx.fillText("INSTITUTION'S INNOVATION COUNCIL (IIC) & R&D CELL", W / 2, 142);
 
-        // Header Divider
-        const divGrad = ctx.createLinearGradient(65, 0, W - 65, 0);
-        divGrad.addColorStop(0, 'transparent');
-        divGrad.addColorStop(0.25, 'rgba(245, 158, 11, 0.8)');
-        divGrad.addColorStop(0.75, 'rgba(56, 189, 248, 0.8)');
-        divGrad.addColorStop(1, 'transparent');
-        ctx.fillStyle = divGrad;
-        ctx.fillRect(65, 185, W - 130, 2);
-
-        // Event Title & Badge
-        ctx.textAlign = 'center';
-        ctx.font = '800 20px Outfit, sans-serif';
-        ctx.fillStyle = '#fbbf24';
-        ctx.fillText('SMART INDIA HACKATHON 2026 • INTERNAL ROUND', W / 2, 218);
-
-        // Achievement Pill / Ribbon
-        const ribW = 760;
+        const ribW = 820;
         const ribH = 50;
         const ribX = W / 2 - ribW / 2;
-        const ribY = 236;
+        const ribY = 175;
 
-        let bannerText = '';
-        let ribColor1 = '#d97706';
-        let ribColor2 = '#f59e0b';
-        let ribTextColor = '#111827';
-
-        if (team.rank === 1) {
-          bannerText = '🥇 CHAMPION • RANK #1 (SIH 2026 NOMINATED)';
-        } else if (team.rank === 2) {
-          bannerText = '🥈 1ST RUNNER UP • RANK #2 (SIH 2026 NOMINATED)';
-        } else if (team.rank === 3) {
-          bannerText = '🥉 2ND RUNNER UP • RANK #3 (SIH 2026 NOMINATED)';
-        } else if (team.is_top_20) {
-          bannerText = `⭐ SELECTED FOR SIH 2026 NATIONAL FINALS • RANK #${team.rank}`;
-        } else {
-          bannerText = `🌟 OFFICIAL PARTICIPANT & EVALUATED • RANK #${team.rank}`;
-          ribColor1 = '#1e3a8a';
-          ribColor2 = '#0f52ba';
-          ribTextColor = '#ffffff';
-        }
+        let bannerText = team.is_top_20 
+          ? `🏆 SELECTED FOR SIH 2026 NATIONALS • RANK #${team.rank}`
+          : `🌟 EVALUATED PARTICIPANT • RANK #${team.rank}`;
 
         const rGrad = ctx.createLinearGradient(ribX, 0, ribX + ribW, 0);
-        rGrad.addColorStop(0, ribColor1);
-        rGrad.addColorStop(1, ribColor2);
+        rGrad.addColorStop(0, team.is_top_20 ? '#d97706' : '#1e3a8a');
+        rGrad.addColorStop(1, team.is_top_20 ? '#f59e0b' : '#0f52ba');
         ctx.fillStyle = rGrad;
         drawRoundedRect(ctx, ribX, ribY, ribW, ribH, 12);
         ctx.fill();
 
         ctx.font = '900 22px Outfit, sans-serif';
-        ctx.fillStyle = ribTextColor;
+        ctx.fillStyle = team.is_top_20 ? '#111827' : '#ffffff';
         ctx.fillText(bannerText, W / 2, ribY + 33);
 
-        // Team Photo Box
-        const pBoxX = 130;
-        const pBoxY = 302;
-        const pBoxW = 820;
-        const pBoxH = 468;
-        const pRadius = 20;
+        const pBoxX = 75;
+        const pBoxY = 246;
+        const pBoxW = W - 150;
+        const pBoxH = 515;
+        const pRadius = 22;
 
         if (teamImg) {
           ctx.save();
           drawRoundedRect(ctx, pBoxX, pBoxY, pBoxW, pBoxH, pRadius);
           ctx.clip();
-
-          // Scale crop aspect cover
+          
           const scale = Math.max(pBoxW / teamImg.width, pBoxH / teamImg.height);
           const sW = teamImg.width * scale;
           const sH = teamImg.height * scale;
@@ -2500,7 +2436,6 @@ html_code = """<!DOCTYPE html>
           const sY = pBoxY + (pBoxH - sH) / 2;
           ctx.drawImage(teamImg, sX, sY, sW, sH);
 
-          // Bottom vignette gradient
           const vGrad = ctx.createLinearGradient(0, pBoxY + pBoxH - 120, 0, pBoxY + pBoxH);
           vGrad.addColorStop(0, 'transparent');
           vGrad.addColorStop(1, 'rgba(6, 10, 18, 0.7)');
@@ -2509,13 +2444,11 @@ html_code = """<!DOCTYPE html>
 
           ctx.restore();
 
-          // Photo Border
           ctx.strokeStyle = team.is_top_20 ? '#fbbf24' : '#38bdf8';
           ctx.lineWidth = 4;
           drawRoundedRect(ctx, pBoxX, pBoxY, pBoxW, pBoxH, pRadius);
           ctx.stroke();
 
-          // Verified Tag
           drawRoundedRect(ctx, pBoxX + 16, pBoxY + 16, 190, 34, 8);
           ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
           ctx.fill();
@@ -2528,7 +2461,6 @@ html_code = """<!DOCTYPE html>
           ctx.fillStyle = '#34d399';
           ctx.fillText('📸 Verified Venue Selfie', pBoxX + 28, pBoxY + 38);
         } else {
-          // Placeholder Graphic
           ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
           drawRoundedRect(ctx, pBoxX, pBoxY, pBoxW, pBoxH, pRadius);
           ctx.fill();
@@ -2536,7 +2468,6 @@ html_code = """<!DOCTYPE html>
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Avatar initial circle
           ctx.beginPath();
           ctx.arc(W / 2, pBoxY + 200, 75, 0, Math.PI * 2);
           ctx.fillStyle = 'rgba(56, 189, 248, 0.12)';
@@ -2555,7 +2486,6 @@ html_code = """<!DOCTYPE html>
           ctx.fillText('OFFICIAL SIH 2026 INNOVATOR TEAM', W / 2, pBoxY + 320);
         }
 
-        // Team Info Card Box
         const cBoxX = 75;
         const cBoxY = 790;
         const cBoxW = W - 150;
@@ -2567,7 +2497,6 @@ html_code = """<!DOCTYPE html>
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Team Name (Dynamic Font Sizing)
         ctx.textAlign = 'center';
         let teamNameSize = 44;
         ctx.font = `900 ${teamNameSize}px Outfit, sans-serif`;
@@ -2578,18 +2507,15 @@ html_code = """<!DOCTYPE html>
         ctx.fillStyle = '#ffffff';
         ctx.fillText(team.team_name, W / 2, cBoxY + 56);
 
-        // Category & PSID Pill
         ctx.font = '800 18px Inter, sans-serif';
         ctx.fillStyle = '#38bdf8';
         const domainText = `[ ${team.category.toUpperCase()} EDITION ]  •  PSID: #${team.psid}`;
         ctx.fillText(domainText, W / 2, cBoxY + 98);
 
-        // Leader Name
         ctx.font = '600 21px Inter, sans-serif';
         ctx.fillStyle = '#e2e8f0';
         ctx.fillText(`👑 Team Leader: ${team.leader_name}`, W / 2, cBoxY + 144);
 
-        // Jury Score Badge
         const scW = 380;
         const scH = 46;
         const scX = W / 2 - scW / 2;
@@ -2605,22 +2531,17 @@ html_code = """<!DOCTYPE html>
         ctx.fillStyle = '#fbbf24';
         ctx.fillText(`⭐ JURY SCORE: ${team.score_str}`, W / 2, scY + 32);
 
-        // SSIP Banner if applicable
         if (team.is_ssip) {
           ctx.font = '800 16px Outfit, sans-serif';
           ctx.fillStyle = '#34d399';
           ctx.fillText('💰 RECOMMENDED FOR SSIP ₹2,50,000/- FUNDING GRANT', W / 2, cBoxY + 242);
         }
 
-        // =====================================================================
-        // INSTAGRAM TAG & SOCIAL MEDIA SECTION (USER REQUIREMENT)
-        // =====================================================================
         const igW = 760;
         const igH = 68;
         const igX = W / 2 - igW / 2;
         const igY = 1085;
 
-        // Authentic Instagram Linear Gradient
         const igGrad = ctx.createLinearGradient(igX, 0, igX + igW, 0);
         igGrad.addColorStop(0, '#f09433');
         igGrad.addColorStop(0.25, '#e6683c');
@@ -2641,12 +2562,10 @@ html_code = """<!DOCTYPE html>
         ctx.fillStyle = '#ffffff';
         ctx.fillText('📸 Tag  @gtu_itr_official  on Instagram', W / 2, igY + 43);
 
-        // Hashtags Row
         ctx.font = '700 17px Inter, sans-serif';
         ctx.fillStyle = '#94a3b8';
         ctx.fillText('#SIH2026   #GTUITR   #GTU   #SmartIndiaHackathon   #SSIP   #Innovation', W / 2, 1190);
 
-        // Official Ratification Footer with Mini GTU Seal
         if (uniLogoImg) {
           ctx.drawImage(uniLogoImg, 75, 1236, 40, 40);
         }
@@ -2663,7 +2582,6 @@ html_code = """<!DOCTYPE html>
         // 1:1 SQUARE LAYOUT (1080 x 1080)
         // =====================================================================
 
-        // Left GTU Seal & Right R&D Seal
         const uniLogoSize = 100;
         const uniLogoX = 65;
         const uniLogoY = 46;
@@ -2701,7 +2619,6 @@ html_code = """<!DOCTYPE html>
         ctx.fillStyle = '#38bdf8';
         ctx.fillText("IIC & R&D CELL • SMART INDIA HACKATHON 2026", W / 2, 128);
 
-        // Achievement Pill
         const ribW = 720;
         const ribH = 44;
         const ribX = W / 2 - ribW / 2;
@@ -2722,7 +2639,6 @@ html_code = """<!DOCTYPE html>
         ctx.fillStyle = team.is_top_20 ? '#111827' : '#ffffff';
         ctx.fillText(bannerText, W / 2, ribY + 29);
 
-        // Team Photo Box (Square proportion)
         const pBoxX = 160;
         const pBoxY = 210;
         const pBoxW = 760;
@@ -2752,7 +2668,6 @@ html_code = """<!DOCTYPE html>
           drawRoundedRect(ctx, pBoxX, pBoxY, pBoxW, pBoxH, pRadius);
           ctx.stroke();
 
-          // Verified Tag
           drawRoundedRect(ctx, pBoxX + 14, pBoxY + 14, 180, 30, 6);
           ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
           ctx.fill();
@@ -2771,7 +2686,6 @@ html_code = """<!DOCTYPE html>
           ctx.fillText(team.team_name.charAt(0).toUpperCase(), W / 2, pBoxY + 190);
         }
 
-        // Details Box
         const cBoxX = 65;
         const cBoxY = 600;
         const cBoxW = W - 130;
@@ -2801,7 +2715,6 @@ html_code = """<!DOCTYPE html>
         ctx.fillStyle = '#e2e8f0';
         ctx.fillText(`👑 Team Leader: ${team.leader_name}`, W / 2, cBoxY + 124);
 
-        // Score Badge
         const scW = 340;
         const scH = 42;
         const scX = W / 2 - scW / 2;
@@ -2823,7 +2736,6 @@ html_code = """<!DOCTYPE html>
           ctx.fillText('💰 RECOMMENDED FOR SSIP ₹2,50,000/- GRANT', W / 2, cBoxY + 215);
         }
 
-        // Instagram Banner
         const igW = 720;
         const igH = 60;
         const igX = W / 2 - igW / 2;
@@ -2848,12 +2760,10 @@ html_code = """<!DOCTYPE html>
         ctx.fillStyle = '#ffffff';
         ctx.fillText('📸 Tag  @gtu_itr_official  on Instagram', W / 2, igY + 38);
 
-        // Hashtags
         ctx.font = '700 15px Inter, sans-serif';
         ctx.fillStyle = '#94a3b8';
         ctx.fillText('#SIH2026  #GTUITR  #GTU  #SmartIndiaHackathon  #SSIP  #Innovation', W / 2, 955);
 
-        // Footer with Mini GTU Seal
         if (uniLogoImg) {
           ctx.drawImage(uniLogoImg, W / 2 - 200, 990, 26, 26);
           ctx.font = '500 13px Inter, sans-serif';
@@ -2909,7 +2819,7 @@ html_code = """<!DOCTYPE html>
 
       if (navigator.share && canvas.toBlob) {
         canvas.toBlob(async (blob) => {
-          const file = new File([blob], `SIH2026_${team.team_name.replace(/\\s+/g, '_')}.png`, { type: 'image/png' });
+          const file = new File([blob], `SIH2026_${team.team_name.replace(/\s+/g, '_')}.png`, { type: 'image/png' });
           try {
             await navigator.share({
               title: `SIH 2026 - ${team.team_name}`,
@@ -2956,10 +2866,12 @@ html_code = """<!DOCTYPE html>
 </html>
 """
 
-with open('/home/gtu-itr/iic-cell-gtu-itr-/static/sih-results.html', 'w') as f:
+OUTPUT_HTML = '/home/gtu-itr/iic-cell-gtu-itr-/static/sih-results.html'
+with open(OUTPUT_HTML, 'w') as f:
     f.write(html_code)
 
-with open('/home/gtu-itr/iic-cell-gtu-itr-/static/generate_results_page.py', 'w') as f:
+GEN_PY = '/home/gtu-itr/iic-cell-gtu-itr-/static/generate_results_page.py'
+with open(GEN_PY, 'w') as f:
     f.write(html_code)
 
-print("Generated sih-results.html successfully with authentic GTU Seal and R&D Seal!")
+print(f"Generated {OUTPUT_HTML} and {GEN_PY} successfully!")

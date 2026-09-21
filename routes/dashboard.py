@@ -193,6 +193,8 @@ def api_sih_results():
     """API endpoint to get the full JSON dataset of SIH 2026 results with live photos."""
     from utils.results_sync import get_live_results_data
     data = get_live_results_data()
+    for t in data:
+        t.pop('leader_phone', None)
     resp = jsonify(data)
     resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     resp.headers['Pragma'] = 'no-cache'
