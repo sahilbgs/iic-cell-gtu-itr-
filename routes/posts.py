@@ -679,6 +679,14 @@ def edit(post_id):
                 post.attachment_path = pre_path
 
         db.session.commit()
+
+        # Real-time sync of updated dates/settings to Cloud Firebase
+        try:
+            from utils.firebase_sync import sync_post_settings_to_firebase
+            sync_post_settings_to_firebase(post)
+        except Exception as e:
+            current_app.logger.warning(f"Could not sync post settings to Firebase: {e}")
+
         flash('Shared Activity Post updated successfully!', 'success')
         return redirect(url_for('posts.manage'))
 
@@ -922,6 +930,14 @@ def form_builder(post_id):
                 post.is_public = request.form.get('is_public') == '1'
 
             db.session.commit()
+
+            # Real-time sync of updated deadline to Cloud Firebase
+            try:
+                from utils.firebase_sync import sync_post_settings_to_firebase
+                sync_post_settings_to_firebase(post)
+            except Exception as e:
+                current_app.logger.warning(f"Could not sync post settings to Firebase: {e}")
+
             flash('Registration form configuration and settings saved successfully!', 'success')
             return redirect(url_for('dashboard.index'))
         except Exception as e:
@@ -1106,8 +1122,31 @@ def register(post_id):
                     db.or_(*dup_filters)
                 ).first()
                 if existing_reg:
-                    flash('You are already registered for this activity with this enrollment number or email.', 'warning')
-                    return render_template('posts/register.html', post=post, fields=fields)
+                    # Automatically update existing team's details, presentation files, and custom data
+                    existing_reg.student_name = student_name or existing_reg.student_name
+                    existing_reg.phone = phone or existing_reg.phone
+                    existing_reg.semester = semester or existing_reg.semester
+                    existing_reg.department = department or existing_reg.department
+                    existing_reg.custom_data = json.dumps(answers)
+                    db.session.commit()
+
+                    # Trigger auto-export to attendance database and links
+                    if post.id == 2:
+                        try:
+                            from routes.attendance import export_sih_teams_json
+                            export_sih_teams_json()
+                        except Exception as e:
+                            current_app.logger.warning(f"Could not auto-export SIH teams: {e}")
+
+                    # Real-time Cloud Firebase Backup
+                    try:
+                        from utils.firebase_sync import backup_single_registration_to_firebase
+                        backup_single_registration_to_firebase(existing_reg, post, answers)
+                    except Exception as e:
+                        current_app.logger.warning(f"Could not backup registration to Firebase: {e}")
+
+                    flash('Your registration and uploaded files have been updated successfully!', 'success')
+                    return render_template('posts/register.html', post=post, fields=fields, success_registered=True, student_name=student_name)
 
         # Save Student Registration
         reg = StudentRegistration(
@@ -1122,6 +1161,21 @@ def register(post_id):
         )
         db.session.add(reg)
         db.session.commit()
+
+        # Trigger auto-export to attendance database and links
+        if post.id == 2:
+            try:
+                from routes.attendance import export_sih_teams_json
+                export_sih_teams_json()
+            except Exception as e:
+                current_app.logger.warning(f"Could not auto-export SIH teams: {e}")
+
+        # Real-time Cloud Firebase Backup
+        try:
+            from utils.firebase_sync import backup_single_registration_to_firebase
+            backup_single_registration_to_firebase(reg, post, answers)
+        except Exception as e:
+            current_app.logger.warning(f"Could not backup registration to Firebase in real-time: {e}")
 
         # Dynamic success message
         return render_template('posts/register.html', post=post, fields=fields, success_registered=True, student_name=student_name)
@@ -1168,6 +1222,8 @@ def registration_report(post_id):
             except Exception:
                 answers = {}
         val = answers.get(field_id)
+        if val is None or val == '':
+            val = answers.get(f"field_{field_id}")
         if (val is None or val == '') and field_id in ('student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'):
             val = getattr(reg_obj, field_id, '')
         return str(val) if val is not None else ""
@@ -1197,6 +1253,27 @@ def registration_report(post_id):
                            semester_stats=semester_stats,
                            get_custom_val=get_custom_val,
                            get_all_answers=get_all_answers)
+
+
+@posts_bp.route('/<int:post_id>/registrations/sync-firebase', methods=['POST'])
+@login_required
+def sync_firebase_manual(post_id):
+    """Manually triggers two-way sync from Cloud Firebase to local database."""
+    post = PrincipalPost.query.get_or_404(post_id)
+    is_mgmt = current_user.is_management
+    is_coord = current_user.role == 'HOD' and current_user.department_id in [d.id for d in post.departments]
+    is_assigned = current_user.id == post.assigned_faculty_id
+    if not (is_mgmt or is_coord or is_assigned):
+        abort(403)
+
+    from utils.firebase_sync import sync_firebase_to_database
+    synced, total = sync_firebase_to_database()
+    if synced > 0:
+        flash(f"Firebase Sync Complete: {synced} new registrations imported into database (Total in Cloud: {total}).", "success")
+    else:
+        flash(f"Database is already up to date! All {total} registrations from Firebase are present.", "info")
+
+    return redirect(url_for('posts.registration_report', post_id=post_id))
 
 
 @posts_bp.route('/<int:post_id>/registrations/export-csv')
@@ -1252,6 +1329,8 @@ def export_registrations_csv(post_id):
                 fid = f.get('id')
                 ftype = f.get('type')
                 val = answers.get(fid)
+                if val is None or val == '':
+                    val = answers.get(f"field_{fid}")
                 if (val is None or val == '') and fid in ('student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'):
                     val = getattr(reg, fid, '')
                 if val is None:
@@ -1399,6 +1478,8 @@ def export_registrations_excel(post_id):
                 fid = f.get('id')
                 ftype = f.get('type')
                 val = answers.get(fid)
+                if val is None or val == '':
+                    val = answers.get(f"field_{fid}")
                 if (val is None or val == '') and fid in ('student_name', 'enrollment_no', 'department', 'semester', 'email', 'phone'):
                     val = getattr(reg, fid, '')
                 if val is None:

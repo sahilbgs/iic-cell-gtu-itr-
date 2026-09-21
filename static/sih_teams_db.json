@@ -1,0 +1,2126 @@
+[
+  {
+    "id": 1,
+    "team_no": 1,
+    "reg_id": "REG-0001",
+    "team_name": "MJD",
+    "token": "fec5c04a21",
+    "leader_name": "MAHI P KARNAKE",
+    "leader_enrollment": "254600307010",
+    "leader_phone": "8347021911",
+    "leader_email": "mahirkarnake@gmail.com",
+    "psid": "26003",
+    "ps_title": "Al-Based Cognitive Gaming and Memory Assistance Platform for Elderly Dementia  Patients in NER",
+    "theme": "Toys & Games",
+    "category": "Software",
+    "total_members": 3,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "MAHI P KARNAKE",
+        "enrollment": "254600307010",
+        "branch": "Computer engineering",
+        "phone": "8347021911",
+        "email": "mahirkarnake@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "DEVANSHI B PATEL",
+        "enrollment": "254600307015",
+        "branch": "Computer engineering",
+        "phone": "+91 98245 02631",
+        "email": "devanshipatel471@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "JANVI M PATEL",
+        "enrollment": "254600307016",
+        "branch": "Computer engineering",
+        "phone": "+18347021911",
+        "email": "smith092005@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "team_no": 2,
+    "reg_id": "REG-0002",
+    "team_name": "FindVick",
+    "token": "a1ef202a02",
+    "leader_name": "Bhojak Shaury",
+    "leader_enrollment": "244600307001",
+    "leader_phone": "8320358636",
+    "leader_email": "shaurybhojak35@gmail.com",
+    "psid": "26199",
+    "ps_title": "Student Innovation-Technology ideas in tertiary sectors like Hospitality, Financial Services, Entertainment and Retail",
+    "theme": "Miscellaneous",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Bhojak Shaury",
+        "enrollment": "244600307001",
+        "branch": "DI-Computer Engineering",
+        "phone": "8320358636",
+        "email": "shaurybhojak35@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Gohel Vraj",
+        "enrollment": "244600307002",
+        "branch": "DI-Computer Engineering",
+        "phone": "8320245803",
+        "email": "vrajg12345@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Jenil Patel",
+        "enrollment": "244600307014",
+        "branch": "DI-Computer Engineering",
+        "phone": "9510321736",
+        "email": "JANILPATEL102938@GMAIL.COM"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Rajput Nihal",
+        "enrollment": "244600307028",
+        "branch": "DI-Computer Engineering",
+        "phone": "7859900309",
+        "email": "nihalrajput335@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Arya Vaidik",
+        "enrollment": "244600307037",
+        "branch": "DI-Computer Engineering",
+        "phone": "7984688803",
+        "email": "vaidikarya18@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Patel Hil",
+        "enrollment": "244600307011",
+        "branch": "DI-Computer Engineering",
+        "phone": "9106834847",
+        "email": "Patelhil627@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "team_no": 3,
+    "reg_id": "REG-0003",
+    "team_name": "Team - NEURO SAHAY",
+    "token": "7ee13b911d",
+    "leader_name": "Prajapati Rutvi Narendrakumar",
+    "leader_enrollment": "251041305019",
+    "leader_phone": "8866599383",
+    "leader_email": "rutu010208@gmail.com",
+    "psid": "26003",
+    "ps_title": "AI-Based Cognitive Gaming and Memory Assistance Platform for Elderly Dementia Patients in North Eastern Region (NER)",
+    "theme": "MedTech / BioTech / HealthTech",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Prajapati Rutvi Narendrakumar",
+        "enrollment": "251041305019",
+        "branch": "Integreted MSC -IT",
+        "phone": "8866599383",
+        "email": "rutu010208@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Thakor sahil rameshji",
+        "enrollment": "231040107082",
+        "branch": "BE computer",
+        "phone": "8849896384",
+        "email": "sahil@aceglory.in"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Patel Yug Rasikbhai",
+        "enrollment": "234600307020",
+        "branch": "BE computer",
+        "phone": "8799470103",
+        "email": "yuqp4228@qmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Prajapati heli hareshkumar",
+        "enrollment": "251041305023",
+        "branch": "Integreted MSC -IT",
+        "phone": "9099396960",
+        "email": "helip834@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Patel Karan PrakashKumar",
+        "enrollment": "236310307106",
+        "branch": "BE computer",
+        "phone": "8780306481",
+        "email": "kp9924519678@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Thakor Jensi Baldevji",
+        "enrollment": "251041305021",
+        "branch": "Integreted MSC -IT",
+        "phone": "9265569503",
+        "email": "thakorbaldevji630@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "team_no": 4,
+    "reg_id": "REG-0004",
+    "team_name": "Thermal Bytes",
+    "token": "19436b64e4",
+    "leader_name": "Rudra Milinkumar Patel",
+    "leader_enrollment": "26E020",
+    "leader_phone": "7016220568",
+    "leader_email": "kmpatel2775@gmail.com",
+    "psid": "26005",
+    "ps_title": "Solar-powered Smart Mini Cold Storage System For Fresh Vegetables In North Eastern Region",
+    "theme": "Smart Vehicles",
+    "category": "Hardware",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Rudra Milinkumar Patel",
+        "enrollment": "26E020",
+        "branch": "Computer Engineering",
+        "phone": "7016220568",
+        "email": "kmpatel2775@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Harshraj Ranjitkumar Thakur",
+        "enrollment": "26E017",
+        "branch": "Computer Engineering",
+        "phone": "9550627599",
+        "email": "thakurharshraj1234@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Shifa Mohammadjamil Pathan",
+        "enrollment": "26E038",
+        "branch": "Computer Engineering",
+        "phone": "7575838998",
+        "email": "shifapathan28j9@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Anjukumari Mahendra Kashyap",
+        "enrollment": "26E041",
+        "branch": "Computer Engineering",
+        "phone": "9601172694",
+        "email": "babita.kashyap3665@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Yahvi Jigneshkumar Bhavsar",
+        "enrollment": "26E023",
+        "branch": "Computer Engineering",
+        "phone": "8160226417",
+        "email": "yahvi07.adept@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Janvi Mukeshkumar Bhagwani",
+        "enrollment": "26E042",
+        "branch": "Computer Engineering",
+        "phone": "9316481184",
+        "email": "janvibhagwani245@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "team_no": 5,
+    "reg_id": "REG-0005",
+    "team_name": "InfraDeveloper",
+    "token": "1d80c56db6",
+    "leader_name": "Dwij Chetankumar Bhatt",
+    "leader_enrollment": "15",
+    "leader_phone": "+918485925990",
+    "leader_email": "dwijcbhatt1128@gmail.com",
+    "psid": "26212",
+    "ps_title": "Student Innovation-Solutions could be in the form of waste segregation, disposal, and improve sanitization system.",
+    "theme": "Clean & Green Technology",
+    "category": "Hardware",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Dwij Chetankumar Bhatt",
+        "enrollment": "15",
+        "branch": "Civil engineering",
+        "phone": "+918485925990",
+        "email": "dwijcbhatt1128@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Gunjan Jigarkumar Darji",
+        "enrollment": "19",
+        "branch": "Civil engineering",
+        "phone": "+919106338209",
+        "email": "jyotsanadarji64@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Aryan Dineshbhai Chaudhary",
+        "enrollment": "04",
+        "branch": "Civil engineering",
+        "phone": "+919978036348",
+        "email": "aryanchaudhary21228@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Sovik Uttar Sutradhar",
+        "enrollment": "27",
+        "branch": "Civil engineering",
+        "phone": "+917069287757",
+        "email": "uttarsoviksutradhar@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Yash Raj",
+        "enrollment": "22",
+        "branch": "Civil engineering",
+        "phone": "+916354347502",
+        "email": "Kp.ranjan2008@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Diya Janardanbhai Gurjar",
+        "enrollment": "14",
+        "branch": "Civil engineering",
+        "phone": "+919426218522",
+        "email": "diyagurjar585@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "team_no": 6,
+    "reg_id": "REG-0006",
+    "team_name": "Traffic Trackers",
+    "token": "100b40ad07",
+    "leader_name": "Chaudhari Khushi Jagdishbhai",
+    "leader_enrollment": "251040107011",
+    "leader_phone": "76005 95902",
+    "leader_email": "Khushichaudhari5906@gmail.com",
+    "psid": "26137",
+    "ps_title": "PROBLEM STATEMENT -   AI-Based Traffic Congestion Prediction and Smart Route Management System for Tier-2 Cities",
+    "theme": "Transportation & Logistics",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Chaudhari Khushi Jagdishbhai",
+        "enrollment": "251040107011",
+        "branch": "BE - Computer Engineering (07)",
+        "phone": "76005 95902",
+        "email": "Khushichaudhari5906@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Chavada Priyaba Parbatsinh",
+        "enrollment": "251040107015",
+        "branch": "BE - Computer Engineering (07)",
+        "phone": "9054317552",
+        "email": "priyabachavada0@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Patel Shreya Dipakkumar",
+        "enrollment": "251040107046",
+        "branch": "BE - Computer Engineering (07)",
+        "phone": "9173522596",
+        "email": "shreyapatel73030@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Kritika Rao",
+        "enrollment": "251040107024",
+        "branch": "BE - Computer Engineering (07)",
+        "phone": "7990634040",
+        "email": "urikritika@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Chaudhary Mahi Dineshbhai",
+        "enrollment": "251040107012",
+        "branch": "BE - Computer Engineering (07)",
+        "phone": "9023824329",
+        "email": "mahichaudhary1727@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Patel Viya Arvindbhai",
+        "enrollment": "251040107048",
+        "branch": "BE - Computer Engineering (07)",
+        "phone": "9913666801",
+        "email": "viyapatel2810@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "team_no": 7,
+    "reg_id": "REG-0007",
+    "team_name": "LegalMetrix",
+    "token": "7d4fd5371b",
+    "leader_name": "Shreya Thakkar",
+    "leader_enrollment": "241041305037",
+    "leader_phone": "9173861468",
+    "leader_email": "shreyathakkar2210@gmail.com",
+    "psid": "26034",
+    "ps_title": "Software System to check compliance of Packaged Commodities under Legal Metrology(Packaged Commodities) Rules, 2011 by scanning products, images and labels.",
+    "theme": "Miscellaneous",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Shreya Thakkar",
+        "enrollment": "241041305037",
+        "branch": "B Sc IT",
+        "phone": "9173861468",
+        "email": "shreyathakkar2210@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "DESAI ARYAN V.",
+        "enrollment": "241041305006",
+        "branch": "B Sc IT",
+        "phone": "9714615474",
+        "email": "aryandesai907@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "THAKKAR  JAY M.",
+        "enrollment": "241041305036",
+        "branch": "B Sc IT",
+        "phone": "9978686138",
+        "email": "jayth9785@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "BAROT SUJAL M.",
+        "enrollment": "241041305001",
+        "branch": "B Sc IT",
+        "phone": "8401594300",
+        "email": "sujalbarot0516@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "PRAJAPATI JAHAN S.",
+        "enrollment": "241041305022",
+        "branch": "B Sc IT",
+        "phone": "9558493924",
+        "email": "jahanprajapati353@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "KANSARA HET A.",
+        "enrollment": "241041305009",
+        "branch": "B Sc IT",
+        "phone": "9875220293",
+        "email": "hetkansara232007@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "team_no": 8,
+    "reg_id": "REG-0008",
+    "team_name": "Team Mighty",
+    "token": "951f0612ce",
+    "leader_name": "Krish Patel",
+    "leader_enrollment": "231040107043",
+    "leader_phone": "8460035928",
+    "leader_email": "patelkrish121v@gmail.com",
+    "psid": "26034",
+    "ps_title": "Software System to check compliance of Packaged Commodities under Legal Metrology(Packaged Commodities) Rules, 2011 by scanning products, images and labels.",
+    "theme": "Miscellaneous",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Krish Patel",
+        "enrollment": "231040107043",
+        "branch": "Computer engineering",
+        "phone": "8460035928",
+        "email": "patelkrish121v@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Abhi Patel",
+        "enrollment": "231040107031",
+        "branch": "Computer engineering",
+        "phone": "6353884516",
+        "email": "patelabhi0014@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Goswami Mira Bharti",
+        "enrollment": "231040107014",
+        "branch": "Computer engineering",
+        "phone": "9455951410",
+        "email": "mirabharti1536@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Harshil Patel",
+        "enrollment": "231040107033",
+        "branch": "Computer engineering",
+        "phone": "8160821694",
+        "email": "patelharshil8160@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Raj Chauhan",
+        "enrollment": "231040107008",
+        "branch": "Computer engineering",
+        "phone": "9726715893",
+        "email": "rajchauhan0311@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Samarth Patel",
+        "enrollment": "241043107006",
+        "branch": "Computer engineering",
+        "phone": "9664943379",
+        "email": "241043107006@gtu.edu.in"
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "team_no": 9,
+    "reg_id": "REG-0009",
+    "team_name": "Memory Bond",
+    "token": "d9f2f7231c",
+    "leader_name": "Atik Saiyad",
+    "leader_enrollment": "2628",
+    "leader_phone": "8734907574",
+    "leader_email": "saiyadatik666@gmail.com",
+    "psid": "26003",
+    "ps_title": "Ministry of Development of North Eastern Region (MDoNER)",
+    "theme": "MedTech / BioTech / HealthTech",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Atik Saiyad",
+        "enrollment": "2628",
+        "branch": "Computer Engineering Diploma",
+        "phone": "8734907574",
+        "email": "saiyadatik666@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Ayusha Samal",
+        "enrollment": "2630",
+        "branch": "Computer Engineering Diploma",
+        "phone": "7383565062",
+        "email": "ayushasamal029@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Krisha Rathod",
+        "enrollment": "2601",
+        "branch": "Computer Engineering Diploma",
+        "phone": "9328797366",
+        "email": "krisharathod450@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Gresika Parihar",
+        "enrollment": "2624",
+        "branch": "Computer Engineering Diploma",
+        "phone": "9979851566",
+        "email": "gresikaparihar@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Rasul Mir",
+        "enrollment": "2604",
+        "branch": "Computer Engineering Diploma",
+        "phone": "8200073892",
+        "email": "mir120329@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Aryan Rajpurohit",
+        "enrollment": "2629",
+        "branch": "Computer Engineering Diploma",
+        "phone": "9727704702",
+        "email": "rajpurohitaryan511@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "team_no": 10,
+    "reg_id": "REG-0015",
+    "team_name": "Mediminds",
+    "token": "2543c6c6f5",
+    "leader_name": "Patel Bhoomi",
+    "leader_enrollment": "251040107037",
+    "leader_phone": "9978732051",
+    "leader_email": "bhoomipd123@gmail.com",
+    "psid": "26046",
+    "ps_title": "Patient case taking software",
+    "theme": "MedTech / BioTech / HealthTech",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Patel Bhoomi",
+        "enrollment": "251040107037",
+        "branch": "Computer",
+        "phone": "9978732051",
+        "email": "bhoomipd123@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Patel Pari",
+        "enrollment": "251040107034",
+        "branch": "Computer",
+        "phone": "6354074867",
+        "email": "paripatel140207@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Patel Janvi",
+        "enrollment": "251040107021",
+        "branch": "Computer",
+        "phone": "7096244344",
+        "email": "janupatel8844@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Patel Aneri",
+        "enrollment": "251040107036",
+        "branch": "Computer",
+        "phone": "8160736050",
+        "email": "aneripatel1108@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Bhagwani Riya",
+        "enrollment": "251040107005",
+        "branch": "Computer",
+        "phone": "6352636219",
+        "email": "riyabhagwani89@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Yadav Krish",
+        "enrollment": "251040107023",
+        "branch": "Computer",
+        "phone": "70522 68296",
+        "email": "krishy0308@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "team_no": 11,
+    "reg_id": "REG-0021",
+    "team_name": "TravelNova",
+    "token": "bd6745c675",
+    "leader_name": "Bhimani Yashvi Arvindbhai",
+    "leader_enrollment": "251040107068",
+    "leader_phone": "9726044053",
+    "leader_email": "yashvibhimani45@gmail.com",
+    "psid": "26204",
+    "ps_title": "Student innovation A solution/idea that can boost the current situation of the tourism industries including hotels, travel and others.",
+    "theme": "Travel & Tourism",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Bhimani Yashvi Arvindbhai",
+        "enrollment": "251040107068",
+        "branch": "Computer engineering",
+        "phone": "9726044053",
+        "email": "yashvibhimani45@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Thakkar Khyati Piyushkumar",
+        "enrollment": "251040107065",
+        "branch": "Computer engineering",
+        "phone": "8320610953",
+        "email": "anuvthakkar2021@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Rathod Riddhi Bhaveshkumar",
+        "enrollment": "251040107059",
+        "branch": "Computer engineering",
+        "phone": "9725150702",
+        "email": "riddhirathod2702@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Jadav Riya Hitendra Kumar",
+        "enrollment": "02",
+        "branch": "Computer",
+        "phone": "8758304018",
+        "email": "riyajadav31108@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "NA",
+        "enrollment": "0",
+        "branch": "NA",
+        "phone": "0",
+        "email": "NA@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "NA",
+        "enrollment": "0",
+        "branch": "NA",
+        "phone": "0",
+        "email": "NA@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "team_no": 12,
+    "reg_id": "REG-0022",
+    "team_name": "EcoTech Titan",
+    "token": "9a2a325a57",
+    "leader_name": "Patel Meet Rakeshkumar",
+    "leader_enrollment": "241040107047",
+    "leader_phone": "+91 9409826441",
+    "leader_email": "patelmeet16102006@gmail.com",
+    "psid": "26201",
+    "ps_title": "AI-Powered Autonomous Waste Detection & Collection Robot",
+    "theme": "Robotics and Drones",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Patel Meet Rakeshkumar",
+        "enrollment": "241040107047",
+        "branch": "Computer engineering",
+        "phone": "+91 9409826441",
+        "email": "patelmeet16102006@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Patel Ved",
+        "enrollment": "251040107047",
+        "branch": "Computer engineering",
+        "phone": "+91 81609 34591",
+        "email": "vedp4122006@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Patel Honey YogeshKumar",
+        "enrollment": "241010107036",
+        "branch": "Computer engineering",
+        "phone": "+91 93139 79542",
+        "email": "patelhoney2935@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Patel Hetvi AlpeshKumar",
+        "enrollment": "241040107034",
+        "branch": "Computer engineering",
+        "phone": "+91 91061 10016",
+        "email": "hetvi.patel1127@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Patel Drushti Sanjaybhai",
+        "enrollment": "241040107031",
+        "branch": "Computer engineering",
+        "phone": "+91 70160 18244",
+        "email": "dp5686644@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Na",
+        "enrollment": "1",
+        "branch": "Na",
+        "phone": ".",
+        "email": "Na@qrp"
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "team_no": 13,
+    "reg_id": "REG-0023",
+    "team_name": "VisionPro",
+    "token": "5d7e6c6f24",
+    "leader_name": "Abdou Kadri Jallow",
+    "leader_enrollment": "231040109001",
+    "leader_phone": "7043032376",
+    "leader_email": "akjallow7@gmail.com",
+    "psid": "26187",
+    "ps_title": "AI-Based Intelligent Video Analytics Platform for Border Surveillance using existing CCTV Infrastructure",
+    "theme": "Blockchain & Cybersecurity",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Abdou Kadri Jallow",
+        "enrollment": "231040109001",
+        "branch": "Electrical Engineering",
+        "phone": "7043032376",
+        "email": "akjallow7@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Rashid Mohammed Nour Tagal",
+        "enrollment": "241040109013",
+        "branch": "Electrical Engineering",
+        "phone": "9601767406",
+        "email": "rashidtnt90@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Mohammed Omer Ahmed Hussain",
+        "enrollment": "241040109012",
+        "branch": "Electrical Engineering",
+        "phone": "9725918967",
+        "email": "m9h67890@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Alagie Basirou Sowe",
+        "enrollment": "251040119014",
+        "branch": "Mechanical Engineering",
+        "phone": "7778959404",
+        "email": "santisowe2090@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Moayed Mohamed Abdalla Idris",
+        "enrollment": "066",
+        "branch": "Computer Engineering",
+        "phone": "7490073183",
+        "email": "moayed.mohamed777@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Marina Helio Metuque",
+        "enrollment": "231040109005",
+        "branch": "Electrical Engineering",
+        "phone": "7567068793",
+        "email": "metuquemarinahelio@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "team_no": 14,
+    "reg_id": "REG-0024",
+    "team_name": "Team SunFlare++",
+    "token": "dcf574339f",
+    "leader_name": "Shah Vishwa Mahesh",
+    "leader_enrollment": "251040107061",
+    "leader_phone": "+91 70963 34473",
+    "leader_email": "vishwaa2012@gmail.com",
+    "psid": "26005",
+    "ps_title": "Solar-Powered Smart Mini Cold Storage System for Fresh Vegetables in North Eastern Region (NER)",
+    "theme": "FoodTech & Rural Development",
+    "category": "Hardware",
+    "total_members": 5,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Shah Vishwa Mahesh",
+        "enrollment": "251040107061",
+        "branch": "Computer Engineering",
+        "phone": "+91 70963 34473",
+        "email": "vishwaa2012@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Trivedi Khyati Ajaykumar",
+        "enrollment": "251040107066",
+        "branch": "Computer Engineering",
+        "phone": "+91 95106 06740",
+        "email": "khyati5137@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Sorathiya Priyanka Gopalbhai",
+        "enrollment": "251040107063",
+        "branch": "Computer Engineering",
+        "phone": "+91 82000 43802",
+        "email": "priyanka.qb01@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Kumpavat Chetsi Pradeepsinh",
+        "enrollment": "251040107025",
+        "branch": "Computer Engineering",
+        "phone": "+91 70432 81401",
+        "email": "chelsi1418@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Patel Diya Dilipkumar",
+        "enrollment": "251040107039",
+        "branch": "Computer Engineering",
+        "phone": "+91 95105 37232",
+        "email": "pdiya7527@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "team_no": 15,
+    "reg_id": "REG-0025",
+    "team_name": "Dhwani Setu",
+    "token": "b93a1fb77e",
+    "leader_name": "Mihir Rohitkumar Bhavsar",
+    "leader_enrollment": "231040107005",
+    "leader_phone": "8487078145",
+    "leader_email": "mihir.r.bhavsar1336@gmail.com",
+    "psid": "26173",
+    "ps_title": "Dhwani Setu: Indian Multilingual TTS & STT Aided Neural Transreceiver Radio Access for low bitrate links",
+    "theme": "Miscellaneous",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Mihir Rohitkumar Bhavsar",
+        "enrollment": "231040107005",
+        "branch": "Computer",
+        "phone": "8487078145",
+        "email": "mihir.r.bhavsar1336@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Harshita Goyal",
+        "enrollment": "241040107009",
+        "branch": "Computer",
+        "phone": "6353199609",
+        "email": "goyalharshita2828@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Shrey Mishra",
+        "enrollment": "231040107023",
+        "branch": "Computer",
+        "phone": "8866817039",
+        "email": "mishrashrey72@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Oza Ansh",
+        "enrollment": "231040107026",
+        "branch": "Computer",
+        "phone": "7862898355",
+        "email": "ozaansh06@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Ishaan Bhardwaj",
+        "enrollment": "231040107004",
+        "branch": "Computer",
+        "phone": "9904083164",
+        "email": "ishaanbhardwaj13055@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Rutul Prajapati",
+        "enrollment": "231040107069",
+        "branch": "Computer",
+        "phone": "8487812288",
+        "email": "rutulprajapati2006@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "team_no": 16,
+    "reg_id": "REG-0026",
+    "team_name": "CyberApex",
+    "token": "31006ae207",
+    "leader_name": "Het NileshKumar Joshi",
+    "leader_enrollment": "254600307009",
+    "leader_phone": "9722828423",
+    "leader_email": "ramjoshi1210@gmail.com",
+    "psid": "26204",
+    "ps_title": "Student innovation",
+    "theme": "Blockchain & Cybersecurity",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Het NileshKumar Joshi",
+        "enrollment": "254600307009",
+        "branch": "Di-Computer",
+        "phone": "9722828423",
+        "email": "ramjoshi1210@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Jeena Gosai",
+        "enrollment": "254600307007",
+        "branch": "Computer",
+        "phone": "9106446182",
+        "email": "jeenagosai19@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Dhwani raval",
+        "enrollment": "254600307006",
+        "branch": "Computer",
+        "phone": "7016874527",
+        "email": "dhwaniraval1504@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Khushi patel",
+        "enrollment": "254600307017",
+        "branch": "Computer",
+        "phone": "9227179734",
+        "email": "patelkhushi.com@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Prajapati yashank",
+        "enrollment": "254600307024",
+        "branch": "Computer",
+        "phone": "9023500175",
+        "email": "prajapatiyashank5@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Zala Hitarthsinh",
+        "enrollment": "254600307029",
+        "branch": "Computer engineering",
+        "phone": "9428210172",
+        "email": "zalahitarthsinh@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "team_no": 17,
+    "reg_id": "REG-0027",
+    "team_name": "SyncSite",
+    "token": "44de5d0bcf",
+    "leader_name": "Darshit Barot",
+    "leader_enrollment": "241040107002",
+    "leader_phone": "9998688016",
+    "leader_email": "darshitbarot126@gmail.com",
+    "psid": "26122",
+    "ps_title": "Intelligent Data Capture & Schedule-Linking Layer for Infrastructure Project Management: Real-Time Actual Progress Tracking (Planning-to-Execution Bridge)",
+    "theme": "Smart Automation",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Darshit Barot",
+        "enrollment": "241040107002",
+        "branch": "Computer",
+        "phone": "9998688016",
+        "email": "darshitbarot126@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Piyush Darji",
+        "enrollment": "241040107007",
+        "branch": "computer",
+        "phone": "8160015195",
+        "email": "piyush24742@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Sunainkhan kureshi",
+        "enrollment": "241040107019",
+        "branch": "Computer",
+        "phone": "8487896840",
+        "email": "sunainkhan001@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "vishva joshi",
+        "enrollment": "241041305008",
+        "branch": "Msc.IT",
+        "phone": "9409023566",
+        "email": "vishvajoshi598@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Sukriti Pal",
+        "enrollment": "26045",
+        "branch": "Computer",
+        "phone": "8780045208",
+        "email": "sukritip735@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Jasleen Kaur",
+        "enrollment": "26014",
+        "branch": "Computer",
+        "phone": "9773164576",
+        "email": "jasleenhut3@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 28,
+    "team_no": 18,
+    "reg_id": "REG-0028",
+    "team_name": "StellarX",
+    "token": "e10e6558e3",
+    "leader_name": "Krish Patel",
+    "leader_enrollment": "231040107044",
+    "leader_phone": "7046917475",
+    "leader_email": "krishkumarjpatel@gmail.com",
+    "psid": "26168",
+    "ps_title": "AI-ML based Intelligent Dead Reckoning system for seamless navigation",
+    "theme": "Smart Vehicles",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Krish Patel",
+        "enrollment": "231040107044",
+        "branch": "Computer engineering",
+        "phone": "7046917475",
+        "email": "krishkumarjpatel@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Sneh patel",
+        "enrollment": "231040107062",
+        "branch": "Computer engineering",
+        "phone": "9265272465",
+        "email": "snehpatel1626@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Jiya jadav",
+        "enrollment": "231040107016",
+        "branch": "Computer engineering",
+        "phone": "9265203947",
+        "email": "jiyajadav3106@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Janvi patel",
+        "enrollment": "231040107035",
+        "branch": "Computer engineering",
+        "phone": "8141537871",
+        "email": "janavipatel035@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "kashish patel",
+        "enrollment": "231040107041",
+        "branch": "Computer engineering",
+        "phone": "8799494014",
+        "email": "kashishpatel838@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Aditya pavar",
+        "enrollment": "231040107065",
+        "branch": "Computer engineering",
+        "phone": "8866127502",
+        "email": "pavaraditya6@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "team_no": 19,
+    "reg_id": "REG-0029",
+    "team_name": "Slidenova",
+    "token": "6190e09cd3",
+    "leader_name": "PRAJAPATI PRIYANSHI HASHIMUKH BHAI",
+    "leader_enrollment": "251040107054",
+    "leader_phone": "9106524342",
+    "leader_email": "prajapatipriyanshi022@gmail.com",
+    "psid": "26219",
+    "ps_title": "SmartPresenter One – AI-Powered Portable Laptop-Free Presentation & Classroom Interaction System",
+    "theme": "Smart Automation",
+    "category": "Hardware",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "PRAJAPATI PRIYANSHI HASHIMUKH BHAI",
+        "enrollment": "251040107054",
+        "branch": "COMPUTER",
+        "phone": "9106524342",
+        "email": "prajapatipriyanshi022@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "PATEL DAKSH VIKASBHAI",
+        "enrollment": "251040107038",
+        "branch": "COMPUTER",
+        "phone": "9376347795",
+        "email": "dakshvpatel7210@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "PATEL POORV KIRANBHAI",
+        "enrollment": "251040107044",
+        "branch": "COMPUTER",
+        "phone": "9624276709",
+        "email": "poorvp277@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "SUTHAR NIDHIBEN KANUBHAI",
+        "enrollment": "251040107064",
+        "branch": "COMPUTER",
+        "phone": "8160380481",
+        "email": "nidhisuthar2304@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "PATEL JEEL PARESHKUMAR",
+        "enrollment": "251040107040",
+        "branch": "COMPUTER",
+        "phone": "7621881711",
+        "email": "jeelp171107@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "PATEL DAKSH VIKASBHAI",
+        "enrollment": "251040107038",
+        "branch": "COMPUTER",
+        "phone": "9376347795",
+        "email": "dakshvpatel7210@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 30,
+    "team_no": 20,
+    "reg_id": "REG-0030",
+    "team_name": "CtrlAltElite",
+    "token": "c3a3875c08",
+    "leader_name": "KADIA TRUSHA KAUSHIK",
+    "leader_enrollment": "241040107014",
+    "leader_phone": "9428281224",
+    "leader_email": "trushakadia22@gmail.com",
+    "psid": "26044",
+    "ps_title": "Portal for Academia - Industry collaboration for Skill Mapping, Internships and Placement",
+    "theme": "Smart Automation",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "KADIA TRUSHA KAUSHIK",
+        "enrollment": "241040107014",
+        "branch": "CE",
+        "phone": "9428281224",
+        "email": "trushakadia22@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "RATHOD RAJVI DIGNESHBHAI",
+        "enrollment": "241040107068",
+        "branch": "CE",
+        "phone": "7016038855",
+        "email": "rajvirathod827@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Dharmi Davda",
+        "enrollment": "251043107001",
+        "branch": "CE",
+        "phone": "+917016499595",
+        "email": "dharmidavda29@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "SAMYO DIP DATTA",
+        "enrollment": "241040119012",
+        "branch": "ME",
+        "phone": "7041742655",
+        "email": "samyodipdatta@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "SHAH JAYATI AMRISHKUMAR",
+        "enrollment": "241040107012",
+        "branch": "CE",
+        "phone": "8780749073",
+        "email": "jayatishah55@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "JAINAM BAROT",
+        "enrollment": "231040107003",
+        "branch": "CE",
+        "phone": "9265488133",
+        "email": "barotjainam59@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 31,
+    "team_no": 21,
+    "reg_id": "REG-0031",
+    "team_name": "TrackX",
+    "token": "5d5cd5b459",
+    "leader_name": "VRAJ ISHVARBHAI CHAUDHARY",
+    "leader_enrollment": "251040107014",
+    "leader_phone": "7600461225",
+    "leader_email": "vrajchaudhary8@gmail.com",
+    "psid": "26223",
+    "ps_title": "Student Innovation-Disaster management includes ideas related to risk mitigation, Planning and management before, after or during a disaster.",
+    "theme": "Disaster Management",
+    "category": "Hardware",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "VRAJ ISHVARBHAI CHAUDHARY",
+        "enrollment": "251040107014",
+        "branch": "COMPUTER",
+        "phone": "7600461225",
+        "email": "vrajchaudhary8@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "PRATHAM CHAUDHARY",
+        "enrollment": "251040107013",
+        "branch": "COMPUTER",
+        "phone": "6354677843",
+        "email": "chaudharypratham566@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "RIDDHI HEMANTKUMAR CHAUDHARI",
+        "enrollment": "241040107003",
+        "branch": "COMPUTER",
+        "phone": "8849853907",
+        "email": "riddhichaudhari1703@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "ARYA PRATIKKUMAR PATEL",
+        "enrollment": "251040107002",
+        "branch": "COMPUTER",
+        "phone": "9724042101",
+        "email": "aryapatel8203@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Patel Daksh Vikasbhai",
+        "enrollment": "251040107038",
+        "branch": "COMPUTER",
+        "phone": "9376347795",
+        "email": "dakshvpatel7210@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Chaudhary Kavya Arvindbhai",
+        "enrollment": "251040107010",
+        "branch": "COMPUTER",
+        "phone": "6356750696",
+        "email": "chaudharykavya1308@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "team_no": 22,
+    "reg_id": "REG-0032",
+    "team_name": "The Orbit Eye",
+    "token": "ae73467dbe",
+    "leader_name": "Thakor Harshil",
+    "leader_enrollment": "251040109003",
+    "leader_phone": "9909055290",
+    "leader_email": "harshil5589@gmail.com",
+    "psid": "168",
+    "ps_title": "Development of an AI-Based Virtual Camera Tracking System for Coarse Alignment of Mobile Free Space Optical Communication (FSOC) Terminals",
+    "theme": "Smart Automation",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Thakor Harshil",
+        "enrollment": "251040109003",
+        "branch": "Electrical Engineering",
+        "phone": "9909055290",
+        "email": "harshil5589@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Nayi Prince",
+        "enrollment": "251040109001",
+        "branch": "Electrical Engineering",
+        "phone": "6355870935",
+        "email": "pnayi6067@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Prajapati Priyanshi",
+        "enrollment": "251040109002",
+        "branch": "Electrical Engineering",
+        "phone": "9979196709",
+        "email": "priyanshiprajapati207@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Jignesh Parmar",
+        "enrollment": "241040107026",
+        "branch": "Computer Engineering",
+        "phone": "9925910389",
+        "email": "jigshmali082@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Sharup Bashak",
+        "enrollment": "251040119022",
+        "branch": "Mechanical Engineering",
+        "phone": "9054737068",
+        "email": "basaksharup@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Dasun Shubodha",
+        "enrollment": "251040107076",
+        "branch": "Computer Engineering",
+        "phone": "9319069954",
+        "email": "dasunsubodha25funi@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 33,
+    "team_no": 23,
+    "reg_id": "REG-0033",
+    "team_name": "Civilanz",
+    "token": "71b79536ee",
+    "leader_name": "Rahilkhan Pathan",
+    "leader_enrollment": "241043106007",
+    "leader_phone": "9427169139",
+    "leader_email": "rahilkhanp74@gmail.com",
+    "psid": "26229",
+    "ps_title": "Kabadiwala connect- bringing the informal collector into the formal recycling chain",
+    "theme": "Clean & Green Technology",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Rahilkhan Pathan",
+        "enrollment": "241043106007",
+        "branch": "Civil Engineering",
+        "phone": "9427169139",
+        "email": "rahilkhanp74@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Saiyad Ayubali",
+        "enrollment": "241043106008",
+        "branch": "Civil Engineering",
+        "phone": "+91 6355313276",
+        "email": "rahilkhanp74@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Patel Yash kumar",
+        "enrollment": "241043106006",
+        "branch": "Civil Engineering",
+        "phone": "+91 8320420619",
+        "email": "patelyashkumar011@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Patel Ansh",
+        "enrollment": "241043106004",
+        "branch": "Civil Engineering",
+        "phone": "+91 9106330347",
+        "email": "ansh26411@gamil.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Patel Rajvi",
+        "enrollment": "035",
+        "branch": "Civil engineering",
+        "phone": "+91 9727415702",
+        "email": "rajvipatel1539@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Gauri Chaudhary",
+        "enrollment": "018",
+        "branch": "Civil engineering",
+        "phone": "+91 8200268223",
+        "email": "gaurichaudhary2105@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 34,
+    "team_no": 24,
+    "reg_id": "REG-0034",
+    "team_name": "Cool Can",
+    "token": "5ea1d92078",
+    "leader_name": "Aayushi Manishkumar Melana",
+    "leader_enrollment": "076",
+    "leader_phone": "7990526771",
+    "leader_email": "aayuahimelana221207@gmail.com",
+    "psid": "26110",
+    "ps_title": "Development of a Low-Cost Light-weight Milk Chilling Can for Small-Scale Dairy Farmers",
+    "theme": "FoodTech & Rural Development",
+    "category": "Hardware",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Aayushi Manishkumar Melana",
+        "enrollment": "076",
+        "branch": "Computer engineering",
+        "phone": "7990526771",
+        "email": "aayuahimelana221207@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Nishi Vinodkumar Patel",
+        "enrollment": "077",
+        "branch": "Computer engineering",
+        "phone": "8460168097",
+        "email": "pnishi161@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Shreya Dhavalbhai Patel",
+        "enrollment": "026",
+        "branch": "Computer engineering",
+        "phone": "9316647286",
+        "email": "dhavalpatel9909152156@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Jaival maheshkumar patel",
+        "enrollment": "013",
+        "branch": "Mechanical engineering",
+        "phone": "9909325049",
+        "email": "jaivalpatel34@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Anirudh Arunkumar sharma",
+        "enrollment": "001",
+        "branch": "Mechanical engineering",
+        "phone": "6363101325",
+        "email": "77sharma.anirudh@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Dhwanit Sandipkumar kansara",
+        "enrollment": "008",
+        "branch": "Mechanical engineering",
+        "phone": "9408384411",
+        "email": "dhwanitkansara06@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 35,
+    "team_no": 25,
+    "reg_id": "REG-0035",
+    "team_name": "INFRA NOVA",
+    "token": "aff0ef1528",
+    "leader_name": "Yug Jayeshkumar Prajapati",
+    "leader_enrollment": "050",
+    "leader_phone": "7383095915",
+    "leader_email": "yugjp31@gmail.com",
+    "psid": "26210",
+    "ps_title": "Smart Krushi",
+    "theme": "Agriculture",
+    "category": "Hardware",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Yug Jayeshkumar Prajapati",
+        "enrollment": "050",
+        "branch": "Civil Engineering",
+        "phone": "7383095915",
+        "email": "yugjp31@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Akshat Vinodbhai Panchal",
+        "enrollment": "002",
+        "branch": "Civil Engineering",
+        "phone": "901606557",
+        "email": "panchalakshat27@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Vyom Dilipsinh Rathod",
+        "enrollment": "048",
+        "branch": "Civil Engineering",
+        "phone": "9664878861",
+        "email": "rathodvyom433@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Man Pankajbhai Barot",
+        "enrollment": "007",
+        "branch": "Civil Engineering",
+        "phone": "7977925802",
+        "email": "manbarot7977@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Fency Alpeshkumar Patel",
+        "enrollment": "016",
+        "branch": "Civil Engineering",
+        "phone": "9227087551",
+        "email": "fency1411@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Prachibem Bhanushankhar Shrimali",
+        "enrollment": "037",
+        "branch": "Civil Engineering",
+        "phone": "8849286396",
+        "email": "shrimaliprachi184@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 36,
+    "team_no": 26,
+    "reg_id": "REG-0036",
+    "team_name": "ONE STEP AHEAD",
+    "token": "6a57ab3f55",
+    "leader_name": "Authoy Dey",
+    "leader_enrollment": "251040106013",
+    "leader_phone": "+917043741537",
+    "leader_email": "authoydey520@gmail.com",
+    "psid": "26206",
+    "ps_title": "Student Innovation-Disaster management includes ideas related to risk mitigation, Planning and management before, after or during a disaster.",
+    "theme": "Disaster Management",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Authoy Dey",
+        "enrollment": "251040106013",
+        "branch": "CIVIL ENGINEERING",
+        "phone": "+917043741537",
+        "email": "authoydey520@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "But Magot But Ayol",
+        "enrollment": "251040106014",
+        "branch": "civil",
+        "phone": "+918866718949",
+        "email": "butmagot2004@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Ismail Muhammad Omar Suale",
+        "enrollment": "251040106015",
+        "branch": "civil",
+        "phone": "+919974359220",
+        "email": "ismailsuale4@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "SAMUEL ATEM ATEM DENG",
+        "enrollment": "251040106018",
+        "branch": "CIVIL",
+        "phone": "+91740571205",
+        "email": "atemayajr@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "AAVDHESH DIXIT",
+        "enrollment": "251040119001",
+        "branch": "MECHANICAL",
+        "phone": "+917668492824",
+        "email": "aavdheshdixit24@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "SUDIPA SHILL",
+        "enrollment": "251040106020",
+        "branch": "CIVIL",
+        "phone": "+919664620968",
+        "email": "shill.sudipa@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 37,
+    "team_no": 27,
+    "reg_id": "REG-0037",
+    "team_name": "Hydro Nova",
+    "token": "b580b80d19",
+    "leader_name": "khushi Fulkeshkumar patel",
+    "leader_enrollment": "027",
+    "leader_phone": "9213695499",
+    "leader_email": "khushipatel0711@gmail.com",
+    "psid": "26219",
+    "ps_title": "Rainwater Harvesting",
+    "theme": "Smart Automation",
+    "category": "Hardware",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "khushi Fulkeshkumar patel",
+        "enrollment": "027",
+        "branch": "Civil Engineering",
+        "phone": "9213695499",
+        "email": "khushipatel0711@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Grency Riteshkumar Patel",
+        "enrollment": "033",
+        "branch": "Civil Engineering",
+        "phone": "7600096162",
+        "email": "grencypatel191107@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Hani Rajeshbhai Chauhan",
+        "enrollment": "020",
+        "branch": "Civil Engineering",
+        "phone": "9313612824",
+        "email": "rajubhai40285@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Dhruvi Raghjibhai Chaudhari",
+        "enrollment": "013",
+        "branch": "Civil Engineering",
+        "phone": "9601519907",
+        "email": "dhruvichaudhari0909@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Rudra Govindbhai Chaudhari",
+        "enrollment": "010",
+        "branch": "Civil Engineering",
+        "phone": "6353143142",
+        "email": "rudrachaudhari2108@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Dhairya Jagdishbhai Chaudhari",
+        "enrollment": "009",
+        "branch": "Civil Engineering",
+        "phone": "8160789644",
+        "email": "chaudharidhairy016@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 38,
+    "team_no": 28,
+    "reg_id": "REG-0038",
+    "team_name": "Traffic Nova",
+    "token": "658e043778",
+    "leader_name": "Saniya Patel",
+    "leader_enrollment": "040",
+    "leader_phone": "9725742147",
+    "leader_email": "patsonu0106@gmail.com",
+    "psid": "26222",
+    "ps_title": "Student Innovation-Submit your ideas to address the growing pressures on the city’s resources, transport networks, and logistic infrastructure",
+    "theme": "Transportation & Logistics",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Saniya Patel",
+        "enrollment": "040",
+        "branch": "Civil engineering",
+        "phone": "9725742147",
+        "email": "patsonu0106@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Huzaifa Khatri",
+        "enrollment": "026",
+        "branch": "Civil engineer8ng",
+        "phone": "7600594368",
+        "email": "huzaifakhatri2203@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Utkarsh Vadodariya",
+        "enrollment": "046",
+        "branch": "Civil engineering",
+        "phone": "9924763319",
+        "email": "utkarshvadodariya33@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "URMAY JHA",
+        "enrollment": "045",
+        "branch": "Civil engineering",
+        "phone": "9499773699",
+        "email": "urmayjha@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Neel Panchal",
+        "enrollment": "029",
+        "branch": "Mechanical engineering",
+        "phone": "9825650131",
+        "email": "panchalneel1703@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Srusti Pandya",
+        "enrollment": "035",
+        "branch": "Computer engineering",
+        "phone": "9998117028",
+        "email": "mayankpfb@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 39,
+    "team_no": 29,
+    "reg_id": "REG-0039",
+    "team_name": "Scrap setu",
+    "token": "75d7e3650b",
+    "leader_name": "Nishita Mishra",
+    "leader_enrollment": "26087",
+    "leader_phone": "9428172219",
+    "leader_email": "nishitamishra1234@gmail.com",
+    "psid": "26229",
+    "ps_title": "Kabadiwala connect - Bringing the informal collector into the formal recycling chain",
+    "theme": "Clean & Green Technology",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Nishita Mishra",
+        "enrollment": "26087",
+        "branch": "CE",
+        "phone": "9428172219",
+        "email": "nishitamishra1234@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Dhavni Modi",
+        "enrollment": "26018",
+        "branch": "CE",
+        "phone": "9316108270",
+        "email": "modidhavni98@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Shreyanshi prajapati",
+        "enrollment": "26099",
+        "branch": "CE",
+        "phone": "9023943634",
+        "email": "shreyanship77@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Shyam Goswami",
+        "enrollment": "26013",
+        "branch": "CE",
+        "phone": "6353287357",
+        "email": "shyamgoswami4408@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Jayrajsinh Chavada",
+        "enrollment": "26034",
+        "branch": "CE",
+        "phone": "9173881788",
+        "email": "chavdajayrajsinhajaysinh@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Krish Yadav",
+        "enrollment": "251040107023",
+        "branch": "CE",
+        "phone": "7052268296",
+        "email": "krishy0308@gmail.com"
+      }
+    ]
+  },
+  {
+    "id": 40,
+    "team_no": 30,
+    "reg_id": "REG-0040",
+    "team_name": "Revault",
+    "token": "dcae20f6aa",
+    "leader_name": "Hussain Gandhi",
+    "leader_enrollment": "50",
+    "leader_phone": "7698733453",
+    "leader_email": "hussaingandhi24@gmail.com",
+    "psid": "26234",
+    "ps_title": "AI",
+    "theme": "FoodTech & Rural Development",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Hussain Gandhi",
+        "enrollment": "50",
+        "branch": "Computer Engineering",
+        "phone": "7698733453",
+        "email": "hussaingandhi24@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Shraddha Darji",
+        "enrollment": "98",
+        "branch": "Computer Engineering",
+        "phone": "7862008942",
+        "email": "shraddhadarji55@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Hussain Gandhi",
+        "enrollment": "50",
+        "branch": "Computer Engineering",
+        "phone": "7698733453",
+        "email": "hussaingandhi24@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "Jugal Manglani",
+        "enrollment": "80",
+        "branch": "Computer Engineering",
+        "phone": "9409327445",
+        "email": "jugalman1245@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "Akmal",
+        "enrollment": "15",
+        "branch": "Computer Engineering",
+        "phone": "8128104876",
+        "email": "boxerakmal70@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Dhruv Chauhan",
+        "enrollment": "18",
+        "branch": "Computer Engineering",
+        "phone": "9725766574",
+        "email": "dhruvchauhan578@gmail.com"
+      }
+    ]
+  }
+]
