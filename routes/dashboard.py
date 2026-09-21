@@ -2,7 +2,7 @@
 GTU-ITR R&D & IIC Portal - Scoped Dashboard Routes
 Blueprint: dashboard  |  Prefix: (none – root)
 """
-from flask import Blueprint, render_template, redirect, url_for, send_from_directory, current_app, request
+from flask import Blueprint, render_template, redirect, url_for, send_from_directory, current_app, request, jsonify
 from flask_login import login_required, current_user
 from models.landing_post import LandingPost
 from extensions import db
@@ -162,3 +162,104 @@ def privacy():
 def terms():
     """Public Terms of Service page."""
     return render_template('legal/terms_of_service.html')
+
+
+@dashboard_bp.route('/attendance')
+def sih_attendance():
+    """Dedicated Team Attendance Portal for SIH 2026 students."""
+    return send_from_directory(current_app.static_folder, 'attendance.html')
+
+
+@dashboard_bp.route('/attendance-admin')
+def sih_attendance_admin():
+    """SIH 2026 Attendance Manager & Link Dispatcher Console."""
+    return send_from_directory(current_app.static_folder, 'attendance-admin.html')
+
+
+@dashboard_bp.route('/sih-results')
+def sih_results():
+    """Smart India Hackathon (SIH 2026) Official Results & Team Rankings with Selfies."""
+    return send_from_directory(current_app.static_folder, 'sih-results.html')
+
+
+@dashboard_bp.route('/results')
+def sih_results_alias():
+    """Short URL alias for SIH 2026 results."""
+    return redirect(url_for('dashboard.sih_results'))
+
+
+@dashboard_bp.route('/api/sih-results')
+def api_sih_results():
+    """API endpoint to get the full JSON dataset of SIH 2026 results with live photos."""
+    from utils.results_sync import get_live_results_data
+    data = get_live_results_data()
+    resp = jsonify(data)
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
+
+@dashboard_bp.route('/api/sih-results/sync', methods=['GET', 'POST'])
+def api_sih_results_sync():
+    """Force synchronization of all attendance photos into results data and page."""
+    from utils.results_sync import sync_all_attendance_photos_to_results
+    data = sync_all_attendance_photos_to_results()
+    return jsonify({
+        'success': True,
+        'message': 'SIH 2026 results synchronized successfully with all attendance photos',
+        'teams_count': len(data),
+        'photos_count': sum(1 for t in data if t.get('has_photo'))
+    })
+
+
+@dashboard_bp.route('/api/sih-results/upload-photo', methods=['POST'])
+def api_upload_team_photo():
+    """Directly uploads or attaches a verified photo to a team in the SIH 2026 results."""
+    try:
+        from utils.results_sync import sync_single_team_photo
+        from models.team_attendance import TeamAttendance
+        import base64
+
+        data = request.get_json(silent=True) or {}
+        reg_id = data.get('reg_id') or request.form.get('reg_id')
+        team_name = data.get('team_name') or request.form.get('team_name')
+        photo_b64 = data.get('photo') or data.get('selfie_image')
+
+        # Check multipart file upload
+        if 'photo_file' in request.files:
+            file = request.files['photo_file']
+            if file and file.filename:
+                raw_bytes = file.read()
+                photo_b64 = 'data:image/jpeg;base64,' + base64.b64encode(raw_bytes).decode('utf-8')
+
+        if not photo_b64:
+            return jsonify({'success': False, 'error': 'No image data provided'}), 400
+
+        # Update or create attendance record in DB if exists
+        digits = ''.join(c for c in str(reg_id or '') if c.isdigit())
+        clean_team_id = int(digits) if digits else None
+
+        att = TeamAttendance.query.filter(
+            db.or_(
+                TeamAttendance.registration_id == clean_team_id if clean_team_id else False,
+                TeamAttendance.team_name.ilike((team_name or '').strip())
+            )
+        ).first()
+
+        if att:
+            att.selfie_image = photo_b64
+            db.session.commit()
+
+        # Sync to results files
+        ok = sync_single_team_photo(reg_id=reg_id, team_name=team_name, selfie_image=photo_b64)
+        if ok:
+            return jsonify({'success': True, 'message': f'Photo attached to team {team_name or reg_id}'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to match team in results dataset'}), 404
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+

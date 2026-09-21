@@ -421,6 +421,18 @@ def submit_team_attendance():
 
         db.session.commit()
 
+        # Real-time synchronization of group selfie to SIH 2026 Results
+        if selfie_image:
+            try:
+                from utils.results_sync import sync_single_team_photo
+                sync_single_team_photo(
+                    reg_id=reg_id or rec.registration_id,
+                    team_name=rec.team_name,
+                    selfie_image=selfie_image
+                )
+            except Exception as sync_e:
+                current_app.logger.warning(f"Failed to auto-sync photo to results: {sync_e}")
+
         # WhatsApp Notification via Local Gateway (Port 8090)
         try:
             present_list_str = ""

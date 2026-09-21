@@ -7,6 +7,10 @@ SERVER_UI_DIR="/home/gtu-itr/gtu-server-ui"
 LOG_FILE="$PROJECT_DIR/logs/watchdog.log"
 mkdir -p "$PROJECT_DIR/logs"
 
+unset PYTHONPATH
+unset PYTHONHOME
+export PATH="/home/gtu-itr/iic-cell-gtu-itr-/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin"
+
 # Ensure single instance
 exec 200>/tmp/gtu_watchdog.lock
 flock -n 200 || { echo "[$(date '+%Y-%m-%d %H:%M:%S')] Another Watchdog instance is already running. Exiting." >> "$LOG_FILE"; exit 0; }
@@ -27,8 +31,13 @@ while true; do
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] [RECOVERY] Portal Web App down, restarting..." >> "$LOG_FILE"
         export DATABASE_URL="postgresql+psycopg2://gtu_admin:44113290@localhost:5432/iic_cell_gtu"
         export LD_LIBRARY_PATH="/home/gtu-itr/pgsql/usr/lib/x86_64-linux-gnu"
-        cd "$PROJECT_DIR"
-        "$PROJECT_DIR/venv/bin/gunicorn" \
+        unset PYTHONPATH
+        unset PYTHONHOME
+        GUNICORN_BIN="/usr/bin/gunicorn"
+        if [ ! -x "$GUNICORN_BIN" ]; then
+            GUNICORN_BIN="$PROJECT_DIR/venv/bin/gunicorn"
+        fi
+        $GUNICORN_BIN \
             --bind 0.0.0.0:5000 \
             --workers 3 \
             --timeout 120 \
@@ -64,6 +73,28 @@ cmd = [
 ]
 subprocess.Popen(cmd, close_fds=True)
 "
+    fi
+
+    # 5. Check Ollama AI Server (Port 11434)
+    if ! pgrep -f "ollama serve" >/dev/null 2>&1; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [RECOVERY] Ollama AI Server down, restarting..." >> "$LOG_FILE"
+        /bin/bash /home/gtu-itr/ollama/start_ollama.sh >> "$LOG_FILE" 2>&1
+        sleep 2
+    fi
+
+    # 6. Check Portal Restart Trigger File
+    if [ -f "$PROJECT_DIR/.restart_portal" ]; then
+        rm -f "$PROJECT_DIR/.restart_portal"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Portal restart requested via trigger file..." >> "$LOG_FILE"
+        pkill -f "gunicorn.*wsgi:app" 2>/dev/null || true
+        sleep 2
+    fi
+
+    # 7. Background Auto-Sync SIH Results Photos (Every 60 seconds)
+    SYNC_COUNTER=$(( (SYNC_COUNTER + 1) % 6 ))
+    if [ "$SYNC_COUNTER" -eq 0 ] || [ -f "$PROJECT_DIR/.sync_results" ]; then
+        rm -f "$PROJECT_DIR/.sync_results"
+        "$PROJECT_DIR/venv/bin/python3" -c "from utils.results_sync import get_live_results_data; get_live_results_data()" >> "$LOG_FILE" 2>&1 || true
     fi
 
     sleep 10
