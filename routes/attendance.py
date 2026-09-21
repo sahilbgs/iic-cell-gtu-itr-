@@ -364,14 +364,29 @@ def submit_team_attendance():
                 }), 403
 
         # Check existing attendance record in PostgreSQL to update or insert
+        clean_team_id = None
+        if team_id and str(team_id).isdigit():
+            clean_team_id = int(team_id)
+        elif reg_id:
+            cr = str(reg_id).lower().replace("reg-", "").replace("reg_sih_", "")
+            if cr.isdigit():
+                clean_team_id = int(cr)
+
         existing = TeamAttendance.query.filter(
             db.or_(
-                TeamAttendance.registration_id == team_id if team_id else False,
-                TeamAttendance.team_name == team_name
+                TeamAttendance.registration_id == clean_team_id if clean_team_id else False,
+                TeamAttendance.team_name.ilike(team_name.strip())
             )
         ).first()
 
         if existing:
+            # STRICT PERMANENT LOCK: If verified selfie photo is already uploaded, NO edits or changes are allowed!
+            if existing.selfie_image and len(existing.selfie_image.strip()) > 50:
+                return jsonify({
+                    'success': False,
+                    'error': 'Attendance is already recorded and permanently locked with a verified group photo. Edits or modifications are strictly prohibited.'
+                }), 403
+
             rec = existing
             rec.present_count = present_count
             rec.total_members = total_members

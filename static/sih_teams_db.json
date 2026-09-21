@@ -2122,5 +2122,77 @@
         "email": "dhruvchauhan578@gmail.com"
       }
     ]
+  },
+  {
+    "id": 42,
+    "team_no": 31,
+    "reg_id": "REG-0042",
+    "team_name": "Guardian-X",
+    "token": "3ca5961f87",
+    "leader_name": "Ravi Gupta",
+    "leader_enrollment": "251040107019",
+    "leader_phone": "9601617030",
+    "leader_email": "rv0110gupta@gmail.com",
+    "psid": "26187",
+    "ps_title": "AI-Based Intelligent Video Analytics Platform for Border Surveillance using existing CCTV Infrastructure.",
+    "theme": "Blockchain & Cybersecurity",
+    "category": "Software",
+    "total_members": 6,
+    "members": [
+      {
+        "role": "Team Leader",
+        "is_leader": true,
+        "name": "Ravi Gupta",
+        "enrollment": "251040107019",
+        "branch": "Computer",
+        "phone": "9601617030",
+        "email": "rv0110gupta@gmail.com"
+      },
+      {
+        "role": "Member 1",
+        "is_leader": false,
+        "name": "Deyaan Amin",
+        "enrollment": "251041305002",
+        "branch": "integrated Bsc.It",
+        "phone": "9725479405",
+        "email": "deyaan72@gmail.com"
+      },
+      {
+        "role": "Member 2",
+        "is_leader": false,
+        "name": "Ratan Darji",
+        "enrollment": "251040107016",
+        "branch": "Computer",
+        "phone": "9409816301",
+        "email": "ratandarji01@gmail.com"
+      },
+      {
+        "role": "Member 3",
+        "is_leader": false,
+        "name": "mistry vaidika",
+        "enrollment": "251040107029",
+        "branch": "BE.computer engineering",
+        "phone": "9638587338",
+        "email": "vaidikamistry2008@gmail.com"
+      },
+      {
+        "role": "Member 4",
+        "is_leader": false,
+        "name": "patel avaniben kanaiyalal",
+        "enrollment": "241041305014",
+        "branch": "integrated Bsc.It",
+        "phone": "9601533691",
+        "email": "avanikp059@gmail.com"
+      },
+      {
+        "role": "Member 5",
+        "is_leader": false,
+        "name": "Celestine Sindo",
+        "enrollment": "251040119002",
+        "branch": "Mechanical",
+        "phone": "9924136306",
+        "email": "celestine15000@loyolahallahd.com"
+      }
+    ]
   }
 ]
