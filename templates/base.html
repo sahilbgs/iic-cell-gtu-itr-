@@ -69,11 +69,19 @@
         <span>Public Announcements</span>
       </a>
 
-      {% if current_user.is_authenticated and current_user.role in ['CHAIRPERSON', 'MASTER_ADMIN'] %}
+      {% if current_user.is_authenticated and current_user.role in ['CHAIRPERSON', 'MASTER_ADMIN', 'PRINCIPAL'] %}
       <div class="sidebar__section-title">Administration</div>
       <a href="{{ url_for('admin.index') }}" class="sidebar__link {% if request.blueprint == 'admin' and request.endpoint != 'admin.manage_landing_posts' %}active{% endif %}">
         <i data-lucide="shield-check"></i>
         <span>Admin Panel</span>
+      </a>
+      <a href="{{ url_for('database.explorer') }}" class="sidebar__link {% if request.endpoint == 'database.explorer' %}active{% endif %}">
+        <i data-lucide="database"></i>
+        <span>Database Tables</span>
+      </a>
+      <a href="{{ url_for('database.canvas_view') }}" class="sidebar__link {% if request.endpoint == 'database.canvas_view' %}active{% endif %}">
+        <i data-lucide="network"></i>
+        <span>Database Node Canvas</span>
       </a>
       <a href="{{ url_for('analytics.admin_analytics_view') }}" class="sidebar__link {% if request.blueprint == 'analytics' %}active{% endif %}">
         <i data-lucide="activity"></i>
@@ -316,16 +324,14 @@
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script>lucide.createIcons();</script>
 
-  <!-- Zero-Downtime Standby Service Worker -->
+  <!-- Unregister Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js').then(function(reg) {
-          console.log('[GTU Standby] Service worker registered successfully.');
-        }).catch(function(err) {
-          console.warn('[GTU Standby] SW registration failed:', err);
-        });
-      });
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (var i = 0; i < registrations.length; i++) {
+          registrations[i].unregister();
+        }
+      }).catch(function() {});
     }
   </script>
 

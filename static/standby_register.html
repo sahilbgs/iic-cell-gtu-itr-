@@ -2462,14 +2462,7 @@
     // Run initial progress count
     updateProgress();
 
-    // Register Zero-Downtime Standby Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js').catch(function(err) {
-          console.warn('[Standby SW] Registration failed:', err);
-        });
-      });
-    }
+
   
     
     // ══════════════════════════════════════════════════════════

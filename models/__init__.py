@@ -9,6 +9,7 @@ from models.student_registration import StudentRegistration
 from models.activity_report import ActivityReport
 from models.landing_post import LandingPost
 from models.team_attendance import TeamAttendance
+from models.sih_result import SihResult
 from models.analytics import AuthAuditLog, VisitorSession, VisitorLog, format_duration
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     'ActivityReport',
     'LandingPost',
     'TeamAttendance',
+    'SihResult',
     'AuthAuditLog',
     'VisitorSession',
     'VisitorLog',

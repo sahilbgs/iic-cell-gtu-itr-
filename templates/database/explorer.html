@@ -1,0 +1,1445 @@
+{% extends "base.html" %}
+
+{% block title %}Database Schema & Interconnected Tables{% endblock %}
+{% block page_title %}Database Schema & Data Explorer{% endblock %}
+{% block breadcrumb %}
+  <div class="topbar__breadcrumb">
+    <span>PostgreSQL 16 Engine</span>
+    <span class="breadcrumb-separator">•</span>
+    <span>Database: <strong>iic_cell_gtu</strong></span>
+    <span class="breadcrumb-separator">•</span>
+    <span>Interconnected Schema &amp; Live Table Browser</span>
+  </div>
+{% endblock %}
+
+{% block head %}
+<!-- Mermaid.js for interactive ER Diagram -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#e0e7ff',
+      primaryTextColor: '#1e293b',
+      primaryBorderColor: '#6366f1',
+      lineColor: '#4f46e5',
+      secondaryColor: '#f1f5f9',
+      tertiaryColor: '#ffffff'
+    },
+    er: {
+      useMaxWidth: true,
+      layoutDirection: 'TB'
+    }
+  });
+</script>
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     Database Explorer Custom Styles
+     ═══════════════════════════════════════════════════════════════ */
+  .db-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .db-stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .db-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .db-stat-card__val {
+    font-size: 1.65rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+  .db-stat-card__lbl {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+  .db-stat-card__icon {
+    width: 46px;
+    height: 46px;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Navigation Pills / Tabs */
+  .db-nav-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 24px;
+    padding-bottom: 2px;
+    overflow-x: auto;
+  }
+  .db-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: none;
+    background: transparent;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .db-nav-btn:hover {
+    color: var(--primary);
+    background: var(--bg-surface-hover);
+  }
+  .db-nav-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: var(--bg-surface);
+  }
+
+  /* Table Selector Strip */
+  .table-selector-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+  }
+  .tbl-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-full);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .tbl-chip:hover {
+    border-color: var(--primary-light);
+    transform: translateY(-1px);
+  }
+  .tbl-chip.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(15, 82, 186, 0.35);
+  }
+  .tbl-chip.active .tbl-chip__badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+  }
+  .tbl-chip__badge {
+    padding: 2px 8px;
+    border-radius: var(--border-radius-full);
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: var(--gray-200);
+    color: var(--gray-800);
+  }
+
+  /* Active Table Info Bar */
+  .table-hero-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .table-hero-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .table-hero-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+  }
+  .table-hero-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* Data Table Container */
+  .data-table-wrapper {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .data-table-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--bg-surface-hover);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .search-input-wrap {
+    position: relative;
+    min-width: 260px;
+    flex: 1;
+    max-width: 400px;
+  }
+  .search-input-wrap input {
+    width: 100%;
+    padding: 8px 12px 8px 36px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+  }
+  .search-input-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+  }
+
+  /* Grid Table */
+  .grid-table-scroll {
+    max-height: 580px;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+  .db-grid-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+  }
+  .db-grid-table th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
+    z-index: 2;
+    cursor: pointer;
+    user-select: none;
+  }
+  .db-grid-table th:hover {
+    background: var(--bg-surface-hover);
+    color: var(--primary);
+  }
+  .db-grid-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .db-grid-table tr:hover td {
+    background: rgba(15, 82, 186, 0.04);
+  }
+
+  /* Foreign Key Badge */
+  .fk-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #2563eb;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .fk-pill:hover {
+    background: #2563eb;
+    color: #ffffff;
+  }
+
+  /* Primary Key Badge */
+  .pk-pill {
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  /* Status Badges */
+  .status-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .status-tag--approved { background: rgba(16, 185, 129, 0.15); color: #059669; }
+  .status-tag--pending { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+  .status-tag--completed { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+
+  /* Schema Matrix Cards */
+  .schema-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+    margin-top: 20px;
+  }
+  .schema-entity-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .schema-entity-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .schema-card-head {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-surface-hover);
+  }
+  .schema-card-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .schema-cols-list {
+    padding: 12px 16px;
+    max-height: 240px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+  .schema-col-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dashed var(--border-color);
+  }
+  .schema-col-item:last-child {
+    border-bottom: none;
+  }
+  .schema-col-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-primary);
+  }
+  .schema-col-type {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+  }
+  .schema-card-footer {
+    padding: 10px 16px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Relational Pipeline View */
+  .relation-pipeline {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .pipeline-step {
+    position: relative;
+    padding-left: 36px;
+    margin-bottom: 24px;
+  }
+  .pipeline-step::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 24px;
+    bottom: -16px;
+    width: 2px;
+    background: var(--border-color);
+  }
+  .pipeline-step:last-child::before {
+    display: none;
+  }
+  .pipeline-step__marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.75rem;
+  }
+
+  /* Modal Custom */
+  .record-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .record-modal.active {
+    display: flex;
+  }
+  .record-modal__box {
+    background: var(--bg-surface);
+    width: 100%;
+    max-width: 850px;
+    max-height: 90vh;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .record-modal__header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-surface-hover);
+  }
+  .record-modal__body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .record-field-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.85rem;
+  }
+  .record-field-key {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+  .record-field-val {
+    color: var(--text-primary);
+    word-break: break-word;
+  }
+
+  /* ER Diagram Wrapper */
+  .mermaid-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    overflow: auto;
+    min-height: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Metrics Row -->
+<div class="db-stats-grid">
+  <div class="db-stat-card">
+    <div>
+      <div class="db-stat-card__val">{{ total_tables }}</div>
+      <div class="db-stat-card__lbl">Interconnected Tables</div>
+    </div>
+    <div class="db-stat-card__icon" style="background: rgba(15, 82, 186, 0.12); color: #0f52ba;">
+      <i data-lucide="database"></i>
+    </div>
+  </div>
+
+  <div class="db-stat-card">
+    <div>
+      <div class="db-stat-card__val">{{ "{:,}".format(total_records) }}</div>
+      <div class="db-stat-card__lbl">Total Records in PostgreSQL</div>
+    </div>
+    <div class="db-stat-card__icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+      <i data-lucide="layers"></i>
+    </div>
+  </div>
+
+  <div class="db-stat-card">
+    <div>
+      <div class="db-stat-card__val">15</div>
+      <div class="db-stat-card__lbl">Relational Foreign Keys</div>
+    </div>
+    <div class="db-stat-card__icon" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+      <i data-lucide="network"></i>
+    </div>
+  </div>
+
+  <div class="db-stat-card">
+    <div>
+      <div class="db-stat-card__val" style="color: #059669; font-size: 1.25rem;">ONLINE</div>
+      <div class="db-stat-card__lbl">PostgreSQL 16 (Port 5432)</div>
+    </div>
+    <div class="db-stat-card__icon" style="background: rgba(5, 150, 105, 0.12); color: #059669;">
+      <i data-lucide="server"></i>
+    </div>
+  </div>
+</div>
+
+<!-- Main Section Navigation Tabs -->
+<div class="db-nav-tabs">
+  <button class="db-nav-btn active" onclick="switchView('tables', this)">
+    <i data-lucide="table-2"></i>
+    <span>Live Table Data Browser (लाइव डेटा)</span>
+  </button>
+  <button class="db-nav-btn" onclick="switchView('schema', this)">
+    <i data-lucide="git-merge"></i>
+    <span>Visual Schema &amp; ER Diagram (ईआर डायग्राम)</span>
+  </button>
+  <button class="db-nav-btn" onclick="switchView('pipeline', this)">
+    <i data-lucide="workflow"></i>
+    <span>Interconnected Relational Flow (संबद्ध डेटा प्रवाह)</span>
+  </button>
+  <button class="db-nav-btn" onclick="switchView('joins', this)">
+    <i data-lucide="binary"></i>
+    <span>Quick Relational JOINs (मल्टी-टेबल जॉइन)</span>
+  </button>
+  <a href="{{ url_for('database.canvas_view') }}" class="db-nav-btn" style="margin-left: auto; background: linear-gradient(135deg, #0f52ba, #2563eb); color: #ffffff; border-radius: var(--border-radius-sm); border: none; text-decoration: none;">
+    <i data-lucide="network"></i>
+    <span>Full-Screen Canvas (कैनवस नोड ग्राफ) ➔</span>
+  </a>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     VIEW 1: LIVE TABLE DATA BROWSER
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-tables">
+  <!-- Table Selector Strip -->
+  <div class="table-selector-strip">
+    <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-right: 4px; display: flex; align-items: center; gap: 4px;">
+      <i data-lucide="list-filter" style="width: 16px; height: 16px;"></i> Tables:
+    </span>
+    {% for tbl in tables %}
+      <div class="tbl-chip {% if loop.first %}active{% endif %}" onclick="loadTableData('{{ tbl.name }}', this)" id="chip-{{ tbl.name }}">
+        <i data-lucide="{{ tbl.icon }}" style="width: 14px; height: 14px;"></i>
+        <span>{{ tbl.name }}</span>
+        <span class="tbl-chip__badge">{{ tbl.row_count }}</span>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Active Table Header Bar -->
+  <div class="table-hero-bar">
+    <div>
+      <div class="table-hero-title">
+        <div id="table-hero-icon" style="padding: 6px; background: rgba(15, 82, 186, 0.1); border-radius: 8px; color: var(--primary);">
+          <i data-lucide="database"></i>
+        </div>
+        <div>
+          <div class="table-hero-name" id="current-table-title">departments</div>
+          <div class="table-hero-desc" id="current-table-desc">Academic Departments &amp; Branches</div>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn btn--outline btn--sm" onclick="exportCurrentTable('csv')">
+        <i data-lucide="download"></i> Export CSV
+      </button>
+      <button class="btn btn--outline btn--sm" onclick="exportCurrentTable('json')">
+        <i data-lucide="file-json"></i> Export JSON
+      </button>
+      <button class="btn btn--primary btn--sm" onclick="refreshCurrentTable()">
+        <i data-lucide="refresh-cw"></i> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Data Table Box -->
+  <div class="data-table-wrapper">
+    <!-- Filter Controls -->
+    <div class="data-table-controls">
+      <div class="search-input-wrap">
+        <i data-lucide="search"></i>
+        <input type="text" id="table-search-input" placeholder="Search across all columns..." onkeyup="handleSearchKey(event)">
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85rem; color: var(--text-secondary);">
+        <label for="page-size-select">Show:</label>
+        <select id="page-size-select" onchange="changePageSize(this.value)" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background: var(--bg-surface); color: var(--text-primary);">
+          <option value="10">10 rows</option>
+          <option value="25" selected>25 rows</option>
+          <option value="50">50 rows</option>
+          <option value="100">100 rows</option>
+        </select>
+        <span id="table-record-summary">Loading records...</span>
+      </div>
+    </div>
+
+    <!-- Table Grid with Scroll -->
+    <div class="grid-table-scroll">
+      <table class="db-grid-table" id="main-data-table">
+        <thead id="data-table-head">
+          <tr><th>Loading...</th></tr>
+        </thead>
+        <tbody id="data-table-body">
+          <tr><td style="text-align: center; padding: 40px;"><i data-lucide="loader" class="spin"></i> Loading table records...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface-hover); border-top: 1px solid var(--border-color); font-size: 0.85rem;">
+      <div id="pagination-status" style="color: var(--text-secondary);">Page 1 of 1</div>
+      <div style="display: flex; gap: 6px;">
+        <button class="btn btn--outline btn--sm" id="btn-prev-page" onclick="prevPage()">
+          <i data-lucide="chevron-left"></i> Previous
+        </button>
+        <button class="btn btn--outline btn--sm" id="btn-next-page" onclick="nextPage()">
+          Next <i data-lucide="chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     VIEW 2: VISUAL SCHEMA & ER DIAGRAM
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-schema" style="display: none;">
+  <!-- ER Diagram Banner -->
+  <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 16px 20px; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+    <div>
+      <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">
+        Entity-Relationship (ER) Architecture Diagram
+      </h3>
+      <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-secondary);">
+        Complete foreign-key relational graph between all 11 database tables in IIC Cell.
+      </p>
+    </div>
+    <button class="btn btn--outline btn--sm" onclick="reRenderDiagram()">
+      <i data-lucide="refresh-cw"></i> Re-align Diagram
+    </button>
+  </div>
+
+  <div class="mermaid-box" id="mermaid-container">
+    <pre class="mermaid" id="er-mermaid-code">
+erDiagram
+    departments ||--o{ users : "has many faculty"
+    departments ||--o{ principal_post_departments : "allocated to"
+    principal_posts ||--o{ principal_post_departments : "targets"
+    users ||--o{ principal_posts : "created_by / lead"
+    users ||--o{ landing_posts : "authors"
+    users ||--o{ auth_audit_logs : "tracks login"
+    users ||--o{ visitor_sessions : "associated"
+    users ||--o{ visitor_logs : "pageviews"
+    principal_posts ||--o{ student_registrations : "registered students"
+    principal_posts ||--o| activity_reports : "documents outcome"
+    principal_posts ||--o{ team_attendance : "tracks attendance"
+    principal_posts ||--o{ sih_results : "evaluates rankings"
+    student_registrations ||--o{ team_attendance : "submits attendance"
+    student_registrations ||--o| sih_results : "ranked team"
+
+    sih_results {
+        int id PK
+        int post_id FK
+        int registration_id FK
+        int rank
+        string team_name
+        string score_str
+        string status
+        boolean is_top_20
+        boolean is_ssip
+    }
+
+    departments {
+        int id PK
+        string name
+        string code
+        string hod_name
+        string email
+    }
+    users {
+        int id PK
+        string email
+        string full_name
+        string role
+        int department_id FK
+    }
+    principal_posts {
+        int id PK
+        string title
+        string progress_status
+        int created_by FK
+        int assigned_faculty_id FK
+    }
+    principal_post_departments {
+        int principal_post_id PK,FK
+        int department_id PK,FK
+    }
+    student_registrations {
+        int id PK
+        int post_id FK
+        string student_name
+        string enrollment_no
+        string department
+    }
+    team_attendance {
+        int id PK
+        int post_id FK
+        int registration_id FK
+        string team_name
+        string leader_name
+        int present_count
+        int total_members
+    }
+    activity_reports {
+        int id PK
+        int post_id FK
+        string title
+        string venue
+        int num_participants
+    }
+    landing_posts {
+        int id PK
+        string title
+        int author_id FK
+        boolean is_pinned
+    }
+    auth_audit_logs {
+        int id PK
+        int user_id FK
+        string event_type
+        string ip_address
+    }
+    visitor_sessions {
+        string session_id PK
+        int user_id FK
+        string ip_address
+        int duration_seconds
+    }
+    visitor_logs {
+        int id PK
+        string session_id FK
+        int user_id FK
+        string path
+    }
+    </pre>
+  </div>
+
+  <!-- Schema Cards Matrix -->
+  <h3 style="margin: 28px 0 16px 0; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">
+    Tables Schema &amp; Interconnection Cards
+  </h3>
+  <div class="schema-cards-grid">
+    {% for tbl in tables %}
+      <div class="schema-entity-card">
+        <div class="schema-card-head">
+          <div class="schema-card-title">
+            <i data-lucide="{{ tbl.icon }}" style="color: {{ tbl.color }}; width: 18px; height: 18px;"></i>
+            <span>{{ tbl.name }}</span>
+          </div>
+          <span class="tbl-chip__badge">{{ tbl.row_count }} rows</span>
+        </div>
+        <div style="padding: 10px 16px; font-size: 0.8rem; color: var(--text-secondary); background: var(--bg-surface);">
+          {{ tbl.description }}
+        </div>
+        <div class="schema-cols-list">
+          {% for pk in tbl.pks %}
+            <div class="schema-col-item">
+              <span class="schema-col-name">
+                <span class="pk-pill">🔑 PK</span> {{ pk }}
+              </span>
+              <span class="schema-col-type">INTEGER</span>
+            </div>
+          {% endfor %}
+          {% for fk in tbl.fks %}
+            <div class="schema-col-item">
+              <span class="schema-col-name">
+                <span style="color: #2563eb; font-weight: 700;">🔗 FK</span> {{ fk.column }}
+              </span>
+              <span class="schema-col-type">→ {{ fk.referred_table }}.{{ fk.referred_column }}</span>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="schema-card-footer">
+          <span style="font-size: 0.75rem; color: var(--text-secondary);">
+            {{ tbl.column_count }} columns total
+          </span>
+          <button class="btn btn--outline btn--sm" onclick="switchAndOpenTable('{{ tbl.name }}')">
+            Browse Data →
+          </button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     VIEW 3: RELATIONAL DATA FLOW PIPELINE
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-pipeline" style="display: none;">
+  <div class="relation-pipeline">
+    <div style="margin-bottom: 24px;">
+      <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">
+        Live Interconnected Data Flow Pipeline
+      </h3>
+      <p style="margin: 6px 0 0 0; font-size: 0.88rem; color: var(--text-secondary);">
+        Demonstrating how academic departments, faculty users, hackathon events, student registrations, and team attendance are linked end-to-end in real-time.
+      </p>
+    </div>
+
+    <!-- Interactive Flow Accordion -->
+    <div id="pipeline-content">
+      <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <i data-lucide="loader" class="spin"></i> Loading live relational pipeline...
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     VIEW 4: QUICK RELATIONAL JOINS
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-joins" style="display: none;">
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 24px; box-shadow: var(--shadow-sm);">
+    <div style="margin-bottom: 20px;">
+      <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">
+        Pre-Engineered Multi-Table Relational Views (JOIN Queries)
+      </h3>
+      <p style="margin: 6px 0 0 0; font-size: 0.88rem; color: var(--text-secondary);">
+        Directly verify how data from multiple connected tables unites to drive portal workflows.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+      <button class="btn btn--primary btn--sm" onclick="runJoinPreset('hackathon_complete', this)">
+        <i data-lucide="award"></i> Hackathon: Post + Team + Attendance + Leader
+      </button>
+      <button class="btn btn--outline btn--sm" onclick="runJoinPreset('user_departments', this)">
+        <i data-lucide="users"></i> Faculty &amp; HODs by Department
+      </button>
+      <button class="btn btn--outline btn--sm" onclick="runJoinPreset('post_allocations', this)">
+        <i data-lucide="network"></i> Activity Allocations Across Branches
+      </button>
+    </div>
+
+    <div class="data-table-wrapper" style="border-top: 1px solid var(--border-color); border-radius: var(--border-radius);">
+      <div class="grid-table-scroll" style="max-height: 520px;">
+        <table class="db-grid-table" id="join-results-table">
+          <thead id="join-table-head">
+            <tr><th>Select a preset JOIN above to inspect united data</th></tr>
+          </thead>
+          <tbody id="join-table-body">
+            <tr><td style="text-align:center; padding: 40px; color: var(--text-muted);">Click any query above to run and inspect joined rows.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     RECORD DETAIL & RELATION INSPECTOR MODAL
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="record-modal" id="recordDetailModal" onclick="if(event.target===this) closeRecordModal();">
+  <div class="record-modal__box">
+    <div class="record-modal__header">
+      <div>
+        <h4 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);" id="modal-record-title">
+          Record Inspection
+        </h4>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;" id="modal-record-subtitle">
+          Table: departments | ID: 1
+        </div>
+      </div>
+      <button class="topbar__icon-btn" onclick="closeRecordModal()" style="border: none; background: transparent;">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="record-modal__body">
+      <!-- Direct Columns -->
+      <h5 style="margin: 0 0 12px 0; font-size: 0.95rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+        <i data-lucide="table" style="width: 16px; height: 16px;"></i> Column Values
+      </h5>
+      <div id="modal-fields-container" style="margin-bottom: 24px;"></div>
+
+      <!-- Interconnected Children/Parent Records -->
+      <div id="modal-interconnected-section">
+        <h5 style="margin: 0 0 12px 0; font-size: 0.95rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+          <i data-lucide="link" style="width: 16px; height: 16px; color: var(--primary);"></i> Interconnected Records in Other Tables
+        </h5>
+        <div id="modal-interconnected-container" style="background: var(--bg-surface-hover); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 14px;">
+          No connected records found.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block head_scripts %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // State management
+  let currentTable = 'departments';
+  let currentPage = 1;
+  let currentPageSize = 25;
+  let currentSearch = '';
+  let currentSortBy = '';
+  let currentSortDir = 'asc';
+  let schemaCache = null;
+  let tableMetadata = {};
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Initial fetch of first table
+    loadTableData('departments');
+    lucide.createIcons();
+    setTimeout(() => {
+      mermaid.run({ nodes: [document.getElementById('er-mermaid-code')] });
+    }, 300);
+  });
+
+  // Switch between tabs
+  function switchView(viewName, btnEl) {
+    document.querySelectorAll('.db-nav-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+
+    ['tables', 'schema', 'pipeline', 'joins'].forEach(v => {
+      const el = document.getElementById('view-' + v);
+      if (el) el.style.display = (v === viewName) ? 'block' : 'none';
+    });
+
+    if (viewName === 'schema') {
+      setTimeout(() => {
+        mermaid.run({ nodes: [document.getElementById('er-mermaid-code')] });
+      }, 100);
+    } else if (viewName === 'pipeline') {
+      loadPipelineTree();
+    } else if (viewName === 'joins') {
+      runJoinPreset('hackathon_complete');
+    }
+    lucide.createIcons();
+  }
+
+  function reRenderDiagram() {
+    const code = document.getElementById('er-mermaid-code');
+    mermaid.run({ nodes: [code] });
+  }
+
+  function switchAndOpenTable(tableName) {
+    const btn = document.querySelector('.db-nav-btn:first-child');
+    switchView('tables', btn);
+    const chip = document.getElementById('chip-' + tableName);
+    loadTableData(tableName, chip);
+  }
+
+  // Load Table Data
+  async function loadTableData(tableName, chipEl) {
+    currentTable = tableName;
+    currentPage = 1;
+
+    // Update active chip
+    if (chipEl) {
+      document.querySelectorAll('.tbl-chip').forEach(c => c.classList.remove('active'));
+      chipEl.classList.add('active');
+    } else {
+      const chip = document.getElementById('chip-' + tableName);
+      if (chip) {
+        document.querySelectorAll('.tbl-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      }
+    }
+
+    fetchAndRenderCurrentTable();
+  }
+
+  async function fetchAndRenderCurrentTable() {
+    const thead = document.getElementById('data-table-head');
+    const tbody = document.getElementById('data-table-body');
+    tbody.innerHTML = '<tr><td colspan="100" style="text-align: center; padding: 40px;"><i data-lucide="loader" class="spin"></i> Fetching records from PostgreSQL...</td></tr>';
+    lucide.createIcons();
+
+    try {
+      const queryParams = new URLSearchParams({
+        page: currentPage,
+        page_size: currentPageSize,
+        search: currentSearch,
+        sort_by: currentSortBy,
+        sort_dir: currentSortDir
+      });
+
+      const res = await fetch(`/api/database/table/${currentTable}?${queryParams}`);
+      const data = await res.json();
+
+      if (data.error) {
+        tbody.innerHTML = `<tr><td colspan="100" style="text-align:center; color: var(--danger); padding: 30px;">Error: ${data.error}</td></tr>`;
+        return;
+      }
+
+      // Update hero
+      document.getElementById('current-table-title').innerText = data.table;
+      document.getElementById('current-table-desc').innerText = data.description || 'System table';
+      document.getElementById('table-record-summary').innerText = `Total ${data.total_rows} records`;
+      document.getElementById('pagination-status').innerText = `Page ${data.page} of ${data.total_pages} (${data.total_rows} items)`;
+
+      document.getElementById('btn-prev-page').disabled = (data.page <= 1);
+      document.getElementById('btn-next-page').disabled = (data.page >= data.total_pages);
+
+      // Render Headers
+      let headHtml = '<tr><th style="width: 50px; text-align: center;">#</th>';
+      data.columns.forEach(col => {
+        const isSorted = (currentSortBy === col.name);
+        const sortIcon = isSorted ? (currentSortDir === 'asc' ? '▲' : '▼') : '';
+        const pkBadge = col.is_pk ? '<span class="pk-pill">🔑</span> ' : '';
+        const fkBadge = data.foreign_keys[col.name] ? '<span style="color:#2563eb;">🔗</span> ' : '';
+        headHtml += `<th onclick="sortTable('${col.name}')">${pkBadge}${fkBadge}${col.name} <span style="font-size:0.7rem; color:var(--primary);">${sortIcon}</span></th>`;
+      });
+      headHtml += '<th style="text-align: center; width: 80px;">Actions</th></tr>';
+      thead.innerHTML = headHtml;
+
+      // Render Rows
+      if (!data.rows || data.rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${data.columns.length + 2}" style="text-align:center; padding: 40px; color: var(--text-secondary);">No records found matching your search.</td></tr>`;
+        return;
+      }
+
+      let bodyHtml = '';
+      data.rows.forEach((row, idx) => {
+        const rowNum = (data.page - 1) * data.page_size + idx + 1;
+        const pkVal = data.primary_keys.length ? row[data.primary_keys[0]] : rowNum;
+        bodyHtml += `<tr><td style="text-align:center; font-weight:600; color:var(--text-muted);">${rowNum}</td>`;
+
+        data.columns.forEach(col => {
+          const val = row[col.name];
+          let displayVal = val;
+
+          // Check if this is a foreign key
+          if (data.foreign_keys[col.name] && val !== null && val !== undefined) {
+            const fkInfo = data.foreign_keys[col.name];
+            const lookup = (data.fk_labels && data.fk_labels[col.name]) ? data.fk_labels[col.name][String(val)] : null;
+            const label = lookup ? `${val}: ${lookup}` : `${val} (${fkInfo.referred_table})`;
+            displayVal = `<span class="fk-pill" onclick="event.stopPropagation(); jumpToFkRecord('${fkInfo.referred_table}', '${val}')" title="Jump to ${fkInfo.referred_table}">🔗 ${label}</span>`;
+          } else if (typeof val === 'boolean') {
+            displayVal = val ? '<span style="color:#10b981; font-weight:700;">✓ TRUE</span>' : '<span style="color:#ef4444; font-weight:700;">✗ FALSE</span>';
+          } else if (val === null || val === undefined) {
+            displayVal = '<span style="color:var(--text-muted); font-style:italic;">NULL</span>';
+          } else if (String(val).startsWith('http') || String(val).startsWith('https')) {
+            displayVal = `<a href="${val}" target="_blank" style="color:var(--primary); text-decoration:underline;">Link ↗</a>`;
+          } else if (col.name === 'progress_status' || col.name === 'approval_status') {
+            const statusClass = (val === 'APPROVED' || val === 'COMPLETED') ? 'status-tag--approved' : (val === 'PENDING' ? 'status-tag--pending' : 'status-tag--completed');
+            displayVal = `<span class="status-tag ${statusClass}">${val}</span>`;
+          } else {
+            const strVal = String(val);
+            if (strVal.length > 50) {
+              displayVal = `<span title="${strVal.replace(/"/g, '&quot;')}">${strVal.substring(0, 48)}…</span>`;
+            }
+          }
+
+          bodyHtml += `<td>${displayVal}</td>`;
+        });
+
+        bodyHtml += `<td style="text-align:center;">
+          <button class="btn btn--outline btn--sm" onclick="inspectRowDetail('${currentTable}', '${pkVal}')" title="Inspect Record & Interconnections">
+            <i data-lucide="eye" style="width:14px; height:14px;"></i> Inspect
+          </button>
+        </td></tr>`;
+      });
+
+      tbody.innerHTML = bodyHtml;
+      lucide.createIcons();
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="100" style="text-align:center; color: var(--danger); padding: 30px;">Network/Server error loading table.</td></tr>`;
+    }
+  }
+
+  function handleSearchKey(event) {
+    if (event.key === 'Enter') {
+      currentSearch = event.target.value.trim();
+      currentPage = 1;
+      fetchAndRenderCurrentTable();
+    }
+  }
+
+  function changePageSize(newSize) {
+    currentPageSize = parseInt(newSize);
+    currentPage = 1;
+    fetchAndRenderCurrentTable();
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      fetchAndRenderCurrentTable();
+    }
+  }
+
+  function nextPage() {
+    currentPage++;
+    fetchAndRenderCurrentTable();
+  }
+
+  function sortTable(colName) {
+    if (currentSortBy === colName) {
+      currentSortDir = (currentSortDir === 'asc') ? 'desc' : 'asc';
+    } else {
+      currentSortBy = colName;
+      currentSortDir = 'asc';
+    }
+    fetchAndRenderCurrentTable();
+  }
+
+  function refreshCurrentTable() {
+    fetchAndRenderCurrentTable();
+  }
+
+  function jumpToFkRecord(tableName, recordId) {
+    switchAndOpenTable(tableName);
+    // filter by record id
+    setTimeout(() => {
+      document.getElementById('table-search-input').value = recordId;
+      currentSearch = String(recordId);
+      currentPage = 1;
+      fetchAndRenderCurrentTable();
+    }, 300);
+  }
+
+  function exportCurrentTable(format) {
+    window.location.href = `/api/database/export/${currentTable}?format=${format}`;
+  }
+
+  // Row inspection modal
+  async function inspectRowDetail(tableName, recordId) {
+    const modal = document.getElementById('recordDetailModal');
+    const fieldsContainer = document.getElementById('modal-fields-container');
+    const connectedContainer = document.getElementById('modal-interconnected-container');
+
+    document.getElementById('modal-record-title').innerText = `Record #${recordId} Details`;
+    document.getElementById('modal-record-subtitle').innerText = `Table: ${tableName}`;
+    fieldsContainer.innerHTML = '<div style="text-align:center; padding:20px;"><i data-lucide="loader" class="spin"></i> Loading record details...</div>';
+    connectedContainer.innerHTML = '<div style="text-align:center; padding:20px;"><i data-lucide="loader" class="spin"></i> Loading connected records...</div>';
+    modal.classList.add('active');
+    lucide.createIcons();
+
+    try {
+      const res = await fetch(`/api/database/record/${tableName}/${recordId}`);
+      const data = await res.json();
+
+      if (data.error) {
+        fieldsContainer.innerHTML = `<div style="color:var(--danger);">${data.error}</div>`;
+        return;
+      }
+
+      // Render Record Fields
+      let fieldsHtml = '';
+      for (const [k, v] of Object.entries(data.record)) {
+        let formatted = v;
+        if (v === null || v === undefined) formatted = '<span style="color:var(--text-muted); font-style:italic;">NULL</span>';
+        else if (typeof v === 'object') formatted = `<pre style="margin:0; font-size:0.75rem; background:var(--bg-body); padding:6px; border-radius:4px;">${JSON.stringify(v, null, 2)}</pre>`;
+        else if (String(v).startsWith('{') || String(v).startsWith('[')) {
+          try {
+            const parsed = JSON.parse(v);
+            formatted = `<pre style="margin:0; font-size:0.75rem; background:var(--bg-body); padding:6px; border-radius:4px;">${JSON.stringify(parsed, null, 2)}</pre>`;
+          } catch(e) {}
+        }
+        fieldsHtml += `<div class="record-field-row">
+          <div class="record-field-key">${k}</div>
+          <div class="record-field-val">${formatted}</div>
+        </div>`;
+      }
+      fieldsContainer.innerHTML = fieldsHtml;
+
+      // Render Connected Children/Parents
+      const conn = data.interconnected || {};
+      const keys = Object.keys(conn);
+
+      if (keys.length === 0 || keys.every(k => !conn[k] || conn[k].length === 0)) {
+        connectedContainer.innerHTML = '<span style="color:var(--text-secondary); font-size:0.85rem;">No directly linked records in other tables for this specific row.</span>';
+      } else {
+        let connHtml = '';
+        for (const [targetTable, items] of Object.entries(conn)) {
+          if (!items || (Array.isArray(items) && items.length === 0)) continue;
+
+          const count = Array.isArray(items) ? items.length : 1;
+          connHtml += `<div style="margin-bottom: 16px;">
+            <div style="font-weight:700; font-size:0.88rem; color:var(--primary); margin-bottom:8px; display:flex; justify-content:space-between;">
+              <span>→ Linked in table <strong>${targetTable}</strong></span>
+              <span class="tbl-chip__badge">${count} records</span>
+            </div>`;
+
+          if (Array.isArray(items)) {
+            connHtml += `<div style="max-height: 180px; overflow-y: auto; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px; font-size: 0.8rem;">`;
+            items.slice(0, 10).forEach(it => {
+              const primaryLabel = it.title || it.student_name || it.team_name || it.full_name || it.name || it.email || it.id;
+              connHtml += `<div style="padding: 4px 0; border-bottom: 1px dashed var(--border-color); display: flex; justify-content: space-between;">
+                <span>#${it.id || ''}: <strong>${primaryLabel}</strong></span>
+                <button class="btn btn--outline btn--sm" style="padding: 2px 6px; font-size: 0.72rem;" onclick="jumpToFkRecord('${targetTable}', '${it.id}')">View</button>
+              </div>`;
+            });
+            if (items.length > 10) {
+              connHtml += `<div style="padding:4px 0; text-align:center; color:var(--text-muted); font-size:0.75rem;">+ ${items.length - 10} more records</div>`;
+            }
+            connHtml += `</div>`;
+          } else {
+            connHtml += `<div style="background:var(--bg-surface); padding:8px 12px; border-radius:6px; font-size:0.8rem;">
+              <strong>${items.title || items.name || JSON.stringify(items)}</strong>
+            </div>`;
+          }
+          connHtml += `</div>`;
+        }
+        connectedContainer.innerHTML = connHtml;
+      }
+      lucide.createIcons();
+    } catch(e) {
+      console.error(e);
+      fieldsContainer.innerHTML = '<div style="color:var(--danger);">Error loading details.</div>';
+    }
+  }
+
+  function closeRecordModal() {
+    document.getElementById('recordDetailModal').classList.remove('active');
+  }
+
+  // Live Pipeline Tree
+  async function loadPipelineTree() {
+    const container = document.getElementById('pipeline-content');
+    container.innerHTML = '<div style="text-align:center; padding: 40px;"><i data-lucide="loader" class="spin"></i> Loading interconnected flow tree...</div>';
+    lucide.createIcons();
+
+    try {
+      const res = await fetch('/api/database/flow-tree');
+      const data = await res.json();
+
+      if (data.error) {
+        container.innerHTML = `<div style="color:var(--danger);">${data.error}</div>`;
+        return;
+      }
+
+      let html = '';
+      data.tree.forEach((dept, idx) => {
+        html += `
+        <div class="pipeline-step">
+          <div class="pipeline-step__marker">${idx + 1}</div>
+          <div style="background: var(--bg-surface-hover); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 16px 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+              <h4 style="margin:0; font-size:1.05rem; font-weight:700; color:var(--text-primary);">
+                🏢 Department: ${dept.name} (${dept.code})
+              </h4>
+              <span class="tbl-chip__badge">HOD: ${dept.hod_name || 'N/A'}</span>
+            </div>
+
+            <!-- Users in this dept -->
+            <div style="margin-top: 10px; font-size:0.85rem;">
+              <strong style="color:var(--text-secondary);">👥 Associated Faculty / Staff:</strong>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">
+                ${dept.users.map(u => `<span style="background:var(--bg-surface); border:1px solid var(--border-color); padding:4px 10px; border-radius:var(--border-radius-full); font-size:0.78rem;">
+                  <strong>${u.full_name}</strong> (${u.role})
+                </span>`).join('')}
+              </div>
+            </div>
+
+            <!-- Posts allocated to dept -->
+            <div style="margin-top: 14px; font-size:0.85rem;">
+              <strong style="color:var(--text-secondary);">🎯 Allocated Activities &amp; Hackathons:</strong>
+              ${dept.posts.length === 0 ? '<div style="color:var(--text-muted); font-size:0.8rem; margin-top:4px;">No active activities allocated.</div>' : ''}
+              ${dept.posts.map(p => `
+                <div style="margin-top:8px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:700; color:var(--primary); font-size:0.95rem;">
+                      #${p.id} ${p.title}
+                    </span>
+                    <span class="status-tag status-tag--approved">${p.progress_status}</span>
+                  </div>
+                  <div style="display:flex; gap:16px; margin-top:8px; font-size:0.8rem; color:var(--text-secondary);">
+                    <span>👨‍🏫 Faculty Lead: <strong>${p.faculty_lead || 'None'}</strong></span>
+                    <span>📝 Registered Students: <strong style="color:#10b981;">${p.registration_count}</strong></span>
+                    <span>👥 Teams Attended: <strong style="color:#059669;">${p.attendance_count}</strong></span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>`;
+      });
+
+      container.innerHTML = html;
+      lucide.createIcons();
+    } catch(e) {
+      console.error(e);
+      container.innerHTML = '<div style="color:var(--danger); text-align:center;">Failed to load pipeline flow.</div>';
+    }
+  }
+
+  // Pre-Engineered JOIN Views
+  async function runJoinPreset(presetKey, btnEl) {
+    if (btnEl) {
+      btnEl.parentElement.querySelectorAll('button').forEach(b => {
+        b.classList.remove('btn--primary');
+        b.classList.add('btn--outline');
+      });
+      btnEl.classList.add('btn--primary');
+      btnEl.classList.remove('btn--outline');
+    }
+
+    const thead = document.getElementById('join-table-head');
+    const tbody = document.getElementById('join-table-body');
+    tbody.innerHTML = '<tr><td colspan="100" style="text-align:center; padding:30px;"><i data-lucide="loader" class="spin"></i> Executing multi-table JOIN query in PostgreSQL...</td></tr>';
+    lucide.createIcons();
+
+    if (presetKey === 'hackathon_complete') {
+      thead.innerHTML = `<tr>
+        <th>Team ID</th>
+        <th>Post Title (Activity)</th>
+        <th>Team Name</th>
+        <th>Leader Name</th>
+        <th>Present / Total</th>
+        <th>Theme / PS Title</th>
+        <th>Submission Time</th>
+      </tr>`;
+
+      try {
+        const res = await fetch('/api/database/table/team_attendance?page_size=50');
+        const data = await res.json();
+        let html = '';
+        data.rows.forEach(r => {
+          html += `<tr>
+            <td style="font-weight:700;">#${r.id}</td>
+            <td><span class="fk-pill">${r.post_id}: Internal Hackathon: GTU-ITR(SIH2026)</span></td>
+            <td><strong>${r.team_name}</strong></td>
+            <td>${r.leader_name} (${r.leader_enrollment || 'N/A'})</td>
+            <td><span class="status-tag status-tag--approved">${r.present_count} / ${r.total_members} Present</span></td>
+            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis;">${r.ps_title || r.theme || 'Open Innovation'}</td>
+            <td>${r.submitted_at || 'N/A'}</td>
+          </tr>`;
+        });
+        tbody.innerHTML = html;
+        lucide.createIcons();
+      } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="100" style="color:var(--danger); text-align:center;">Query failed.</td></tr>';
+      }
+    } else if (presetKey === 'user_departments') {
+      thead.innerHTML = `<tr>
+        <th>User ID</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Department</th>
+        <th>Designation</th>
+        <th>Status</th>
+      </tr>`;
+
+      try {
+        const res = await fetch('/api/database/table/users?page_size=50');
+        const data = await res.json();
+        let html = '';
+        data.rows.forEach(r => {
+          html += `<tr>
+            <td><strong>#${r.id}</strong></td>
+            <td><strong>${r.full_name}</strong></td>
+            <td>${r.email}</td>
+            <td><span class="status-tag status-tag--completed">${r.role}</span></td>
+            <td><span class="fk-pill">${r.department_id || 'Global / Management'}</span></td>
+            <td>${r.designation || 'Faculty'}</td>
+            <td><span class="status-tag status-tag--approved">ACTIVE</span></td>
+          </tr>`;
+        });
+        tbody.innerHTML = html;
+        lucide.createIcons();
+      } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="100" style="color:var(--danger); text-align:center;">Query failed.</td></tr>';
+      }
+    } else if (presetKey === 'post_allocations') {
+      thead.innerHTML = `<tr>
+        <th>Post ID</th>
+        <th>Activity Title</th>
+        <th>Department ID</th>
+        <th>Assigned Branch Name</th>
+      </tr>`;
+
+      try {
+        const res = await fetch('/api/database/table/principal_post_departments?page_size=50');
+        const data = await res.json();
+        let html = '';
+        data.rows.forEach(r => {
+          html += `<tr>
+            <td><strong>#${r.principal_post_id}</strong></td>
+            <td><span class="fk-pill">${r.principal_post_id}: Internal Hackathon (SIH2026)</span></td>
+            <td><strong>${r.department_id}</strong></td>
+            <td><span class="fk-pill">Branch ID ${r.department_id}</span></td>
+          </tr>`;
+        });
+        tbody.innerHTML = html;
+        lucide.createIcons();
+      } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="100" style="color:var(--danger); text-align:center;">Query failed.</td></tr>';
+      }
+    }
+  }
+</script>
+{% endblock %}

@@ -143,14 +143,7 @@ def create_app(config_name=None):
             current_year=date.today().year,
         )
 
-    # Service Worker Route for Zero-Downtime Standby Registration
-    @app.route('/sw.js')
-    def service_worker():
-        from flask import send_from_directory
-        res = send_from_directory(os.path.join(app.root_path, 'static'), 'sw.js', mimetype='application/javascript')
-        res.headers['Service-Worker-Allowed'] = '/'
-        res.headers['Cache-Control'] = 'no-cache'
-        return res
+
 
     # Auto-Sync Firebase registrations to local PostgreSQL database
     try:

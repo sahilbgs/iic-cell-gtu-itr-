@@ -54,7 +54,7 @@ while true; do
     # 3. Check GTU-ITR Server UI & Terminal (Port 7000)
     if ! pgrep -f "gunicorn.*gtu-server-ui" >/dev/null 2>&1; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] [RECOVERY] Server UI down, restarting..." >> "$LOG_FILE"
-        "$SERVER_UI_DIR/start_server_ui.sh" >> "$LOG_FILE" 2>&1
+        (cd "$SERVER_UI_DIR" && unset PYTHONPATH && /bin/bash "$SERVER_UI_DIR/start_server_ui.sh") >> "$LOG_FILE" 2>&1
         sleep 2
     fi
 
@@ -92,11 +92,33 @@ subprocess.Popen(cmd, close_fds=True)
         sleep 2
     fi
 
+    # 6b. Check Cloudflare Tunnel Restart Trigger File
+    if [ -f "$PROJECT_DIR/.restart_tunnel" ]; then
+        rm -f "$PROJECT_DIR/.restart_tunnel"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Tunnel restart requested via trigger file..." >> "$LOG_FILE"
+        pkill -f "cloudflared.*tunnel run" 2>/dev/null || true
+        sleep 2
+    fi
+
     # 7. Background Auto-Sync SIH Results Photos (Every 60 seconds)
     SYNC_COUNTER=$(( (SYNC_COUNTER + 1) % 6 ))
     if [ "$SYNC_COUNTER" -eq 0 ] || [ -f "$PROJECT_DIR/.sync_results" ]; then
         rm -f "$PROJECT_DIR/.sync_results"
         "$PROJECT_DIR/venv/bin/python3" -c "from utils.results_sync import get_live_results_data; get_live_results_data()" >> "$LOG_FILE" 2>&1 || true
+    fi
+
+    # 8. Check Ravan Cloud Storage (Port 8080)
+    if ! pgrep -f "ravan-cloud-storage.*app.py" >/dev/null 2>&1; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [RECOVERY] Ravan Cloud Drive down, restarting..." >> "$LOG_FILE"
+        (cd /home/gtu-itr/ravan-cloud-storage && unset PYTHONPATH && /bin/bash ravan_drive.sh start) >> "$LOG_FILE" 2>&1
+        sleep 2
+    fi
+
+    # 9. Check Ravan Voice Assistant (Port 8088)
+    if ! pgrep -f "agy-voice-assistant/app.py" >/dev/null 2>&1; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [RECOVERY] Ravan Voice Assistant down, restarting..." >> "$LOG_FILE"
+        (cd /home/gtu-itr/agy-voice-assistant && unset PYTHONPATH && nohup python3 /home/gtu-itr/agy-voice-assistant/app.py >> /home/gtu-itr/agy-voice-assistant/server.log 2>&1 &)
+        sleep 2
     fi
 
     sleep 10

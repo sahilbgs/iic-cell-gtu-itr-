@@ -12,6 +12,7 @@ def register_blueprints(app):
     from routes.admin import admin_bp
     from routes.analytics import analytics_bp
     from routes.attendance import attendance_bp
+    from routes.database import database_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -19,3 +20,4 @@ def register_blueprints(app):
     app.register_blueprint(admin_bp)
     app.register_blueprint(analytics_bp)
     app.register_blueprint(attendance_bp)
+    app.register_blueprint(database_bp)
