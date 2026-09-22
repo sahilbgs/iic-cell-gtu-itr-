@@ -2,7 +2,7 @@
 # ==============================================================================
 # GTU-ITR 24/7 Watchdog - Auto-reconnect & Process Guardian
 # ==============================================================================
-PROJECT_DIR="/home/gtu-itr/iic-cell-gtu-itr-"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SERVER_UI_DIR="/home/gtu-itr/gtu-server-ui"
 LOG_FILE="$PROJECT_DIR/logs/watchdog.log"
 mkdir -p "$PROJECT_DIR/logs"

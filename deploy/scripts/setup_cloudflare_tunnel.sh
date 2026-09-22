@@ -6,7 +6,7 @@
 # ==============================================================================
 set -e
 
-PROJECT_DIR="/home/gtu-itr/iic-cell-gtu-itr-"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CLOUDFLARED="$PROJECT_DIR/venv/bin/cloudflared"
 CONFIG_FILE="$PROJECT_DIR/.cloudflared/config.yml"
 TUNNEL_ID="0db9da8f-002e-4e4c-8f89-c5d548652de7"

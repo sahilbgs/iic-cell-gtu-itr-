@@ -46,3 +46,13 @@ Thumbs.db
 # Cloudflare Tunnel credentials and binary
 .cloudflared/
 cloudflared
+gunicorn.ctl
+
+# Heavy non-code artifacts and duplicate assets
+assets/report_samples/
+report/
+logo/
+# Root compatibility symlinks
+/watchdog.sh
+/run_portal.sh
+!.env.example

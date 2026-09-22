@@ -2,7 +2,7 @@
 # ==============================================================================
 # GTU-ITR Portal & Tunnel - Background Starter with Logging
 # ==============================================================================
-PROJECT_DIR="/home/gtu-itr/iic-cell-gtu-itr-"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$PROJECT_DIR"
 
 mkdir -p "$PROJECT_DIR/logs"

@@ -10,7 +10,7 @@
 #   ./show_logs.sh status  # Show service status & recent log summary
 # ==============================================================================
 
-PROJECT_DIR="/home/gtu-itr/iic-cell-gtu-itr-"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 LOG_DIR="$PROJECT_DIR/logs"
 mkdir -p "$LOG_DIR"
 touch "$LOG_DIR/portal_access.log" "$LOG_DIR/portal_error.log" "$LOG_DIR/tunnel.log"

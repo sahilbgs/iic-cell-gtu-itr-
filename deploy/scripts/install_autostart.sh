@@ -9,14 +9,14 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-PROJECT_DIR="/home/gtu-itr/iic-cell-gtu-itr-"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SERVER_UI_DIR="/home/gtu-itr/gtu-server-ui"
 
-POSTGRES_SRC="$PROJECT_DIR/gtu-postgres.service"
-PORTAL_SRC="$PROJECT_DIR/gtu-portal.service"
+POSTGRES_SRC="$PROJECT_DIR/deploy/systemd/gtu-postgres.service"
+PORTAL_SRC="$PROJECT_DIR/deploy/systemd/gtu-portal.service"
 SERVER_UI_SRC="$SERVER_UI_DIR/gtu-server-ui.service"
-TUNNEL_SRC="$PROJECT_DIR/gtu-tunnel.service"
-WATCHDOG_SRC="$PROJECT_DIR/gtu-watchdog.service"
+TUNNEL_SRC="$PROJECT_DIR/deploy/systemd/gtu-tunnel.service"
+WATCHDOG_SRC="$PROJECT_DIR/deploy/systemd/gtu-watchdog.service"
 
 POSTGRES_DEST="/etc/systemd/system/gtu-postgres.service"
 PORTAL_DEST="/etc/systemd/system/gtu-portal.service"

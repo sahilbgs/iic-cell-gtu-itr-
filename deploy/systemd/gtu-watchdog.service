@@ -8,7 +8,7 @@ User=gtu-itr
 WorkingDirectory=/home/gtu-itr/iic-cell-gtu-itr-
 Environment="PATH=/snap/bin:/snap/antigravity-cli/current/bin:/snap/antigravity-cli/19/bin:/home/gtu-itr/iic-cell-gtu-itr-/venv/bin:/home/gtu-itr/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin"
 Environment="LD_LIBRARY_PATH=/home/gtu-itr/pgsql/usr/lib/x86_64-linux-gnu"
-ExecStart=/bin/bash /home/gtu-itr/iic-cell-gtu-itr-/watchdog.sh
+ExecStart=/bin/bash /home/gtu-itr/iic-cell-gtu-itr-/deploy/scripts/watchdog.sh
 StandardOutput=journal
 StandardError=journal
 Restart=always

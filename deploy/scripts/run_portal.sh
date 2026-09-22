@@ -2,7 +2,7 @@
 # ==============================================================================
 # GTU-ITR Portal - Quick Runner Script
 # ==============================================================================
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$PROJECT_DIR"
 
 if [ ! -d "venv" ]; then

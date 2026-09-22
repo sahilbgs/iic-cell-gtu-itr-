@@ -23,14 +23,15 @@ class Config:
     if db_url and db_url.startswith('postgres://'):
         db_url = db_url.replace('postgres://', 'postgresql+psycopg2://', 1)
 
-    if db_user and db_password and not db_url:
+    if db_url:
+        SQLALCHEMY_DATABASE_URI = db_url
+    elif db_user and db_password:
         import urllib.parse
         encoded_password = urllib.parse.quote_plus(db_password)
         SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{db_user}:{encoded_password}@{db_host}:{db_port}/{db_name}"
     else:
-        # Default to PostgreSQL for GTU-ITR server
-        SQLALCHEMY_DATABASE_URI = db_url or \
-            'postgresql+psycopg2://gtu_admin:44113290@localhost:5432/iic_cell_gtu'
+        # Load from DATABASE_URL environment variable (configured in .env)
+        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
             
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
@@ -64,7 +65,7 @@ class Config:
     AI_MAX_TOKENS = 2048
 
     # Maintenance Access
-    MAINTENANCE_PASSWORD = os.environ.get('MAINTENANCE_PASSWORD', '44113290@sahil')
+    MAINTENANCE_PASSWORD = os.environ.get('MAINTENANCE_PASSWORD')
 
     # Export
     EXPORT_FOLDER = os.path.join(basedir, 'exports')
